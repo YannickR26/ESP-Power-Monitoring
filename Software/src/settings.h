@@ -1,10 +1,10 @@
 #pragma once
 
 // Setup Wifi
-#define WIFI_SSID   "yourSSID1"
-#define WIFI_PASS   "yourPASS1"
-#define WIFI_SSID2  "yourSSID2"
-#define WIFI_PASS2  "yourPASS2"
+#define WIFI_SSID   "Internet-Maison"
+#define WIFI_PASS   "MaisonMoreauRichardot"
+#define WIFI_SSID2  "WIFI_CBEE"
+#define WIFI_PASS2  "iletaitunefoisunpetitbateau"
 // Setup Wifi in AP mode
 #define WIFI_AP_HOTSTNAME   "ESP_Monitoring"
 #define WIFI_AP_PASSWORD    "ESP_Monitoring"
