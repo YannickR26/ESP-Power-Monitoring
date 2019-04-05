@@ -71,17 +71,34 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=MDUXSLSZ
 
+[Document3]
+DocumentPath=ATM90E32AS.SchDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=1
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=HSOQQIAX
+
 [Parameter1]
-Name=Revision_
-Value=V1.0
+Name=Engineer_
+Value=Yannick R.
 
 [Parameter2]
 Name=ProjectName_
 Value=ESP-Monitoring
 
 [Parameter3]
-Name=Engineer_
-Value=Yannick R.
+Name=Revision_
+Value=V1.0
 
 [Configuration1]
 Name=Sources
