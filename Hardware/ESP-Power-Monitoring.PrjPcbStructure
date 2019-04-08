@@ -1,0 +1,4 @@
+Record=TopLevelDocument|FileName=Top.SchDoc
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_ATM90E32AS|SchDesignator=U_ATM90E32AS|FileName=ATM90E32AS.SchDoc|SymbolType=Normal|RawFileName=ATM90E32AS.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_ESP8266|SchDesignator=U_ESP8266|FileName=ESP8266.SchDoc|SymbolType=Normal|RawFileName=ESP8266.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_Relay|SchDesignator=U_Relay|FileName=Relay.SchDoc|SymbolType=Normal|RawFileName=Relay.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
