@@ -1,0 +1,91 @@
+Altium Designer Pick and Place Locations
+D:\Dropbox\Projets\ESP-Power-Monitoring\Hardware\Project Outputs for ESP-Power-Monitoring\Pick Place\Pick Place for PCB.txt
+
+========================================================================================================================
+File Design Information:
+
+Date:       10/04/19
+Time:       16:01
+Revision:   b846c0c3ede2d930c777e7e215dc8d0831ccd602
+Variant:    No variations
+Units used: mil
+
+Designator Comment          Layer    Footprint             Center-X(mil) Center-Y(mil) Rotation Description                                                                               
+R36        NC               TopLayer AXIAL-0.4             1112.205      763.779       90       Resistor                                                                                  
+F6         1A               TopLayer R0603                 1586.604      2903.538      180      Fuse                                                                                      
+U1         DC/DC_ISO        TopLayer R1SE                  1598.424      2551.187      270      "CONVERTER DC/DC ISOLATED"                                                                
+U2         Wemos_D1_Mini    TopLayer WEMOS_D1_MINI         692.912       1857.278      360      ""                                                                                        
+R51        220R_1%_0603     TopLayer R0603                 1374.011      334.649       270      Resistor                                                                                  
+R7         22R_1%_0603      TopLayer R0603                 98.422        1712.200      360      Resistor                                                                                  
+R6         22R_1%_0603      TopLayer R0603                 98.422        1811.021      360      Resistor                                                                                  
+R5         22R_1%_0603      TopLayer R0603                 1275.587      1913.383      360      Resistor                                                                                  
+R2         22R_1%_0603      TopLayer R0603                 1275.587      2116.137      360      Resistor                                                                                  
+R8         22R_1%_0603      TopLayer R0603                 98.422        1612.200      360      Resistor                                                                                  
+R1         22R_1%_0603      TopLayer R0603                 1279.524      2212.596      360      Resistor                                                                                  
+R3         22R_1%_0603      TopLayer R0603                 1275.587      2013.780      360      Resistor                                                                                  
+R4         22R_1%_0603      TopLayer R0603                 98.422        1909.446      360      Resistor                                                                                  
+LED1       LED_Green        TopLayer LED_0603_Bright_Green 1374.013      118.117       270      "SMD mono-color Chip LED, WL-SMCW, Bright Green"                                          
+J2         691213710002     TopLayer 691213710002          1653.543      3188.976      360      "WR-TBL Horizontal Entry Modular with Rising Cage Clamp,Serie 213 - 5.00 mm"              
+J1         691213710002     TopLayer 691213710002          1653.542      196.855       360      "WR-TBL Horizontal Entry Modular with Rising Cage Clamp,Serie 213 - 5.00 mm"              
+F1         EMI              TopLayer EMIFIL_0603           1474.285      2193.161      90       "FILTER CAP 0.1UF 2A 16V 0603"                                                            
+F2         EMI              TopLayer EMIFIL_0603           147.761       1397.283      270      "FILTER CAP 0.1UF 2A 16V 0603"                                                            
+C2         1uF_16V_0603     TopLayer C0603                 1500.003      2066.931      180      Capacitor                                                                                 
+C1         150uF_10V_PANA_C TopLayer CAP_PANA_C            1553.542      1893.701      360      "Polarized Capacitor (Radial)"                                                            
+C3         10uF_6V3_0805    TopLayer C0805                 110.233       1499.998      360      Capacitor                                                                                 
+Y1         16.384MHz        TopLayer OSC_3.2X2.5           899.594       1425.152      360      "Crystal Oscillator"                                                                      
+U3         ATM90E32AS       TopLayer TQFP48                742.124       1716.548      270      "Enhanced Poly-Phase High-Performance Wide-Span Energy Metering IC"                       
+R53        100K_1%_0603     TopLayer R0603                 1476.376      1092.523      360      Resistor                                                                                  
+R52        1K_1%_0603       TopLayer R0603                 1476.376      1151.579      360      Resistor                                                                                  
+R50        1K_1%_0603       TopLayer R0603                 1066.931      2748.028      90       Resistor                                                                                  
+R46        1K_1%_0603       TopLayer R0603                 641.315       2748.027      90       Resistor                                                                                  
+R49        2R4_1%_0603      TopLayer R0603                 1035.436      2830.706      180      Resistor                                                                                  
+R45        2R4_1%_0603      TopLayer R0603                 609.822       2832.677      180      Resistor                                                                                  
+R42        1K_1%_0603       TopLayer R0603                 208.669       2753.932      90       Resistor                                                                                  
+R48        2R4_1%_0603      TopLayer R0603                 1158.656      2832.675      360      Resistor                                                                                  
+R44        2R4_1%_0603      TopLayer R0603                 735.793       2832.673      360      Resistor                                                                                  
+R41        2R4_1%_0603      TopLayer R0603                 179.128       2836.612      180      Resistor                                                                                  
+R47        1K_1%_0603       TopLayer R0603                 1125.591      2748.027      90       Resistor                                                                                  
+R43        1K_1%_0603       TopLayer R0603                 701.601       2748.288      90       Resistor                                                                                  
+R39        2R4_1%_0603      TopLayer R0603                 306.159       2836.615      360      Resistor                                                                                  
+R38        1K_1%_0603       TopLayer R0603                 271.660       2751.963      90       Resistor                                                                                  
+R37        NC               TopLayer AXIAL-0.4             633.854       959.842       90       Resistor                                                                                  
+R18        1K_1%_1206       TopLayer R1206                 816.929       984.252       270      Resistor                                                                                  
+R17        1K_1%_1206       TopLayer R1206                 521.654       984.252       270      Resistor                                                                                  
+R16        1K_1%_1206       TopLayer R1206                 226.378       984.252       270      Resistor                                                                                  
+R11        1M_1%_TRAD       TopLayer AXIAL-0.3             816.929       708.661       270      Resistor                                                                                  
+R10        1M_1%_TRAD       TopLayer AXIAL-0.3             521.654       708.661       270      Resistor                                                                                  
+R9         1M_1%_TRAD       TopLayer AXIAL-0.3             226.378       708.661       270      Resistor                                                                                  
+R34        1K_1%_0603       TopLayer R0603                 573.345       1390.711      90       Resistor                                                                                  
+R33        1K_1%_0603       TopLayer R0603                 776.183       1390.711      90       Resistor                                                                                  
+R32        1K_1%_0603       TopLayer R0603                 674.764       1390.711      90       Resistor                                                                                  
+R40        10K_1%_0603      TopLayer R0603                 741.464       2094.690      180      Resistor                                                                                  
+Q1         2.1A_40V_0R095   TopLayer SOT23_N               1476.376      987.602       270      "N-Channel MOSFET"                                                                        
+K1         Relay-DPDT       TopLayer RELAY_G6K_2F_Y        1625.981      696.846       360      "Dual-Pole Dual-Throw Relay"                                                              
+J3         691242910004     TopLayer 691242910004          669.289       196.858       360      "Horizontal Cable Entry with Rising Cage Clamp, Serie 2429 - 7.5 mm"                      
+J6         SJ1-2503A        TopLayer SJ1-2503A             1102.362      3127.955      270      "Jack Socket, 1/4" [6.5mm], Thru-Hole, Vertical, 3-Conductor with Tip closed & Ring open" 
+J5         SJ1-2503A        TopLayer SJ1-2503A             669.294       3127.955      270      "Jack Socket, 1/4" [6.5mm], Thru-Hole, Vertical, 3-Conductor with Tip closed & Ring open" 
+J4         SJ1-2503A        TopLayer SJ1-2503A             236.220       3127.955      270      "Jack Socket, 1/4" [6.5mm], Thru-Hole, Vertical, 3-Conductor with Tip closed & Ring open" 
+F5         EMI              TopLayer EMIFIL_0603           1323.342      637.914       360      "FILTER CAP 0.1UF 2A 16V 0603"                                                            
+F4         EMI              TopLayer EMIFIL_0603           600.142       2031.349      180      "FILTER CAP 0.1UF 2A 16V 0603"                                                            
+F3         EMI              TopLayer EMIFIL_0603           450.540       1897.514      180      "FILTER CAP 0.1UF 2A 16V 0603"                                                            
+D1         100V_1A_TUMD2    TopLayer TUMD2                 1358.860      761.809       270      "Default Diode"                                                                           
+C23        10uF_6V3_0805    TopLayer C0805                 1321.348      561.021       360      Capacitor                                                                                 
+C22        18nF_16V_0603    TopLayer C0603                 1039.367      2667.321      360      Capacitor                                                                                 
+C14        18nF_16V_0603    TopLayer C0603                 613.749       2667.323      360      Capacitor                                                                                 
+C19        18nF_16V_0603    TopLayer C0603                 1153.547      2667.323      180      Capacitor                                                                                 
+C13        18nF_16V_0603    TopLayer C0603                 729.473       2667.325      180      Capacitor                                                                                 
+C11        18nF_16V_0603    TopLayer C0603                 183.065       2669.282      360      Capacitor                                                                                 
+C10        18nF_16V_0603    TopLayer C0603                 299.222       2669.293      180      Capacitor                                                                                 
+C9         18nF_16V_0603    TopLayer C0603                 851.240       1122.047      360      Capacitor                                                                                 
+C5         18nF_16V_0603    TopLayer C0603                 488.635       1122.047      180      Capacitor                                                                                 
+C4         18nF_16V_0603    TopLayer C0603                 262.773       1122.047      360      Capacitor                                                                                 
+C16        10uF_6V3_0805    TopLayer C0805                 468.506       1594.484      90       Capacitor                                                                                 
+C15        100nF_10V_0603   TopLayer C0603                 399.608       1603.646      90       Capacitor                                                                                 
+C7         18nF_16V_0603    TopLayer C0603                 624.054       1394.648      90       Capacitor                                                                                 
+C21        10uF_6V3_0805    TopLayer C0805                 596.453       1960.458      360      Capacitor                                                                                 
+C20        10uF_6V3_0805    TopLayer C0805                 779.532       1968.506      180      Capacitor                                                                                 
+C18        100nF_10V_0603   TopLayer C0603                 716.532       2031.016      360      Capacitor                                                                                 
+C17        10uF_6V3_0805    TopLayer C0805                 446.846       1824.806      360      Capacitor                                                                                 
+C6         18nF_16V_0603    TopLayer C0603                 522.635       1394.648      90       Capacitor                                                                                 
+C8         18nF_16V_0603    TopLayer C0603                 725.473       1394.648      90       Capacitor                                                                                 
+C12        10uF_6V3_0805    TopLayer C0805                 852.681       2094.490      180      Capacitor                                                                                 
