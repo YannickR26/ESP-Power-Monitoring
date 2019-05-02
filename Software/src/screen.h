@@ -24,7 +24,7 @@ class screen
     void drawWifiQuality();
 
   private:
-    uint8_t m_state;
+    uint8_t _state;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)

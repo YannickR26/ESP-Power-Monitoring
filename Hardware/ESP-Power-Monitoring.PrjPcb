@@ -28,7 +28,7 @@ DItemRevisionGUID=
 ReportSuppressedErrorsInMessages=0
 FSMCodingStyle=eFMSDropDownList_OneProcess
 FSMEncodingStyle=eFMSDropDownList_OneHot
-OutputPath=Project Outputs for ESP-Power-Monitoring
+OutputPath=
 LogFolderPath=
 ManagedProjectGUID=
 IncludeDesignInRelease=0
@@ -191,7 +191,7 @@ GenerateClassCluster=0
 DocumentUniqueId=
 
 [GeneratedDocument1]
-DocumentPath=Project Outputs for ESP-Power-Monitoring\Design Rule Check - PCB.html
+DocumentPath=Project Outputs for ESP-Power-Monitoring\BOM\Bill of Materials-ESP-Power-Monitoring.xls
 DItemRevisionGUID=
 
 [GeneratedDocument2]
@@ -203,62 +203,42 @@ DocumentPath=Project Outputs for ESP-Power-Monitoring\NC Drill\PCB-SlotHoles.TXT
 DItemRevisionGUID=
 
 [GeneratedDocument4]
-DocumentPath=Project Outputs for ESP-Power-Monitoring\NC Drill\PCB.DRR
-DItemRevisionGUID=
-
-[GeneratedDocument5]
-DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.EXTREP
-DItemRevisionGUID=
-
-[GeneratedDocument6]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GBL
 DItemRevisionGUID=
 
-[GeneratedDocument7]
+[GeneratedDocument5]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GBO
 DItemRevisionGUID=
 
-[GeneratedDocument8]
+[GeneratedDocument6]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GBP
 DItemRevisionGUID=
 
-[GeneratedDocument9]
+[GeneratedDocument7]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GBS
 DItemRevisionGUID=
 
-[GeneratedDocument10]
+[GeneratedDocument8]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GKO
 DItemRevisionGUID=
 
-[GeneratedDocument11]
+[GeneratedDocument9]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GTL
 DItemRevisionGUID=
 
-[GeneratedDocument12]
+[GeneratedDocument10]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GTO
 DItemRevisionGUID=
 
-[GeneratedDocument13]
+[GeneratedDocument11]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GTP
 DItemRevisionGUID=
 
-[GeneratedDocument14]
+[GeneratedDocument12]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.GTS
 DItemRevisionGUID=
 
-[GeneratedDocument15]
-DocumentPath=Project Outputs for ESP-Power-Monitoring\NC Drill\PCB.LDP
-DItemRevisionGUID=
-
-[GeneratedDocument16]
-DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.REP
-DItemRevisionGUID=
-
-[GeneratedDocument17]
-DocumentPath=Project Outputs for ESP-Power-Monitoring\Gerber\PCB.RUL
-DItemRevisionGUID=
-
-[GeneratedDocument18]
+[GeneratedDocument13]
 DocumentPath=Project Outputs for ESP-Power-Monitoring\Pick Place\Pick Place for PCB.txt
 DItemRevisionGUID=
 
@@ -285,7 +265,7 @@ ContentTypeGUID=CB6F2064-E317-11DF-B822-12313F0024A2
 ConfigurationType=Source
 
 [Generic_EDE]
-OutputDir=Project Outputs for ESP-Power-Monitoring
+OutputDir=
 
 [OutputGroup1]
 Name=Netlist Outputs

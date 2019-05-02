@@ -53,58 +53,58 @@ void screen::setup(void)
   tft.setCursor(0, 120);
   tft.println("V1.0    by Yannick R.");
   delay(1000);
-  m_state = st_DisplayPhaseA;
+  _state = st_DisplayPhaseA;
 }
 
 void screen::handle()
 {
   static unsigned long oldMillis;
 
-  if ((millis() - oldMillis) >= (unsigned long)(Configuration.m_timeUpdateScreen * 1000))
+  if ((millis() - oldMillis) >= (unsigned long)(Configuration._timeUpdateScreen * 1000))
   {
     oldMillis = millis();
 
     /* Draw wifi quality */
     drawWifiQuality();
 
-    if (Configuration.m_mode == MODE_MONO)
+    if (Configuration._mode == MODE_MONO)
     {
 
       /* Update data from ATM90E32 */
       Monitoring.handle();
 
-      switch (m_state)
+      switch (_state)
       {
       /* Display Phase A */
       case st_DisplayPhaseA:
-        display_metering(Monitoring.getLineA(), Configuration.m_namePhaseA);
-        m_state = st_DisplayPhaseB;
+        display_metering(Monitoring.getLineA(), Configuration._namePhaseA);
+        _state = st_DisplayPhaseB;
         break;
 
       /* Display Phase B */
       case st_DisplayPhaseB:
-        display_metering(Monitoring.getLineB(), Configuration.m_namePhaseB);
-        m_state = st_DisplayPhaseC;
+        display_metering(Monitoring.getLineB(), Configuration._namePhaseB);
+        _state = st_DisplayPhaseC;
         break;
 
       /* Display Phase C */
       case st_DisplayPhaseC:
-        display_metering(Monitoring.getLineC(), Configuration.m_namePhaseC);
-        m_state = st_DisplayPhaseA;
+        display_metering(Monitoring.getLineC(), Configuration._namePhaseC);
+        _state = st_DisplayPhaseA;
         break;
 
       default:
-        m_state = st_DisplayPhaseA;
+        _state = st_DisplayPhaseA;
         break;
       }
     }
-    else if (Configuration.m_mode == MODE_TRI)
+    else if (Configuration._mode == MODE_TRI)
     {
       /* Update data from ATM90E32 */
       Monitoring.handle();
 
       /* Display data */
-      display_metering(Monitoring.getLineA(), Configuration.m_namePhaseA);
+      display_metering(Monitoring.getLineA(), Configuration._namePhaseA);
     }
     
     /* Apply to screen */

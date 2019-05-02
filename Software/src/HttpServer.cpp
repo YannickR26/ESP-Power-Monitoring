@@ -2,7 +2,6 @@
 #include <ESP8266mDNS.h>
 
 #include "HttpServer.h"
-#include "JsonConfiguration.h"
 
 /********************************************************/
 /******************** Public Method *********************/
@@ -18,30 +17,32 @@ HttpServer::~HttpServer()
 
 void HttpServer::setup(void)
 {
-  MDNS.begin(Configuration.m_hostname.c_str()); 
+  MDNS.begin(Configuration._hostname.c_str()); 
   MDNS.addService("http", "tcp", 80);
 
-  m_ftpServer.begin(Configuration.m_ftpLogin, Configuration.m_ftpPasswd);
-  MDNS.addService("ftp", "tcp", 21);
-
-  m_webServer.begin();
-
-  //called when the url is not defined here
-  //use it to load content from SPIFFS
-  m_webServer.onNotFound([]() {
-    HTTPServer.webServer().send(404, "text/plain", "FileNotFound");
+  _webServer.on("/config/reset", HTTP_GET, []() { 
+    Configuration.restoreDefault();
+    _webServer.send(200, "text/plain", "Restore configuration successfully !");
   });
+
+  _webServer.onNotFound([&]() {
+    if (!handleFileRead(_webServer.uri())) {
+      _webServer.send(404, "text/plain", "File Not Found !");
+    }
+  });
+
+  _webServer.begin();
 }
 
 void HttpServer::handle(void)
 {
-  m_webServer.handleClient();
-  m_ftpServer.handleFTP();
+  _webServer.handleClient();
+  MDNS.update();
 }
 
 String HttpServer::getContentType(String filename)
 {
-	if (m_webServer.hasArg("download")) return "application/octet-stream";
+	if (_webServer.hasArg("download")) return "application/octet-stream";
 	else if (filename.endsWith(".htm")) return "text/html";
 	else if (filename.endsWith(".html")) return "text/html";
 	else if (filename.endsWith(".css")) return "text/css";
@@ -62,85 +63,49 @@ bool HttpServer::handleFileRead(String path)
 {
   Serial.println("handleFileRead: " + path);
   if (path.endsWith("/")) {
-    path += "index.html";          // If a folder is requested, send the index file
+    path += "index.html";                                     // If a folder is requested, send the index file
   }
-  String contentType = getContentType(path);             // Get the MIME type
+  String contentType = HTTPServer.getContentType(path);       // Get the MIME type
   String pathWithGz = path + ".gz";
-  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) { // If the file exists, either as a compressed archive, or normal
-    if (SPIFFS.exists(pathWithGz))                         // If there's a compressed version available
-      path += ".gz";                                         // Use the compressed verion
-    File file = SPIFFS.open(path, "r");                    // Open the file
-    size_t sent = m_webServer.streamFile(file, contentType);    // Send it to the client
-    file.close();                                          // Close the file again
+  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {     // If the file exists, either as a compressed archive, or normal
+    if (SPIFFS.exists(pathWithGz))                            // If there's a compressed version available
+      path += ".gz";                                          // Use the compressed verion
+    File file = SPIFFS.open(path, "r");                       // Open the file
+    HTTPServer.webServer().streamFile(file, contentType);     // Send it to the client
+    file.close();                                             // Close the file again
     Serial.println(String("\tSent file: ") + path);
     return true;
   }
-  Serial.println(String("\tFile Not Found: ") + path);   // If the file doesn't exist, return false
+  Serial.println(String("\tFile Not Found: ") + path);        // If the file doesn't exist, return false
   return false;
-}
-
-// upload a new file to the SPIFFS
-void HttpServer::handleFileUpload()
-{ 
-  static File fsUploadFile;
-  HTTPUpload& upload = m_webServer.upload();
-  if (upload.status == UPLOAD_FILE_START) {
-    String filename = upload.filename;
-    if(!filename.startsWith("/")) {
-      filename = "/"+filename;
-    }
-    Serial.print("handleFileUpload Name: "); 
-    Serial.println(filename);
-    fsUploadFile = SPIFFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
-    filename = String();
-  } 
-  else if (upload.status == UPLOAD_FILE_WRITE) {
-    if(fsUploadFile) {
-      fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
-    }
-  } 
-  else if (upload.status == UPLOAD_FILE_END) {
-    if(fsUploadFile) {                                    // If the file was successfully created
-      fsUploadFile.close();                               // Close the file again
-      Serial.print("handleFileUpload Size: "); 
-      Serial.println(upload.totalSize);
-      m_webServer.sendHeader("Location","/success.html");      // Redirect the client to the success page
-      m_webServer.send(303);
-    } 
-    else {
-      m_webServer.send(500, "text/plain", "500: couldn't create file");
-    }
-  }
 }
 
 ESP8266WebServer& HttpServer::webServer() 
 {
-  return m_webServer;
+  return _webServer;
 }
 
 /********************************************************/
 /******************** Private Method ********************/
 /********************************************************/
 
-void HttpServer::sendOk()
+void HttpServer::sendJson(const uint16 code, JsonDocument& doc)
 {
-	m_webServer.send(200, "application/json", "{\"result\":true}");
-}
+  WiFiClient client = HTTPServer.webServer().client();
 
-void HttpServer::sendOkAnswerWithParams(const String & params)
-{
-	String data("{\"result\":true, \"data\":");
-	data += params;
-	data += "}";
-	m_webServer.send(200, "application/json", data);
-}
+  // Write Header
+  client.print(F("HTTP/1.0 "));
+  client.print(code);
+  client.println(F(" OK"));
+  client.println(F("Content-Type: application/json"));
+  client.println(F("Access-Control-Allow-Origin: *"));
+  client.print(F("Content-Length: "));
+  client.println(measureJson(doc));
+  client.println(F("Connection: close"));
+  client.println();
 
-void HttpServer::sendKo(const String & message)
-{
-	String data("{\"result\":false, \"message\":\"");
-	data += message;
-	data += "\"}";
-	m_webServer.send(400, "application/json", data);
+  // Write JSON document
+  serializeJson(doc, client);
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) 

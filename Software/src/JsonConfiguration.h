@@ -18,14 +18,14 @@ class JsonConfiguration
     String toJson();
   
 		/* Members */
-  	String m_hostname;
-  	String m_ftpLogin;
-  	String m_ftpPasswd;
-		int m_timeUpdateNtp;
-		int m_timeWriteLog;
-		int m_timeUpdateScreen;
-		int m_mode;
-		String m_namePhaseA, m_namePhaseB, m_namePhaseC;
+  	String _hostname;
+		String _mqttIpServer;
+		int _mqttPortServer;
+		int _timeUpdateNtp;
+		int _timeSendData;
+		int _timeUpdateScreen;
+		int _mode;
+		String _namePhaseA, _namePhaseB, _namePhaseC;
      	
   private:
   

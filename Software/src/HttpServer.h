@@ -1,11 +1,13 @@
 #pragma once
 
 #include <ESP8266WebServer.h>
-#include <ESP8266FtpServer.h>
+#include <ArduinoJson.h>
+
+#include "JsonConfiguration.h"
 
 class HttpServer
 {
-  public:
+public:
 	HttpServer() ;
 	virtual ~HttpServer();
 
@@ -13,21 +15,21 @@ class HttpServer
 	void handle(void);
 
 	String getContentType(String filename);
-    bool handleFileRead(String path);
-    void handleFileUpload();
+  bool handleFileRead(String path);
 
-    ESP8266WebServer& webServer();
+  ESP8266WebServer& webServer();
 
-  protected:
-  	void sendOk();
-  	void sendKo(const String & message);
-  	void sendOkAnswerWithParams(const String & params);
-	  
-  private:
-  	ESP8266WebServer  m_webServer;
-  	FtpServer         m_ftpServer;
+  void sendJson(const uint16 code, JsonDocument& doc);
+
+protected:
+  static void get_config();
+  static void set_config();
+
+private:
+  ESP8266WebServer  _webServer;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)
 extern HttpServer HTTPServer;
 #endif
+

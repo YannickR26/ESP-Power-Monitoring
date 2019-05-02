@@ -9,12 +9,12 @@
 #define WIFI_AP_HOTSTNAME   "ESP_Monitoring"
 #define WIFI_AP_PASSWORD    "ESP_Monitoring"
 
-#define DEFAULT_HOSTNAME    "ESP_Monitoring"
-#define DEFAULT_FTP_USER    "ESP_Monitoring"
-#define DEFAULT_FTP_PWD     "ESP_Monitoring"
+#define DEFAULT_HOSTNAME            "ESP_Monitoring"
+#define DEFAULT_MQTTIPSERVER        "192.168.1.10"
+#define DEFAULT_MQTTPORTSERVER      1883
 
 #define DEFAULT_NTP_UPDATE_INTERVAL_SEC     (1 * 3600)      // Update time from NTP server every 1 hours
-#define DEFAULT_LOG_WRITE_INTERVAL_SEC      60              // Log data every 1 minutes
+#define DEFAULT_SEND_DATA_INTERVAL_SEC      5//60              // Log data every 1 minutes
 #define DEFAULT_SCREEN_UPDATE_INTERVAL_SEC  5               // Update screen every 5 secondes
 
 // Mode

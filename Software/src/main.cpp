@@ -7,11 +7,12 @@
 #include "JsonConfiguration.h"
 #include "HttpServer.h"
 #include "ATM90E32.h"
-#include "screen.h"
+// #include "screen.h"
+#include "Mqtt.h"
 #include "settings.h"
-#include "logWriter.h"
+// #include "logWriter.h"
 
-// #define ENABLE_OTA    // If defined, enable Arduino OTA code.
+#define ENABLE_OTA    // If defined, enable Arduino OTA code.
 // #define WIFI_AP       // If defined, Wifi in AP Mode else STA Mode
 
 // OTA
@@ -28,37 +29,36 @@ simpleDSTadjust dstAdjusted(StartRule, EndRule);
 
 // Global variable for Tick
 bool readyForNtpUpdate;
-bool readyForWriteLog;
+bool readyForSendData;
 
 // Ticker every 1 seconds
 void secTicker()
 {
-  static int tickNTPUpdate = Configuration.m_timeUpdateNtp;
-  static int tickLogWrite = Configuration.m_timeWriteLog;
+  static int tickNTPUpdate = Configuration._timeUpdateNtp;
+  static int tickSendData = Configuration._timeSendData;
 
   tickNTPUpdate--;
   if (tickNTPUpdate <= 0) {
     readyForNtpUpdate = true;
-    tickNTPUpdate = Configuration.m_timeUpdateNtp;
+    tickNTPUpdate = Configuration._timeUpdateNtp;
   }
 
-  tickLogWrite--;
-  if (tickLogWrite <= 0) {
-    readyForWriteLog = true;
-    tickLogWrite = Configuration.m_timeWriteLog;
+  tickSendData--;
+  if (tickSendData <= 0) {
+   readyForSendData = true;
+    tickSendData = Configuration._timeSendData;
   }
 }
 
 void printTime()
 {
-  char buf[30];
+  char buf[40];
   char *dstAbbrev;
   time_t t = dstAdjusted.time(&dstAbbrev);
   struct tm *timeinfo = localtime(&t);
 
   sprintf(buf, "DateTime: %02d/%02d/%d, %02d:%02d:%02d %s", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, dstAbbrev);
   Serial.println(buf);
-  Serial.flush();
 }
 
 void updateNTP() {
@@ -81,22 +81,22 @@ void setup() {
   Serial.println("Starting...");
 
   /* Initialize the ATM90E32 + SPI port */
-  // Monitoring.setup(ATM90E32_CS);
+  Monitoring.setup(ATM90E32_CS);
 
   /* Initialize the screen */
-  Screen.setup();
+  // Screen.setup();
 
   /* Connect to Wifi */
 #ifndef WIFI_AP
   wifiMulti.addAP(WIFI_SSID, WIFI_PASS);
   wifiMulti.addAP(WIFI_SSID2, WIFI_PASS2);
   Serial.println("\nConnecting to WiFi");
-  Screen.connecting_to_wifi();
+  // Screen.connecting_to_wifi();
   while (wifiMulti.run() != WL_CONNECTED) {
     Serial.print(".");
     delay(1000);
   }
-  Screen.wifi_done();
+  // Screen.wifi_done();
   Serial.println("\nDone");
   Serial.println(String("Connected to ") + WiFi.SSID());
   Serial.println(String("IP address: ") + WiFi.localIP().toString());
@@ -105,28 +105,30 @@ void setup() {
   Serial.print("Wifi AP Mode, IP address: ");
   Serial.println(WiFi.softAPIP());
 #endif
+
+  /* Initialize HTTP Server */
+  HTTPServer.setup();
   
   delay(1000);
 
+  /* Initialize MQTT Client */
+  MqttClient.setup();
+
   // Configuration.setup();
   Configuration.restoreDefault();
-
-  // LogWriter.setup();
-
-  // HTTPServer.setup();
 
   /* Init the NTP time */
   updateNTP();
 
   // Init OTA
 #ifdef ENABLE_OTA
-  Serial.println("Arduino OTA activated.");
+  Serial.println("Arduino OTA activated");
   
   // Port defaults to 8266
   ArduinoOTA.setPort(8266);
 
   // Hostname defaults to esp8266-[ChipID]
-  ArduinoOTA.setHostname(Configuration.m_hostname.c_str());
+  ArduinoOTA.setHostname(Configuration._hostname.c_str());
 
   ArduinoOTA.onStart([&]() {
     Serial.println("Arduino OTA: Start updating");
@@ -153,7 +155,7 @@ void setup() {
   // Ticker every 1 seconds
   tickerEvery1sec.attach(1, secTicker);
 
-  Screen.clear();
+  // Screen.clear();
 }
 
 /************/
@@ -161,9 +163,10 @@ void setup() {
 /************/
 void loop() {
 
-  Screen.handle();
+  // Screen.handle();
+  MqttClient.handle();
 
-  // HTTPServer.handle();
+  HTTPServer.handle();
 
 #ifdef ENABLE_OTA
   ArduinoOTA.handle();
@@ -174,18 +177,20 @@ void loop() {
     readyForNtpUpdate = false;
   }
 
-  if (readyForWriteLog) {
-    // TODO write log
-    readyForWriteLog = false;
+  if (readyForSendData) {
+    // TODO send data to mqtt broker
+    Serial.println("Send data to MQTT");
+    MqttClient.publish("outTopic", "msgTest");
+    readyForSendData = false;
   }
 
-  char *dstAbbrev;
-  time_t now = dstAdjusted.time(&dstAbbrev);
-  Screen.display_menu(&now);
+  // char *dstAbbrev;
+  // time_t now = dstAdjusted.time(&dstAbbrev);
+  // Screen.display_menu(&now);
 
   // LogWriter.handle(timeinfo);
 
   // Screen.display_relay_status(false);
  
-  delay(200);
+  delay(50);
 }

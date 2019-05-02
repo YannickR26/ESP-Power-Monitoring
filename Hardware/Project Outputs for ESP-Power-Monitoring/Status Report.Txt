@@ -1,0 +1,15 @@
+Project Outputs Generation Report
+---------------------------------
+Start Output Generation At 09:58:31 On 23/04/2019
+
+Output: Bill of Materials
+Type  : BOM
+From  : Variant [[No Variations]] of Project [ESP-Power-Monitoring.PrjPcb]
+   Generated File[Bill of Materials-ESP-Power-Monitoring.xls]
+   Generated File[Bill of Materials-ESP-Power-Monitoring.xls]
+
+
+Files Generated   : 2
+Documents Printed : 0
+
+Finished Output Generation At 09:58:38 On 23/04/2019
