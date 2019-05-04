@@ -12,12 +12,13 @@ class Mqtt
   
   	void setup();
 		void handle();
-		bool publish(const char* topic, const char* payload);
+		void publishMonitoringData();
 
-		void reconnect();
-    void callback(char* topic, uint8_t* payload, unsigned int length);
 
   private:
+		void reconnect();
+    void callback(char* topic, uint8_t* payload, unsigned int length);
+		
 		PubSubClient clientMqtt;
 };
 

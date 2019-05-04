@@ -1,8 +1,10 @@
 #include "Mqtt.h"
 
 #include "JsonConfiguration.h"
+#include "ATM90E32.h"
 
 #include <ESP8266WiFi.h>
+#include <WiFiManager.h>
 
 WiFiClient espClient;
 
@@ -33,10 +35,38 @@ void Mqtt::handle()
   clientMqtt.loop();
 }
 
-bool Mqtt::publish(const char* topic, const char* payload)
+void Mqtt::publishMonitoringData()
 {
-  return clientMqtt.publish(topic, payload);
+  metering line;
+
+  /* Update data from monitoring IC */
+  Monitoring.handle();
+
+  /* Send Line A */
+  line = Monitoring.getLineA();
+  clientMqtt.publish(String(Configuration._hostname + "/lineA/voltage").c_str(), String(line.voltage).c_str());
+  clientMqtt.publish(String(Configuration._hostname + "/lineA/current").c_str(), String(line.current).c_str());
+  clientMqtt.publish(String(Configuration._hostname + "/lineA/power").c_str(), String(line.power).c_str());
+
+  /* Send Line B */
+  line = Monitoring.getLineB();
+  clientMqtt.publish(String(Configuration._hostname + "/lineB/voltage").c_str(), String(line.voltage).c_str());
+  clientMqtt.publish(String(Configuration._hostname + "/lineB/current").c_str(), String(line.current).c_str());
+  clientMqtt.publish(String(Configuration._hostname + "/lineB/power").c_str(), String(line.power).c_str());
+
+  /* Send Line C */
+  line = Monitoring.getLineC();
+  clientMqtt.publish(String(Configuration._hostname + "/lineC/voltage").c_str(), String(line.voltage).c_str());
+  clientMqtt.publish(String(Configuration._hostname + "/lineC/current").c_str(), String(line.current).c_str());
+  clientMqtt.publish(String(Configuration._hostname + "/lineC/power").c_str(), String(line.power).c_str());
+
+  /* Send Frequency */
+  clientMqtt.publish(String(Configuration._hostname + "/frequency").c_str(), String(Monitoring.getFrequency()).c_str());
 }
+
+/********************************************************/
+/******************** Private Method ********************/
+/********************************************************/
 
 void Mqtt::reconnect()
 {
@@ -50,9 +80,9 @@ void Mqtt::reconnect()
     if (clientMqtt.connect(clientId.c_str())) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      clientMqtt.publish("outTopic", "hello world");
+      clientMqtt.publish(String(Configuration._hostname + "/status").c_str(), "online");
       // ... and resubscribe
-      clientMqtt.subscribe("inTopic");
+      clientMqtt.subscribe(String(Configuration._hostname + "/set/#").c_str());
     } else {
       Serial.print("failed, rc=");
       Serial.print(clientMqtt.state());
@@ -72,11 +102,48 @@ void Mqtt::callback(char* topic, uint8_t* payload, unsigned int length)
     Serial.print((char)payload[i]);
   }
   Serial.println();
+
+  String topicStr(topic);
+  topicStr.remove(0, topicStr.lastIndexOf('/')+1);
+
+  if (topicStr == String("relay")) {
+    int status = atoi((char*)payload);
+    digitalWrite(RELAY_PIN, status);
+    Serial.println(String("set relay status to ") + String(status));
+  }
+  else if (topicStr == String("timeIntervalUpdate")) {
+    int time = atoi((char*)payload);
+    Serial.println(String("set timeSendData to ") + String(time));
+    Configuration._timeSendData = time;
+    Configuration.saveConfig();
+  }
+  else if (topicStr == String("mode")) {
+    int mode = atoi((char*)payload);
+    Serial.println(String("set mode to ") + String(mode));
+    Configuration._mode = mode;
+    Configuration.saveConfig();
+  }
+  else if (topicStr == String("hostname")) {
+    String data((char*)payload);
+    Serial.println("Change hostname to " + data);
+    Configuration._hostname = data;
+    Configuration.saveConfig();
+  }
+  else if (topicStr == String("restart")) {
+    Serial.println("Restart ESP !!!");
+    ESP.restart();
+  }
+  else if (topicStr == String("reset")) {
+    Serial.println("Reset ESP and restart !!!");
+    WiFiManager wifiManager;
+    wifiManager.resetSettings();
+    ESP.restart();
+  }
+  else {
+    Serial.println("Unknow command");
+  }
 }
 
-/********************************************************/
-/******************** Private Method ********************/
-/********************************************************/
 
 #if !defined(NO_GLOBAL_INSTANCES) 
 Mqtt MqttClient;

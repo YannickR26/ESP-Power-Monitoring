@@ -25,12 +25,11 @@ void JsonConfiguration::setup(void)
 	if (!readConfig()) {
 		Serial.println("Invalid configuration values, restoring default values");
 		restoreDefault();
-    return;
 	}
 
 	Serial.printf("\thostname : %s\n", _hostname.c_str());
 	Serial.printf("\tmqttIpServer : %s\n", _mqttIpServer.c_str());
-	Serial.printf("\tmqttPortServer : %s\n", _mqttPortServer);
+	Serial.printf("\tmqttPortServer : %d\n", _mqttPortServer);
 	Serial.printf("\ttimeUpdateNTP : %d\n", _timeUpdateNtp);
 	Serial.printf("\ttimeSendData : %d\n", _timeSendData);
   Serial.printf("\ttimeUpdateScreen : %d\n", _timeUpdateScreen);
@@ -50,7 +49,8 @@ bool JsonConfiguration::readConfig()
   }
   
   // Allocate a buffer to store contents of the file.
-  StaticJsonDocument<512> doc;
+  // StaticJsonDocument<512> doc;
+  DynamicJsonDocument doc(512);
   
   // Deserialize the JSON document
   DeserializationError error = deserializeJson(doc, configFile);
@@ -76,7 +76,8 @@ bool JsonConfiguration::readConfig()
 
 bool JsonConfiguration::saveConfig()
 {
-  StaticJsonDocument<512> doc;
+  // StaticJsonDocument<512> doc;
+  DynamicJsonDocument doc(512);
  
 	doc["hostname"]               = _hostname;
   doc["mqttIpServer"]           = _mqttIpServer;
@@ -102,6 +103,16 @@ bool JsonConfiguration::saveConfig()
   }
 
   configFile.close();
+
+  
+	Serial.println("Save config successfully");
+	Serial.printf("\thostname : %s\n", _hostname.c_str());
+	Serial.printf("\tmqttIpServer : %s\n", _mqttIpServer.c_str());
+	Serial.printf("\tmqttPortServer : %d\n", _mqttPortServer);
+	Serial.printf("\ttimeUpdateNTP : %d\n", _timeUpdateNtp);
+	Serial.printf("\ttimeSendData : %d\n", _timeSendData);
+  Serial.printf("\ttimeUpdateScreen : %d\n", _timeUpdateScreen);
+	Serial.printf("\tmode : %d\n", _mode);
 	
 	return true;
 }

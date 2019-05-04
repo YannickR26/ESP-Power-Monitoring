@@ -41,8 +41,8 @@ void ATM90E32::setup(unsigned int cs_pin)
   CommEnergyIC(0, QStartTh, 0x0AEC); //Reactive Startup Power Threshold
   CommEnergyIC(0, CSZero, 0x5F59); //Write CSOne, as self calculated
   
-  Serial.print("Checksum 0:");
-  Serial.println(CommEnergyIC(1, CSZero, 0x0000), HEX); //Checksum 0. Needs to be calculated based off the above values.
+  // Serial.print("Checksum 0:");
+  // Serial.println(CommEnergyIC(1, CSZero, 0x0000), HEX); //Checksum 0. Needs to be calculated based off the above values.
   
   //Set metering calibration values
   CommEnergyIC(0, CalStart, 0x5678); //Metering calibration startup command. Register 41 to 4D need to be set
@@ -60,8 +60,8 @@ void ATM90E32::setup(unsigned int cs_pin)
   CommEnergyIC(0, QoffsetC, 0x0000); //C line reactive power offset
   CommEnergyIC(0, CSOne, 0x2402); //Write CSOne, as self calculated
   
-  Serial.print("Checksum 1:");
-  Serial.println(CommEnergyIC(1, CSOne, 0x0000), HEX); //Checksum 1. Needs to be calculated based off the above values.
+  // Serial.print("Checksum 1:");
+  // Serial.println(CommEnergyIC(1, CSOne, 0x0000), HEX); //Checksum 1. Needs to be calculated based off the above values.
 
   //Set measurement calibration values
   CommEnergyIC(0, AdjStart, 0x5678); //Measurement calibration startup command, registers 61-6F
@@ -79,8 +79,8 @@ void ATM90E32::setup(unsigned int cs_pin)
   CommEnergyIC(0, IoffsetC, 0x0000); //C line current offset
   CommEnergyIC(0, CSThree, 0xA694); //Write CSThree, as self calculated
 
-  Serial.print("Checksum 3:");
-  Serial.println(CommEnergyIC(1, CSThree, 0x0000), HEX); //Checksum 3. Needs to be calculated based off the above values.
+  // Serial.print("Checksum 3:");
+  // Serial.println(CommEnergyIC(1, CSThree, 0x0000), HEX); //Checksum 3. Needs to be calculated based off the above values.
 
   CommEnergyIC(0, ConfigStart, 0x8765); //Checks correctness of 31-3B registers and starts normal metering if ok
   CommEnergyIC(0, CalStart, 0x8765); //Checks correctness of 41-4D registers and starts normal metering if ok

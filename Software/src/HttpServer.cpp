@@ -20,7 +20,7 @@ void HttpServer::setup(void)
   MDNS.begin(Configuration._hostname.c_str()); 
   MDNS.addService("http", "tcp", 80);
 
-  _webServer.on("/config/reset", HTTP_GET, []() { 
+  _webServer.on("/config/reset", HTTP_GET, [&]() { 
     Configuration.restoreDefault();
     _webServer.send(200, "text/plain", "Restore configuration successfully !");
   });
