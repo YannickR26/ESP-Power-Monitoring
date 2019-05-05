@@ -91,7 +91,7 @@
 #define PangleC 0xFB //Phase Angle between Voltage and C Line Current
 
 struct metering {
-  double voltage, current, power;
+  double voltage, current, power, conso;
 };
 
 class ATM90E32 {
@@ -106,6 +106,8 @@ class ATM90E32 {
     metering getLineB() { return _line_B; }
     metering getLineC() { return _line_C; }
     double getFrequency() { return _frequency; }
+
+    void resetAllConso() { _line_A.conso = 0; _line_B.conso = 0; _line_C.conso = 0; }
 
   private:
     unsigned short CommEnergyIC(unsigned char RW, unsigned short address, unsigned short val);

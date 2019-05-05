@@ -32,7 +32,6 @@ void JsonConfiguration::setup(void)
 	Serial.printf("\tmqttPortServer : %d\n", _mqttPortServer);
 	Serial.printf("\ttimeUpdateNTP : %d\n", _timeUpdateNtp);
 	Serial.printf("\ttimeSendData : %d\n", _timeSendData);
-  Serial.printf("\ttimeUpdateScreen : %d\n", _timeUpdateScreen);
 	Serial.printf("\tmode : %d\n", _mode);
 }
 
@@ -62,7 +61,6 @@ bool JsonConfiguration::readConfig()
   _mqttIpServer       = doc["mqttIpServer"] | DEFAULT_MQTTIPSERVER; 
   _mqttPortServer     = doc["mqttPortServer"] | DEFAULT_MQTTPORTSERVER; 
   _timeUpdateNtp      = doc["ntpUpdateIntervale"] | DEFAULT_NTP_UPDATE_INTERVAL_SEC;
-  _timeUpdateScreen   = doc["screenUpdateIntervale"] | DEFAULT_SCREEN_UPDATE_INTERVAL_SEC;
   _timeSendData       = doc["SendDataIntervale"] | DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode               = doc["mode"] | MODE_MONO;
   _namePhaseA         = doc["namePhaseA"] | "Phase A";
@@ -83,7 +81,6 @@ bool JsonConfiguration::saveConfig()
   doc["mqttIpServer"]           = _mqttIpServer;
   doc["mqttPortServer"]         = _mqttPortServer;
 	doc["ntpUpdateIntervale"]     = _timeUpdateNtp;
-	doc["screenUpdateIntervale"]  = _timeUpdateScreen;
 	doc["SendDataIntervale"]      = _timeSendData;
 	doc["mode"]                   = _mode;
 	doc["namePhaseA"]             = _namePhaseA;
@@ -111,7 +108,6 @@ bool JsonConfiguration::saveConfig()
 	Serial.printf("\tmqttPortServer : %d\n", _mqttPortServer);
 	Serial.printf("\ttimeUpdateNTP : %d\n", _timeUpdateNtp);
 	Serial.printf("\ttimeSendData : %d\n", _timeSendData);
-  Serial.printf("\ttimeUpdateScreen : %d\n", _timeUpdateScreen);
 	Serial.printf("\tmode : %d\n", _mode);
 	
 	return true;
@@ -124,11 +120,10 @@ void JsonConfiguration::restoreDefault()
   _mqttPortServer     = DEFAULT_MQTTPORTSERVER; 
 	_timeUpdateNtp      = DEFAULT_NTP_UPDATE_INTERVAL_SEC;
 	_timeSendData       = DEFAULT_SEND_DATA_INTERVAL_SEC;
-	_timeUpdateScreen   = DEFAULT_SCREEN_UPDATE_INTERVAL_SEC;
   _mode               = MODE_MONO;
-  _namePhaseA         = "PHASE A";
-  _namePhaseB         = "PHASE B";
-  _namePhaseC         = "PHASE C";
+  _namePhaseA         = "Phase A";
+  _namePhaseB         = "Phase B";
+  _namePhaseC         = "Phase C";
 
 	saveConfig();
 	Serial.println("configuration restored.");

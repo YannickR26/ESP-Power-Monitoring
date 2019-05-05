@@ -13,7 +13,7 @@ class Mqtt
   	void setup();
 		void handle();
 		void publishMonitoringData();
-
+		bool isConnected() { return clientMqtt.connected(); }
 
   private:
 		void reconnect();

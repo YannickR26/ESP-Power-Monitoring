@@ -23,7 +23,6 @@ class JsonConfiguration
 		int _mqttPortServer;
 		int _timeUpdateNtp;
 		int _timeSendData;
-		int _timeUpdateScreen;
 		int _mode;
 		String _namePhaseA, _namePhaseB, _namePhaseC;
      	

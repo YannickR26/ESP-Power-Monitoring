@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <Ticker.h>
 #include <simpleDSTadjust.h>
 #include <WiFiManager.h>
 
@@ -16,37 +15,9 @@
   #include <ArduinoOTA.h>
 #endif
 
-Ticker tickerEvery1sec;
-
 struct dstRule StartRule = {"CEST", Last, Sun, Mar, 2, 3600}; // Central European Summer Time = UTC/GMT +2 hours
 struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central European Time = UTC/GMT +1 hour
 simpleDSTadjust dstAdjusted(StartRule, EndRule);
-
-// Global variable for Tick
-bool readyForNtpUpdate = true;
-bool readyForSendData;
-
-// Ticker every 1 seconds
-void secTicker()
-{
-  static int tickNTPUpdate = Configuration._timeUpdateNtp;
-  static int tickSendData = Configuration._timeSendData;
-
-  tickNTPUpdate--;
-  if (tickNTPUpdate <= 0) {
-    readyForNtpUpdate = true;
-    tickNTPUpdate = Configuration._timeUpdateNtp;
-  }
-
-  tickSendData--;
-  if (tickSendData <= 0) {
-   readyForSendData = true;
-    tickSendData = Configuration._timeSendData;
-  }
-  
-  // Blink LED
-  digitalWrite(LED_BUILTIN , !digitalRead(LED_BUILTIN));
-}
 
 void printTime()
 {
@@ -55,8 +26,8 @@ void printTime()
   time_t t = dstAdjusted.time(&dstAbbrev);
   struct tm *timeinfo = localtime(&t);
 
-  sprintf(buf, "DateTime: %02d/%02d/%d, %02d:%02d:%02d %s", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, dstAbbrev);
-  Serial.println(buf);
+  sprintf(buf, "%02d/%02d/%d, %02d:%02d:%02d %s => ", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, dstAbbrev);
+  Serial.print(buf);
 }
 
 void updateNTP() {
@@ -67,6 +38,7 @@ void updateNTP() {
     delay(1000);
   }
   printTime();
+  Serial.println("Update NTP");
 }
 
 /*************/
@@ -97,7 +69,7 @@ void setup() {
   WiFiManagerParameter custom_mqtt_hostname("hostname", "hostname", Configuration._hostname.c_str(), 60);
   WiFiManagerParameter custom_mqtt_server("server", "mqtt ip", Configuration._mqttIpServer.c_str(), 40);
   WiFiManagerParameter custom_mqtt_port("port", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
-  WiFiManagerParameter custom_time_update("timeUpdate", "time update data", String(Configuration._timeSendData).c_str(), 6);
+  WiFiManagerParameter custom_time_update("timeUpdate", "time update data (s)", String(Configuration._timeSendData).c_str(), 6);
   WiFiManagerParameter custom_mode("mode", "mode", String(Configuration._mode).c_str(), 1);
 
   // add all your parameters here
@@ -127,26 +99,6 @@ void setup() {
   Configuration._timeSendData = atoi(custom_time_update.getValue());
   Configuration._mode = atoi(custom_mode.getValue());
   Configuration.saveConfig();
-
-  /* Connect to Wifi */
-// #ifndef WIFI_AP
-//   wifiMulti.addAP(WIFI_SSID, WIFI_PASS);
-//   wifiMulti.addAP(WIFI_SSID2, WIFI_PASS2);
-//   Serial.println("\nConnecting to WiFi");
-//   // Screen.connecting_to_wifi();
-//   while (wifiMulti.run() != WL_CONNECTED) {
-//     Serial.print(".");
-//     delay(500);
-//   }
-//   // Screen.wifi_done();
-//   Serial.println("\nDone");
-//   Serial.println(String("Connected to ") + WiFi.SSID());
-//   Serial.println(String("IP address: ") + WiFi.localIP().toString());
-// #else
-//   WiFi.softAP(WIFI_AP_HOTSTNAME, WIFI_AP_PASSWORD);
-//   Serial.print("Wifi AP Mode, IP address: ");
-//   Serial.println(WiFi.softAPIP());
-// #endif
 
   /* Initialize HTTP Server */
   HTTPServer.setup();
@@ -188,14 +140,14 @@ void setup() {
   Serial.println("");
 #endif
 
-  // Ticker every 1 seconds
-  tickerEvery1sec.attach(1, secTicker);
+  updateNTP();
 }
 
 /************/
 /*** LOOP ***/
 /************/
 void loop() {
+  static unsigned long tickNTPUpdate, tickSendData, tickLed;
 
   MqttClient.handle();
 
@@ -205,24 +157,30 @@ void loop() {
   ArduinoOTA.handle();
 #endif
 
-  if (readyForNtpUpdate) {
+  if ((millis() - tickNTPUpdate) >= (unsigned long)(Configuration._timeUpdateNtp*1000)) {
     updateNTP();
-    readyForNtpUpdate = false;
+    tickNTPUpdate = millis();
   }
-
-  if (readyForSendData) {
+  
+  if ((millis() - tickSendData) >= (unsigned long)(Configuration._timeSendData*1000)) {
+    printTime();
     Serial.println("Send data to MQTT");
     MqttClient.publishMonitoringData();
-    readyForSendData = false;
+    tickSendData = millis();
   }
 
-  // char *dstAbbrev;
-  // time_t now = dstAdjusted.time(&dstAbbrev);
-  // Screen.display_menu(&now);
-
-  // LogWriter.handle(timeinfo);
-
-  // Screen.display_relay_status(false);
+  if (MqttClient.isConnected()) {
+    if ((millis() - tickLed) >= (unsigned long)(LEDTIME_WORK)) {
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+      tickLed = millis();
+    }
+  }
+  else {
+     if ((millis() - tickLed) >= (unsigned long)(LEDTIME_NOMQTT)) {
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+      tickLed = millis();
+    }
+  }
  
-  delay(50);
+  delay(10);
 }

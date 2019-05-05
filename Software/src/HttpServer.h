@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include <ArduinoJson.h>
 
 #include "JsonConfiguration.h"
@@ -26,7 +27,8 @@ protected:
   static void set_config();
 
 private:
-  ESP8266WebServer  _webServer;
+  ESP8266WebServer          _webServer;
+  ESP8266HTTPUpdateServer   _httpUpdater;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)

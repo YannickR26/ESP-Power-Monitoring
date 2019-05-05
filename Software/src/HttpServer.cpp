@@ -1,5 +1,6 @@
 #include <FS.h>
 #include <ESP8266mDNS.h>
+#include <ESP8266HTTPUpdateServer.h>
 
 #include "HttpServer.h"
 
@@ -8,6 +9,7 @@
 /********************************************************/
 
 HttpServer::HttpServer()
+  : _webServer(80) ,_httpUpdater(true)
 {
 }
 
@@ -20,17 +22,13 @@ void HttpServer::setup(void)
   MDNS.begin(Configuration._hostname.c_str()); 
   MDNS.addService("http", "tcp", 80);
 
-  _webServer.on("/config/reset", HTTP_GET, [&]() { 
-    Configuration.restoreDefault();
-    _webServer.send(200, "text/plain", "Restore configuration successfully !");
-  });
-
   _webServer.onNotFound([&]() {
     if (!handleFileRead(_webServer.uri())) {
       _webServer.send(404, "text/plain", "File Not Found !");
     }
   });
 
+  _httpUpdater.setup(&_webServer, String("/"));
   _webServer.begin();
 }
 
