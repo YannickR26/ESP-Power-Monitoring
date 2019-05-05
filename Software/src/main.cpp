@@ -81,7 +81,7 @@ void setup() {
 
   // wifiManager.resetSettings();
 
-  if (!wifiManager.autoConnect(WIFI_AP_HOTSTNAME)) {
+  if (!wifiManager.autoConnect(Configuration._hostname.c_str())) {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep

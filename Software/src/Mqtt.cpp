@@ -68,20 +68,20 @@ void Mqtt::publishMonitoringData()
     line = Monitoring.getLineA();
 
     /* Send Total Line */
-    clientMqtt.publish(String(Configuration._hostname + "/voltage").c_str(), String(line.voltage).c_str());
-    clientMqtt.publish(String(Configuration._hostname + "/current").c_str(), String(line.current*3).c_str());
-    clientMqtt.publish(String(Configuration._hostname + "/power").c_str(), String(line.power*3).c_str());
-    clientMqtt.publish(String(Configuration._hostname + "/conso").c_str(), String(line.conso*3).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/voltage").c_str(), String(line.voltage).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/current").c_str(), String(line.current*3).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/power").c_str(), String(line.power*3).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/conso").c_str(), String(line.conso*3).c_str());
   }
   else if (Configuration._mode == MODE_TRI_2) {
     line = Monitoring.getLineA();
     metering lineC = Monitoring.getLineC();
 
     /* Send Total Line */
-    clientMqtt.publish(String(Configuration._hostname + "/voltage").c_str(), String(line.voltage).c_str());
-    clientMqtt.publish(String(Configuration._hostname + "/current").c_str(), String(line.current*2 + lineC.current).c_str());
-    clientMqtt.publish(String(Configuration._hostname + "/power").c_str(), String(line.power*2 + lineC.power).c_str());
-    clientMqtt.publish(String(Configuration._hostname + "/conso").c_str(), String(line.conso*2 + lineC.conso).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/voltage").c_str(), String(line.voltage).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/current").c_str(), String(line.current*2 + lineC.current).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/power").c_str(), String(line.power*2 + lineC.power).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/conso").c_str(), String(line.conso*2 + lineC.conso).c_str());
   }
 
   /* Send Frequency */
@@ -94,7 +94,7 @@ void Mqtt::publishMonitoringData()
 
 void Mqtt::reconnect()
 {
-  static unsigned long tick = millis();
+  static unsigned long tick = 0;
 
   if (!clientMqtt.connected()) {
     if ((millis() - tick) >= 5000) {
@@ -111,6 +111,7 @@ void Mqtt::reconnect()
         clientMqtt.publish(String(Configuration._hostname + "/timeIntervalUpdate").c_str(), String(Configuration._timeSendData).c_str());
         clientMqtt.publish(String(Configuration._hostname + "/mode").c_str(), String(Configuration._mode).c_str());
         clientMqtt.publish(String(Configuration._hostname + "/version").c_str(), String(VERSION).c_str());
+        clientMqtt.publish(String(Configuration._hostname + "/ip").c_str(), WiFi.localIP().toString().c_str());
         // ... and resubscribe
         clientMqtt.subscribe(String(Configuration._hostname + "/set/#").c_str());
       } else {
@@ -177,6 +178,7 @@ void Mqtt::callback(char* topic, uint8_t* payload, unsigned int length)
   else if (topicStr == String("resetAllConso")) {
     Serial.println("Reset All conso");
     Monitoring.resetAllConso();
+    publishMonitoringData();
   }
   else {
     Serial.println("Unknow command");

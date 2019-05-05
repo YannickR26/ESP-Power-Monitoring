@@ -3,9 +3,6 @@
 // Version
 #define VERSION     "V1.0"
 
-// Setup Wifi in AP mode
-#define WIFI_AP_HOTSTNAME   "ESP_Monitoring"
-
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
 #define DEFAULT_MQTTIPSERVER        "192.168.1.75"
 #define DEFAULT_MQTTPORTSERVER      1883
