@@ -2,6 +2,8 @@
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPUpdateServer.h>
 
+// You can update by 'curl -F "image=@firmware.bin" ESP_Monitoring.local/'
+
 #include "HttpServer.h"
 
 /********************************************************/

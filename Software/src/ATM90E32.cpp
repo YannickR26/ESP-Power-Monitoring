@@ -1,12 +1,17 @@
 #include <SPI.h>
 #include "ATM90E32.h"
 
+#include "JsonConfiguration.h"
+
 /********************************************************/
 /******************** Public Method *********************/
 /********************************************************/
 
 ATM90E32::ATM90E32() 
 {
+  _lgain = 100;
+  _ugain = 1000;
+  _igain = 100;
   resetAllConso();
 }
 
@@ -15,96 +20,99 @@ ATM90E32::~ATM90E32()
 }
 
 /* Inititalize ATM90E32 */
-void ATM90E32::setup(unsigned int cs_pin)
+void ATM90E32::setup(int cs_pin, int pm0_pin, int pm1_pin)
 {
   _cs_pin = cs_pin;
+  _pm0_pin = pm0_pin;
+  _pm1_pin = pm1_pin;
 
   pinMode(_cs_pin, OUTPUT);
+  // set to Normal mode
+  if (_pm0_pin != -1) {
+    pinMode(_pm0_pin, OUTPUT);
+    digitalWrite(_pm0_pin, HIGH);
+  }
+  if (_pm1_pin != -1) {
+    pinMode(_pm1_pin, OUTPUT);
+    digitalWrite(_pm1_pin, HIGH);
+  }
+
+  delayMicroseconds(1000);
 
   /* Enable SPI */
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);
   SPI.setDataMode(SPI_MODE2);
-  SPI.setClockDivider(SPI_CLOCK_DIV64);
+  SPI.setClockDivider(SPI_CLOCK_DIV128);
 
-  // CommEnergyIC(0, SoftReset, 0x789A); //Perform soft reset
-  // CommEnergyIC(0, FuncEn0, 0x0030); //Voltage sag irq=1, report on warnout pin=1, energy dir change irq=0
-  // CommEnergyIC(0, FuncEn1, 0x0030); //Voltage sag irq=1, report on warnout pin=1, energy dir change irq=0
-  // CommEnergyIC(0, SagTh, 0x1F2F); //Voltage sag threshhold
+  CommEnergyIC(WRITE, SoftReset, 0x789A); //Perform soft reset
+  CommEnergyIC(WRITE, CfgRegAccEn, 0x55AA);	// Enable register config access
+  CommEnergyIC(WRITE, MeterEn, 0x0001); 		// Enable Metering
+	
+	/* SagTh = Vth * 100 * sqrt(2) / (2 * Ugain / 32768) */
+  CommEnergyIC(WRITE, SagTh, 0x1000);       // Voltage sag threshold
+  CommEnergyIC(WRITE, FreqHiTh, 0x13EC);	// High frequency threshold - 51.00Hz (default)
+  CommEnergyIC(WRITE, FreqLoTh, 0x1324);	// Lo frequency threshold - 49.00Hz (default)
+  CommEnergyIC(WRITE, EMMIntEn0, 0x0000);	// Disable interrupts
+  CommEnergyIC(WRITE, EMMIntEn1, 0x0000);	// Disable interrupts
+  CommEnergyIC(WRITE, EMMIntState0, 0x0001);	// Clear interrupt flags
+  CommEnergyIC(WRITE, EMMIntState1, 0x0001);	// Clear interrupt flags
+  CommEnergyIC(WRITE, ZXConfig, 0x0001);	// disable all the ZX signals to ‘0’
   
-  // Set metering config values
-  // CommEnergyIC(0, ConfigStart, 0x5678); //Metering calibration startup command. Register 31 to 3B need to be set
-  // CommEnergyIC(0, PLconstH, 0x00B9); //PL Constant MSB
-  // CommEnergyIC(0, PLconstL, 0xC1F3); //PL Constant LSB
-  CommEnergyIC(0, MMode0, 0x0087); //Metering Mode Configuration. All defaults. See pg 58 of datasheet.
-  // CommEnergyIC(0, MMode1, 0x5555); //PGA Gain Configuration. x2 for DPGA and PGA. See pg 59 of datasheet
-  // CommEnergyIC(0, PStartTh, 0x08BD); //Active Startup Power Threshold
-  // CommEnergyIC(0, QStartTh, 0x0AEC); //Reactive Startup Power Threshold
-  // CommEnergyIC(0, CSZero, 0x5F59); //Write CSOne, as self calculated
+  //Set metering config values (CONFIG)
+  CommEnergyIC(WRITE, PLconstH, 0x0861);    // PL Constant MSB (default)
+  CommEnergyIC(WRITE, PLconstL, 0x4C68);    // PL Constant LSB (default)
+  if (Configuration._mode == 0) {
+    CommEnergyIC(WRITE, MMode0, 0x0087);      // Mode Config (50 Hz, 3P4W) (default)
+  }
+  else {
+    CommEnergyIC(WRITE, MMode0, 0x0185);      // Mode Config (50 Hz, 3P3W, phase B not counted)
+  }
+  CommEnergyIC(WRITE, MMode1, 0x0000);      // PGA Gain Config - 0x5555 (x2) // 0x0000 (1x) (default)
+  CommEnergyIC(WRITE, PStartTh, 0x0000);    // Active Startup Power Threshold
+  CommEnergyIC(WRITE, QStartTh, 0x0000);    // Reactive Startup Power Threshold
+  CommEnergyIC(WRITE, SStartTh, 0x0000);    // Apparent Startup Power Threshold
+  CommEnergyIC(WRITE, PPhaseTh, 0x0000);    // Active Phase Threshold
+  CommEnergyIC(WRITE, QPhaseTh, 0x0000);    // Reactive Phase Threshold
+  CommEnergyIC(WRITE, SPhaseTh, 0x0000);    // Apparent  Phase Threshold
   
-  // Serial.print("Checksum 0:");
-  // Serial.println(CommEnergyIC(1, CSZero, 0x0000), HEX); //Checksum 0. Needs to be calculated based off the above values.
+  //Set metering calibration values (CALIBRATION)
+  CommEnergyIC(WRITE, GainA, _lgain);       // Line calibration gain
+  CommEnergyIC(WRITE, PhiA, 0x0000);        // Line calibration angle
+  CommEnergyIC(WRITE, GainB, _lgain);       // Line calibration gain
+  CommEnergyIC(WRITE, PhiB, 0x0000);        // Line calibration angle
+  CommEnergyIC(WRITE, GainC, _lgain);       // Line calibration gain
+  CommEnergyIC(WRITE, PhiC, 0x0000);        // Line calibration angle
+  CommEnergyIC(WRITE, PoffsetA, 0x0000);    // A line active power offset
+  CommEnergyIC(WRITE, QoffsetA, 0x0000);    // A line reactive power offset
+  CommEnergyIC(WRITE, PoffsetB, 0x0000);    // B line active power offset
+  CommEnergyIC(WRITE, QoffsetB, 0x0000);    // B line reactive power offset
+  CommEnergyIC(WRITE, PoffsetC, 0x0000);    // C line active power offset
+  CommEnergyIC(WRITE, QoffsetC, 0x0000);    // C line reactive power offset
   
-  // Set metering calibration values
-  // CommEnergyIC(0, CalStart, 0x5678); //Metering calibration startup command. Register 41 to 4D need to be set
-  // CommEnergyIC(0, GainA, 0x1D39); //Line calibration gain
-  // CommEnergyIC(0, PhiA, 0x0000); //Line calibration angle
-  // CommEnergyIC(0, GainB, 0x1D39); //Line calibration gain
-  // CommEnergyIC(0, PhiB, 0x0000); //Line calibration angle
-  // CommEnergyIC(0, GainC, 0x1D39); //Line calibration gain
-  // CommEnergyIC(0, PhiC, 0x0000); //Line calibration angle
-  // CommEnergyIC(0, PoffsetA, 0x0000); //A line active power offset
-  // CommEnergyIC(0, QoffsetA, 0x0000); //A line reactive power offset
-  // CommEnergyIC(0, PoffsetB, 0x0000); //B line active power offset
-  // CommEnergyIC(0, QoffsetB, 0x0000); //B line reactive power offset
-  // CommEnergyIC(0, PoffsetC, 0x0000); //C line active power offset
-  // CommEnergyIC(0, QoffsetC, 0x0000); //C line reactive power offset
-  // CommEnergyIC(0, CSOne, 0x2402); //Write CSOne, as self calculated
-  
-  // Serial.print("Checksum 1:");
-  // Serial.println(CommEnergyIC(1, CSOne, 0x0000), HEX); //Checksum 1. Needs to be calculated based off the above values.
+  //Set metering calibration values (HARMONIC)
+  CommEnergyIC(WRITE, POffsetAF, 0x0000);   // A Fund. active power offset
+  CommEnergyIC(WRITE, POffsetBF, 0x0000);   // B Fund. active power offset
+  CommEnergyIC(WRITE, POffsetCF, 0x0000);   // C Fund. active power offset
+  CommEnergyIC(WRITE, PGainAF, 0x0000);     // A Fund. active power gain
+  CommEnergyIC(WRITE, PGainBF, 0x0000);     // B Fund. active power gain
+  CommEnergyIC(WRITE, PGainCF, 0x0000);     // C Fund. active power gain
 
-  // Set measurement calibration values
-  // CommEnergyIC(0, AdjStart, 0x5678); //Measurement calibration startup command, registers 61-6F
-  // CommEnergyIC(0, UgainA, 0xD8E9);  //A SVoltage rms gain
-  // CommEnergyIC(0, IgainA, 0x1BC9); //A line current gain
-  // CommEnergyIC(0, UoffsetA, 0x0000); //A Voltage offset
-  // CommEnergyIC(0, IoffsetA, 0x0000); //A line current offset
-  // CommEnergyIC(0, UgainB, 0xD8E9);  //B Voltage rms gain
-  // CommEnergyIC(0, IgainB, 0x1BC9); //B line current gain
-  // CommEnergyIC(0, UoffsetB, 0x0000); //B Voltage offset
-  // CommEnergyIC(0, IoffsetB, 0x0000); //B line current offset
-  // CommEnergyIC(0, UgainC, 0xD8E9);  //C Voltage rms gain
-  // CommEnergyIC(0, IgainC, 0x1BC9); //C line current gain
-  // CommEnergyIC(0, UoffsetC, 0x0000); //C Voltage offset
-  // CommEnergyIC(0, IoffsetC, 0x0000); //C line current offset
-  // CommEnergyIC(0, CSThree, 0xA694); //Write CSThree, as self calculated
+  //Set measurement calibration values (ADJUST)
+  CommEnergyIC(WRITE, UgainA, _ugain);      // A Voltage rms gain
+  CommEnergyIC(WRITE, IgainA, _igain);      // A line current gain
+  CommEnergyIC(WRITE, UoffsetA, 0x0000);    // A Voltage offset
+  CommEnergyIC(WRITE, IoffsetA, 0x0000);    // A line current offset
+  CommEnergyIC(WRITE, UgainB, _ugain);      // B Voltage rms gain
+  CommEnergyIC(WRITE, IgainB, _igain);      // B line current gain
+  CommEnergyIC(WRITE, UoffsetB, 0x0000);    // B Voltage offset
+  CommEnergyIC(WRITE, IoffsetB, 0x0000);    // B line current offset
+  CommEnergyIC(WRITE, UgainC, _ugain);      // C Voltage rms gain
+  CommEnergyIC(WRITE, IgainC, _igain);      // C line current gain
+  CommEnergyIC(WRITE, UoffsetC, 0x0000);    // C Voltage offset
+  CommEnergyIC(WRITE, IoffsetC, 0x0000);    // C line current offset
 
-  // Serial.print("Checksum 3:");
-  // Serial.println(CommEnergyIC(1, CSThree, 0x0000), HEX); //Checksum 3. Needs to be calculated based off the above values.
-
-  CommEnergyIC(0, ConfigStart, 0x8765); //Checks correctness of 31-3B registers and starts normal metering if ok
-  CommEnergyIC(0, CalStart, 0x8765); //Checks correctness of 41-4D registers and starts normal metering if ok
-  CommEnergyIC(0, AdjStart, 0x8765); //Checks correct ness of 61-6F registers and starts normal measurement  if ok
-
-  unsigned short systemstatus0 = CommEnergyIC(1, SysStatus0, 0xFFFF);
-
-  if (systemstatus0 & 0x4000) {
-    //checksum 1 error
-    Serial.println("checksum error 0");
-  }
-  if (systemstatus0 & 0x1000) {
-    //checksum 2 error
-    Serial.println("checksum error 1");
-  }
-  if (systemstatus0 & 0x0400) {
-    //checksum 2 error
-    Serial.println("checksum error 2");
-  }
-  if (systemstatus0 & 0x0100) {
-    //checksum 2 error
-    Serial.println("checksum error 3");
-  }
+  CommEnergyIC(WRITE, CfgRegAccEn, 0x0000);	// End configuration
 }
 
 /* Read all data from ATM90E32 device */
@@ -114,28 +122,247 @@ void ATM90E32::handle(void)
   unsigned long time = (millis() - oldTick) / 1000;
   oldTick = millis();
 
-  _line_A.voltage = CommEnergyIC(1, UrmsA, 0xFFFF) / 100.f;
-  _line_B.voltage = CommEnergyIC(1, UrmsB, 0xFFFF) / 100.f;
-  _line_C.voltage = CommEnergyIC(1, UrmsC, 0xFFFF) / 100.f;
+  // unsigned short sys0 = GetSysStatus0();
+  // unsigned short sys1 = GetSysStatus1();
+  // unsigned short en0 = GetMeterStatus0();
+  // unsigned short en1 = GetMeterStatus1();
 
-  _line_A.current = CommEnergyIC(1, IrmsA, 0xFFFF) / 1000.f;
-  _line_B.current = CommEnergyIC(1, IrmsB, 0xFFFF) / 1000.f;
-  _line_C.current = CommEnergyIC(1, IrmsC, 0xFFFF) / 1000.f;
+  // Serial.println("Sys Status: S0:0x" + String(sys0, HEX) + " S1:0x" + String(sys1, HEX));
+  // Serial.println("Meter Status: E0:0x" + String(en0, HEX) + " E1:0x" + String(en1, HEX));
 
-  _line_A.power = CommEnergyIC(1, PmeanA, 0xFFFF) / 10.f;
-  _line_B.power = CommEnergyIC(1, PmeanB, 0xFFFF) / 10.f;
-  _line_C.power = CommEnergyIC(1, PmeanC, 0xFFFF) / 10.f;
+  _line_A.voltage = GetLineVoltageA();
+  _line_B.voltage = GetLineVoltageB();
+  _line_C.voltage = GetLineVoltageC();
 
-  _line_A.conso += (_line_A.power / 3600) * time;
-  _line_B.conso += (_line_B.power / 3600) * time;
-  _line_C.conso += (_line_C.power / 3600) * time;
+  _line_A.current = GetLineCurrentA();
+  _line_B.current = GetLineCurrentB();
+  _line_C.current = GetLineCurrentC();
 
-  _frequency = CommEnergyIC(1, Freq, 0xFFFF) / 100.f;
+  _line_A.power = GetActivePowerA();
+  _line_B.power = GetActivePowerB();
+  _line_C.power = GetActivePowerC();
+
+  // _line_A.conso += (_line_A.power / 3600) * time;
+  // _line_B.conso += (_line_B.power / 3600) * time;
+  // _line_C.conso += (_line_C.power / 3600) * time;
+
+  _frequency = GetFrequency();
+
+  // Serial.printf("Temp: %.1f°C\n", GetTemperature());
+  
+  Serial.printf("Line A =>, %.1fV, %.2fA, %.1fW, %.1fHz\n", _line_A.voltage, _line_A.current, _line_A.power, _frequency);
+  Serial.printf("Line B =>, %.1fV, %.2fA, %.1fW, %.1fHz\n", _line_B.voltage, _line_B.current, _line_B.power, _frequency);
+  Serial.printf("Line C =>, %.1fV, %.2fA, %.1fW, %.1fHz\n", _line_C.voltage, _line_C.current, _line_C.power, _frequency);
 }
 
 /********************************************************/
 /******************** Private Method ********************/
 /********************************************************/
+
+// VOLTAGE
+double  ATM90E32::GetLineVoltageA() {
+  unsigned short voltage = CommEnergyIC(READ, UrmsA, 0xFFFF);
+  return (double)voltage / 100;
+}
+
+double  ATM90E32::GetLineVoltageB() {
+  unsigned short voltage = CommEnergyIC(READ, UrmsB, 0xFFFF);
+  return (double)voltage / 100;
+}
+
+double  ATM90E32::GetLineVoltageC() {
+  unsigned short voltage = CommEnergyIC(READ, UrmsC, 0xFFFF);
+  return (double)voltage / 100;
+}
+
+// CURRENT
+double ATM90E32::GetLineCurrentA() {
+  unsigned short current = CommEnergyIC(READ, IrmsA, 0xFFFF);
+  return (double)current / 1000;
+}
+double ATM90E32::GetLineCurrentB() {
+  unsigned short current = CommEnergyIC(READ, IrmsB, 0xFFFF);
+  return (double)current / 1000;
+}
+double ATM90E32::GetLineCurrentC() {
+  unsigned short current = CommEnergyIC(READ, IrmsC, 0xFFFF);
+  return (double)current / 1000;
+}
+
+// ACTIVE POWER
+double ATM90E32::GetActivePowerA() {
+  signed short apower = (signed short) CommEnergyIC(READ, PmeanA, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetActivePowerB() {
+  signed short apower = (signed short) CommEnergyIC(READ, PmeanB, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetActivePowerC() {
+  signed short apower = (signed short) CommEnergyIC(READ, PmeanC, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetTotalActivePower() {
+  signed short apower = (signed short) CommEnergyIC(READ, PmeanT, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000; //240
+}
+
+// REACTIVE POWER
+double ATM90E32::GetReactivePowerA() {
+  signed short apower = (signed short) CommEnergyIC(READ, QmeanA, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetReactivePowerB() {
+  signed short apower = (signed short) CommEnergyIC(READ, QmeanB, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetReactivePowerC() {
+  signed short apower = (signed short) CommEnergyIC(READ, QmeanC, 0xFFFF);
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetTotalReactivePower() {
+  signed short apower = (signed short) CommEnergyIC(READ, QmeanT, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000; //250
+}
+
+// APPARENT POWER
+double ATM90E32::GetApparentPowerA() {
+  signed short apower = (signed short) CommEnergyIC(READ, SmeanA, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetApparentPowerB() {
+ signed short apower = (signed short) CommEnergyIC(READ, SmeanB, 0xFFFF);
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetApparentPowerC() {
+  signed short apower = (signed short) CommEnergyIC(READ, SmeanC, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000;
+}
+double ATM90E32::GetTotalApparentPower() {
+  signed short apower = (signed short) CommEnergyIC(READ, SmeanT, 0xFFFF); 
+  if (apower & 0x8000) {
+    apower= (apower & 0x7FFF) * -1;
+  }
+  return (double)apower / 1000; //250
+}
+
+// FREQUENCY
+double ATM90E32::GetFrequency() {
+  unsigned short freq = CommEnergyIC(READ, Freq, 0xFFFF);
+  return (double)freq / 100;
+}
+
+// POWER FACTOR
+double ATM90E32::GetPowerFactorA() {
+  short int pf = (short int) CommEnergyIC(READ, PFmeanA, 0xFFFF); 
+  //if negative
+  if (pf & 0x8000) {
+    pf = (pf & 0x7FFF) * -1;
+  }
+  return (double)pf / 1000;
+}
+double ATM90E32::GetPowerFactorB() {
+  short int pf = (short int) CommEnergyIC(READ, PFmeanB, 0xFFFF); 
+  if (pf & 0x8000) {
+    pf = (pf & 0x7FFF) * -1;
+  }
+  return (double)pf / 1000;
+}
+double ATM90E32::GetPowerFactorC() {
+  short int pf = (short int) CommEnergyIC(READ, PFmeanC, 0xFFFF); 
+  //if negative
+  if (pf & 0x8000) {
+    pf = (pf & 0x7FFF) * -1;
+  }
+  return (double)pf / 1000;
+}
+double ATM90E32::GetTotalPowerFactor() {
+  short int pf = (short int) CommEnergyIC(READ, PFmeanT, 0xFFFF); 
+  //if negative
+  if (pf & 0x8000) {
+    pf = (pf & 0x7FFF) * -1;
+  }
+  return (double)pf / 1000;
+}
+
+// PHASE ANGLE
+double ATM90E32::GetPhaseA() {
+  signed short apower = (signed short) CommEnergyIC(READ, PAngleA, 0xFFFF);
+  return (double)apower / 10;
+}
+double ATM90E32::GetPhaseB() {
+  signed short apower = (signed short) CommEnergyIC(READ, PAngleB, 0xFFFF);
+  return (double)apower / 10;
+}
+double ATM90E32::GetPhaseC() {
+  signed short apower = (signed short) CommEnergyIC(READ, PAngleC, 0xFFFF);
+  return (double)apower / 10;
+}
+
+// TEMPERATURE
+double ATM90E32::GetTemperature() {
+  short int atemp = (short int) CommEnergyIC(READ, Temp, 0xFFFF); 
+  return (double)atemp;
+}
+
+// ENERGY MEASUREMENT
+double ATM90E32::GetImportEnergy() {
+  unsigned short ienergyT = CommEnergyIC(READ, APenergyT, 0xFFFF);
+  return (double)ienergyT / 100 / 3200; //returns kWh
+}
+
+double ATM90E32::GetExportEnergy() {
+  unsigned short eenergyT = CommEnergyIC(READ, ANenergyT, 0xFFFF);
+  return (double)eenergyT / 100 / 3200; //returns kWh 
+}
+
+/* System Status Registers */
+// the status registers are different for the ATM90E32AS 
+unsigned short ATM90E32::GetSysStatus0() {    
+  return CommEnergyIC(READ, EMMIntState0, 0xFFFF);
+}
+unsigned short ATM90E32::GetSysStatus1() {
+  return CommEnergyIC(READ, EMMIntState1, 0xFFFF);
+}
+unsigned short ATM90E32::GetMeterStatus0() {
+  return CommEnergyIC(READ, EMMState0, 0xFFFF);
+}
+unsigned short ATM90E32::GetMeterStatus1() {
+  return CommEnergyIC(READ, EMMState1, 0xFFFF);
+}
 
 /* Communication with ATM90E32 */
 unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, unsigned short val) 
@@ -144,6 +371,11 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   unsigned char* adata = (unsigned char*)&address;
   unsigned short output;
   unsigned short address1;
+
+  // SPISettings settings(200000, MSBFIRST, SPI_MODE2);
+  // SPI.beginTransaction(settings);
+
+  delayMicroseconds(10);
 
   //switch MSB and LSB of value
   output = (val >> 8) | (val << 8);
@@ -164,7 +396,7 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
     adata++;
   }
   /* Must wait 4 us for data to become valid */
-  delayMicroseconds(4);
+  delayMicroseconds(10);
 
   //Read data
   //Do for each byte in transfer
@@ -183,6 +415,8 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
 
   delayMicroseconds(10);
   digitalWrite(_cs_pin, HIGH);
+
+  // SPI.endTransaction();
 
   output = (val >> 8) | (val << 8); //reverse MSB and LSB
   return output;

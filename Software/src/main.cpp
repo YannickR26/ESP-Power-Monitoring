@@ -56,14 +56,15 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   /* Read configuration from SPIFFS */
-  Configuration.setup();
-  // Configuration.restoreDefault();
+  // Configuration.setup();
+  Configuration.restoreDefault();
 
   /* Initialize the ATM90E32 + SPI port */
-  Monitoring.setup(ATM90E32_CS);
+  Monitoring.setup(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1);
 
   // Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
+  // wifiManager.resetSettings();
 
   // WiFiManagerParameter
   WiFiManagerParameter custom_mqtt_hostname("hostname", "hostname", Configuration._hostname.c_str(), 60);

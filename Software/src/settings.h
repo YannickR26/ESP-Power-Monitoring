@@ -8,7 +8,7 @@
 #define DEFAULT_MQTTPORTSERVER      1883
 
 #define DEFAULT_NTP_UPDATE_INTERVAL_SEC     (1 * 3600)      // Update time from NTP server every 1 hours
-#define DEFAULT_SEND_DATA_INTERVAL_SEC      60              // Log data every 1 minutes
+#define DEFAULT_SEND_DATA_INTERVAL_SEC      1               // Log data every 1 minutes
 #define DEFAULT_SCREEN_UPDATE_INTERVAL_SEC  5               // Update screen every 5 secondes
 
 // Mode
@@ -23,6 +23,8 @@
 
 // ATM90E32
 #define ATM90E32_CS D8
+#define ATM90E32_PM0 D4
+#define ATM90E32_PM1 D3
 
 // Relay
 #define RELAY_PIN   D0

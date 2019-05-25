@@ -30,7 +30,7 @@ void Mqtt::setup()
 void Mqtt::handle()
 {
   if (!clientMqtt.connected()) {
-    reconnect();
+    // reconnect();
   }
   clientMqtt.loop();
 }
