@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 
 #include "JsonConfiguration.h"
+#include "Logger.h"
 
 /********************************************************/
 /******************** Public Method *********************/
@@ -19,31 +20,31 @@ void JsonConfiguration::setup(void)
 {
   /* Initialize SPIFFS */
   if (!SPIFFS.begin()) {
-    Serial.println("failed to initialize SPIFFS");
+    Log.println("failed to initialize SPIFFS");
   }
 
 	if (!readConfig()) {
-		Serial.println("Invalid configuration values, restoring default values");
+		Log.println("Invalid configuration values, restoring default values");
 		restoreDefault();
 	}
 
-	Serial.printf("\thostname : %s\n", _hostname.c_str());
-	Serial.printf("\tmqttIpServer : %s\n", _mqttIpServer.c_str());
-	Serial.printf("\tmqttPortServer : %d\n", _mqttPortServer);
-	Serial.printf("\ttimeUpdateNTP : %d\n", _timeUpdateNtp);
-	Serial.printf("\ttimeSendData : %d\n", _timeSendData);
-	Serial.printf("\tmode : %d\n", _mode);
+	Log.println(String("    hostname: ") + _hostname);
+	Log.println(String("    mqttIpServer: ") + _mqttIpServer);
+	Log.println(String("    mqttPortServer: ") + String(_mqttPortServer));
+	Log.println(String("    timeUpdateNTP: ") + String(_timeUpdateNtp));
+	Log.println(String("    timeSendData: ") + String(_timeSendData));
+	Log.println(String("    mode: ") + String(_mode));
 }
 
 bool JsonConfiguration::readConfig()
 {
-  Serial.println("Read Configuration file from SPIFFS...");
+  Log.println("Read Configuration file from SPIFFS...");
   
   // Open file
   File configFile = SPIFFS.open("/config.json", "r");
   if (!configFile) 
   {
-    Serial.println("Failed to open config file");
+    Log.println("Failed to open config file");
     return false;
   }
   
@@ -54,7 +55,7 @@ bool JsonConfiguration::readConfig()
   // Deserialize the JSON document
   DeserializationError error = deserializeJson(doc, configFile);
   if (error) {
-    Serial.println(F("Failed to read file, using default configuration"));
+    Log.println(F("Failed to read file, using default configuration"));
   }
   
   _hostname           = doc["hostname"] | DEFAULT_HOSTNAME;
@@ -89,26 +90,26 @@ bool JsonConfiguration::saveConfig()
   
 	File configFile = SPIFFS.open("/config.json", "w");
 	if (!configFile) {
-		Serial.println("Failed to open config file for writing");
+		Log.println("Failed to open config file for writing");
 		return false;
 	}
   
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0) {
-    Serial.println(F("Failed to write to file"));
+    Log.println(F("Failed to write to file"));
     return false;
   }
 
   configFile.close();
 
   
-	Serial.println("Save config successfully");
-	Serial.printf("\thostname : %s\n", _hostname.c_str());
-	Serial.printf("\tmqttIpServer : %s\n", _mqttIpServer.c_str());
-	Serial.printf("\tmqttPortServer : %d\n", _mqttPortServer);
-	Serial.printf("\ttimeUpdateNTP : %d\n", _timeUpdateNtp);
-	Serial.printf("\ttimeSendData : %d\n", _timeSendData);
-	Serial.printf("\tmode : %d\n", _mode);
+	Log.println("Save config successfully");
+	Log.println(String("    hostname: ") + _hostname);
+	Log.println(String("    mqttIpServer: ") + _mqttIpServer);
+	Log.println(String("    mqttPortServer: ") + String(_mqttPortServer));
+	Log.println(String("    timeUpdateNTP: ") + String(_timeUpdateNtp));
+	Log.println(String("    timeSendData: ") + String(_timeSendData));
+	Log.println(String("    mode: ") + String(_mode));
 	
 	return true;
 }
@@ -126,7 +127,7 @@ void JsonConfiguration::restoreDefault()
   _namePhaseC         = "Phase C";
 
 	saveConfig();
-	Serial.println("configuration restored.");
+	Log.println("configuration restored.");
 }
 
 /********************************************************/

@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <simpleDSTadjust.h>
 #include <WiFiManager.h>
 
 #include "JsonConfiguration.h"
@@ -7,6 +6,7 @@
 #include "ATM90E32.h"
 #include "Mqtt.h"
 #include "settings.h"
+#include "Logger.h"
 
 // #define ENABLE_OTA    // If defined, enable Arduino OTA code.
 
@@ -15,55 +15,34 @@
   #include <ArduinoOTA.h>
 #endif
 
-struct dstRule StartRule = {"CEST", Last, Sun, Mar, 2, 3600}; // Central European Summer Time = UTC/GMT +2 hours
-struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central European Time = UTC/GMT +1 hour
-simpleDSTadjust dstAdjusted(StartRule, EndRule);
-
-void printTime()
-{
-  char buf[40];
-  char *dstAbbrev;
-  time_t t = dstAdjusted.time(&dstAbbrev);
-  struct tm *timeinfo = localtime(&t);
-
-  sprintf(buf, "%02d/%02d/%d, %02d:%02d:%02d %s => ", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, dstAbbrev);
-  Serial.print(buf);
-}
-
 void updateNTP() {
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
   delay(500);
   while (!time(nullptr)) {
-    Serial.print("#");
+    Log.print("#");
     delay(1000);
   }
-  printTime();
-  Serial.println("Update NTP");
+  Log.println("Update NTP");
 }
 
 /*************/
 /*** SETUP ***/
 /*************/
 void setup() {
-  /* Initialize the serial port to host */
-  Serial.begin(115200);
-  while (!Serial) {} // wait for serial port to connect. Needed for native USB
-  Serial.println();
-  Serial.println();
-  Serial.println("Starting...");
+  /* Initialize Logger */
+  Log.setup();
+  Log.println(String(F("ESP_Power_Monitoring - Build: ")) + F(__DATE__) + " " +  F(__TIME__));
 
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
   /* Read configuration from SPIFFS */
-  // Configuration.setup();
-  Configuration.restoreDefault();
-
-  /* Initialize the ATM90E32 + SPI port */
-  Monitoring.setup(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1);
+  Configuration.setup();
+  // Configuration.restoreDefault();
 
   // Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
+  wifiManager.setDebugOutput(false);
   // wifiManager.resetSettings();
 
   // WiFiManagerParameter
@@ -83,15 +62,15 @@ void setup() {
   // wifiManager.resetSettings();
 
   if (!wifiManager.autoConnect(Configuration._hostname.c_str())) {
-    Serial.println("failed to connect and hit timeout");
+    Log.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
     ESP.reset();
     delay(5000);
   }
   
-  Serial.println(String("Connected to ") + WiFi.SSID());
-  Serial.println(String("IP address: ") + WiFi.localIP().toString());
+  Log.println(String("Connected to ") + WiFi.SSID());
+  Log.println(String("IP address: ") + WiFi.localIP().toString());
 
   /* Get configuration from WifiManager */
   Configuration._hostname = custom_mqtt_hostname.getValue();
@@ -101,6 +80,9 @@ void setup() {
   Configuration._mode = atoi(custom_mode.getValue());
   Configuration.saveConfig();
 
+  /* Initialize the ATM90E32 + SPI port */
+  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, 0x87, 0, 30250, 9200, 9200, 9200);
+  
   /* Initialize HTTP Server */
   HTTPServer.setup();
   
@@ -111,7 +93,7 @@ void setup() {
 
   // Init OTA
 #ifdef ENABLE_OTA
-  Serial.println("Arduino OTA activated");
+  Log.println("Arduino OTA activated");
   
   // Port defaults to 8266
   ArduinoOTA.setPort(8266);
@@ -120,28 +102,68 @@ void setup() {
   ArduinoOTA.setHostname(Configuration._hostname.c_str());
 
   ArduinoOTA.onStart([&]() {
-    Serial.println("Arduino OTA: Start updating");
+    Log.println("Arduino OTA: Start updating");
   });
   ArduinoOTA.onEnd([]() {
-    Serial.println("Arduino OTA: End");
+    Log.println("Arduino OTA: End");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Arduino OTA Progress: %u%%\r", (progress / (total / 100)));
+    Log.printf("Arduino OTA Progress: %u%%\r", (progress / (total / 100)));
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Arduino OTA Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Arduino OTA: Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Arduino OTA: Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Arduino OTA: Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Arduino OTA: Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("Arduino OTA: End Failed");
+    Log.printf("Arduino OTA Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Log.println("Arduino OTA: Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Log.println("Arduino OTA: Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Log.println("Arduino OTA: Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Log.println("Arduino OTA: Receive Failed");
+    else if (error == OTA_END_ERROR) Log.println("Arduino OTA: End Failed");
   });
 
   ArduinoOTA.begin();
-  Serial.println("");
+  Log.println("");
 #endif
 
   updateNTP();
+}
+
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= //
+// get Energy Vals                                               //
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= //
+void getATM90()
+{
+  float voltageA, voltageB, voltageC, totalVoltage, currentA, currentB, currentC, totalCurrent, realPower, powerFactor, chipTemp, powerFreq, totalWatts;
+  unsigned short sys0, sys1, en0, en1;
+
+  delay(10);
+  sys0 = Monitoring.GetSysStatus0();
+  sys1 = Monitoring.GetSysStatus1();
+  en0 = Monitoring.GetMeterStatus0();
+  en1 = Monitoring.GetMeterStatus1();
+
+  Log.println(String(F("ATM90: Sys Status: S0:0x")) + String(sys0, HEX) + String(F(" S1:0x")) + String(sys1, HEX));
+  Log.println(String(F("ATM90: Meter Status: E0:0x")) + String(en0, HEX) + String(F(" E1:0x")) + String(en1, HEX));
+
+  voltageA    = Monitoring.GetLineVoltageA();
+  voltageB    = Monitoring.GetLineVoltageB();
+  voltageC    = Monitoring.GetLineVoltageC();
+  currentA    = Monitoring.GetLineCurrentA();
+  currentB    = Monitoring.GetLineCurrentB();
+  currentC    = Monitoring.GetLineCurrentC();
+  realPower   = Monitoring.GetTotalActivePower();
+  powerFactor = Monitoring.GetTotalPowerFactor();
+  chipTemp    = Monitoring.GetTemperature(); 
+  powerFreq   = Monitoring.GetFrequency();
+
+  totalVoltage = voltageA + voltageB + voltageC ;
+  totalCurrent = currentA + currentB + currentC;
+  totalWatts  = (voltageA * currentA) + (voltageB * currentB) + (voltageC * currentC);
+
+  Log.println(String(F("ATM90: VA: ")) + String(voltageA) + String(F("V - VB: ")) + String(voltageB) + String(F("V - VC: ")) + String(voltageC) + String(F("V")));
+  Log.println(String(F("ATM90: IA: ")) + String(currentA) + String(F("A - IB: ")) + String(currentB) + String(F("A - IC: ")) + String(currentC, 4) + String(F("A")));
+  Log.println(String(F("ATM90: RP: ")) + String(realPower) + String(F(" - PF: ")) + String(powerFactor));
+  Log.println(String(F("ATM90: ATM90Temp: ")) + String(chipTemp) + String(F("C - Freq: ")) + String(powerFreq)+ String(F("hz")));
+  Log.println(String(F("ATM90: TotalV: ")) + String(totalVoltage) + String(F("V - TotalA: ")) + String(totalCurrent) + String(F("A - TotalW: ")) + String(totalWatts) + String(F("W")));
+  Log.println();
 }
 
 /************/
@@ -151,7 +173,7 @@ void loop() {
   static unsigned long tickNTPUpdate, tickSendData, tickLed;
 
   MqttClient.handle();
-
+  Log.handle();
   HTTPServer.handle();
 
 #ifdef ENABLE_OTA
@@ -164,9 +186,9 @@ void loop() {
   }
   
   if ((millis() - tickSendData) >= (unsigned long)(Configuration._timeSendData*1000)) {
-    printTime();
-    Serial.println("Send data to MQTT");
-    MqttClient.publishMonitoringData();
+    Log.println("Send data to MQTT");
+    // MqttClient.publishMonitoringData();
+    getATM90();
     tickSendData = millis();
   }
 
@@ -183,5 +205,5 @@ void loop() {
     }
   }
  
-  delay(10);
+  delay(50);
 }

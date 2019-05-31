@@ -1,7 +1,7 @@
 #pragma once
 
 // Version
-#define VERSION     "V1.0"
+#define VERSION     "V1.1"
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
 #define DEFAULT_MQTTIPSERVER        "192.168.1.75"

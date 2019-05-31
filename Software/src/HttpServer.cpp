@@ -5,6 +5,7 @@
 // You can update by 'curl -F "image=@firmware.bin" ESP_Monitoring.local/'
 
 #include "HttpServer.h"
+#include "Logger.h"
 
 /********************************************************/
 /******************** Public Method *********************/
@@ -61,7 +62,7 @@ String HttpServer::getContentType(String filename)
 // send the right file to the client (if it exists)
 bool HttpServer::handleFileRead(String path)
 {
-  Serial.println("handleFileRead: " + path);
+  Log.println("handleFileRead: " + path);
   if (path.endsWith("/")) {
     path += "index.html";                                     // If a folder is requested, send the index file
   }
@@ -73,10 +74,10 @@ bool HttpServer::handleFileRead(String path)
     File file = SPIFFS.open(path, "r");                       // Open the file
     HTTPServer.webServer().streamFile(file, contentType);     // Send it to the client
     file.close();                                             // Close the file again
-    Serial.println(String("\tSent file: ") + path);
+    Log.println(String("\tSent file: ") + path);
     return true;
   }
-  Serial.println(String("\tFile Not Found: ") + path);        // If the file doesn't exist, return false
+  Log.println(String("\tFile Not Found: ") + path);        // If the file doesn't exist, return false
   return false;
 }
 
