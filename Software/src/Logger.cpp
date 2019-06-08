@@ -1,15 +1,16 @@
 #include "Logger.h"
 
-#include "settings.h"
-#include <simpleDSTadjust.h>
+#ifdef USE_DST_ADJUST
+  #include <simpleDSTadjust.h>
 
-struct dstRule StartRule = {"CEST", Last, Sun, Mar, 2, 3600}; // Central European Summer Time = UTC/GMT +2 hours
-struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central European Time = UTC/GMT +1 hour
-simpleDSTadjust dstAdjusted(StartRule, EndRule);
+  struct dstRule StartRule = {"CEST", Last, Sun, Mar, 2, 3600}; // Central European Summer Time = UTC/GMT +2 hours
+  struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central European Time = UTC/GMT +1 hour
+  simpleDSTadjust dstAdjusted(StartRule, EndRule);
+#endif
 
 #ifdef DEBUG_TELNET
-WiFiServer telnetServer(23);
-WiFiClient telnetClient;
+  WiFiServer telnetServer(23);
+  WiFiClient telnetClient;
 #endif
 
 /********************************************************/
@@ -17,6 +18,8 @@ WiFiClient telnetClient;
 /********************************************************/
 void Logger::setup()
 {
+  addTimeToString = true;
+
 #ifdef DEBUG_SERIAL
   Serial.begin(115200);
   while (!Serial) {} // wait for serial port to connect. Needed for native USB
@@ -28,7 +31,7 @@ void Logger::setup()
   // Setup telnet server for remote debug output
   telnetServer.setNoDelay(true);
   telnetServer.begin();
-  println(String(F("Telnet: Started on port 23 - IP:")) + WiFi.localIP().toString());
+  println("Telnet: Started on port 23 - IP:" + WiFi.localIP().toString());
 #endif
 }
 
@@ -39,45 +42,67 @@ void Logger::handle()
 #endif
 }
 
-size_t Logger::println(const String &s)
+void Logger::println(const String &s)
 {
   String debugText = s;
   debugText += "\r\n";
-  return print(debugText);
+
+  if (addTimeToString) {
+    addTime(debugText);
+  }
+  addTimeToString = true;
+
+  send(debugText);
 }
 
-size_t Logger::print(const String &s)
+void Logger::print(const String &s)
 { 
-  size_t size = 0;
-  char time[30];
-  char *dstAbbrev;
-  time_t t = dstAdjusted.time(&dstAbbrev);
-  struct tm *timeinfo = localtime(&t);
+  String debugText = s;
 
-  sprintf(time, "%02d/%02d/%d, %02d:%02d:%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
-  
-  String debugTimeText = "[" + String(time) + "] " + s;
-  // String debugTimeText = "[+" + String(float(millis()) / 1000, 3) + "s] " + s;
-
-#ifdef DEBUG_SERIAL
-  size = Serial.print(debugTimeText);
-  Serial.flush();
-#endif
-
-#ifdef DEBUG_TELNET
-  if (telnetClient.connected()) {
-    const size_t len = debugTimeText.length();
-    const char *buffer = debugTimeText.c_str();
-    telnetClient.write(buffer, len);
-    handleTelnetClient();
+  if (addTimeToString) {
+    addTime(debugText);
+    addTimeToString = false;
   }
-#endif
-  return size;
+
+  send(debugText);
 }
 
 /********************************************************/
 /******************** Private Method ********************/
 /********************************************************/
+
+void Logger::send(String &s)
+{
+#ifdef DEBUG_SERIAL
+  Serial.print(s);
+  Serial.flush();
+#endif
+
+#ifdef DEBUG_TELNET
+  if (telnetClient.connected()) {
+    const size_t len = s.length();
+    const char *buffer = s.c_str();
+    telnetClient.write(buffer, len);
+    handleTelnetClient();
+  }
+#endif
+}
+
+void Logger::addTime(String &s)
+{
+#ifdef USE_DST_ADJUST
+  char time[30];
+  char *dstAbbrev;
+  time_t t = dstAdjusted.time(&dstAbbrev);
+  struct tm *timeinfo = localtime(&t);
+
+  sprintf(time, "%02d/%02d/%d %02d:%02d:%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+
+  s = "[" + String(time) + "] " + s;
+#else
+  s = "[" + String(millis()) + "] " + s;
+#endif
+}
 
 #ifdef DEBUG_TELNET
 void Logger::handleTelnetClient()

@@ -16,6 +16,8 @@
 #include "ATM90E32.h"
 #include "Logger.h"
 
+// #define debug
+
 ATM90E32::ATM90E32()   // Object
 {
 }
@@ -33,7 +35,22 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   unsigned short output;
   unsigned short address1;
 
-  // SPISettings settings(200000, MSBFIRST, SPI_MODE2);
+  //SPI interface rate is 200 to 160k bps. It Will need to be slowed down for EnergyIC
+#if !defined(ENERGIA) && !defined(ESP8266) && !defined(ESP32) && !defined(ARDUINO_ARCH_SAMD)
+  SPISettings settings(200000, MSBFIRST, SPI_MODE0);
+#endif
+
+#if defined(ESP8266)
+  SPISettings settings(200000, MSBFIRST, SPI_MODE3);
+#endif
+
+#if defined(ESP32)
+  SPISettings settings(200000, MSBFIRST, SPI_MODE3);
+#endif
+
+#if defined(ARDUINO_ARCH_SAMD)
+  SPISettings settings(200000, MSBFIRST, SPI_MODE3);
+#endif
 
   // Switch MSB and LSB of value
   output = (val >> 8) | (val << 8);
@@ -42,13 +59,22 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   // Set R/W flag
   address |= RW << 15;
 
+#ifdef debug
+  if (RW) {
+    Log.print("ATM90E32 => Read, ");
+  }
+  else {
+    Log.print("ATM90E32 => Write, ");
+  }
+#endif
+
   // Swap byte address
   address1 = (address >> 8) | (address << 8);
   address = address1;
 
   // Transmit & Receive Data
 #if !defined(ENERGIA)
-  // SPI.beginTransaction(settings);
+  SPI.beginTransaction(settings);
 #endif
 
   // Chip enable and wait for SPI activation
@@ -56,10 +82,17 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
 
   delayMicroseconds(10);
 
+#ifdef debug
+  Log.print("Register: 0x");
+#endif
+
   // Write address byte by byte
   for (byte i = 0; i < 2; i++)
   {
-    SPI.transfer (*adata);
+    SPI.transfer(*adata);
+#ifdef debug
+    Log.print(String(*adata, HEX));
+#endif
     adata++;
   }
 
@@ -67,33 +100,44 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   /* Must wait 4 us for data to become valid */
   delayMicroseconds(4);
 
+#ifdef debug
+  Log.print(", Data: 0x");
+#endif
+
   // READ Data
   // Do for each byte in transfer
   if (RW)
   {
     for (byte i = 0; i < 2; i++)
     {
-      *data = SPI.transfer (0x00);
+      *data = SPI.transfer(0x00);
+#ifdef debug
+      Log.print(String(*data, HEX));
+#endif
       data++;
     }
-    //val = SPI.transfer16(0x00);
+    // val = SPI.transfer16(0x00);
   }
   else
   {
     for (byte i = 0; i < 2; i++)
     {
       SPI.transfer(*data);
+#ifdef debug
+      Log.print(String(*data, HEX));
+#endif
       data++;
     }
     // SPI.transfer16(val);
   }
 
+#ifdef debug
+  Log.println();
+#endif
+
   // Chip enable and wait for transaction to end
   digitalWrite(_cs, HIGH);
   delayMicroseconds(10);
-#if !defined(ENERGIA)
-  SPI.endTransaction();
-#endif
 
   output = (val >> 8) | (val << 8); // reverse MSB and LSB
   return output;
@@ -133,10 +177,10 @@ double ATM90E32::CalculateVIOffset(unsigned short regh_addr, unsigned short regl
   
   offset = val;
   
-  CommEnergyIC(WRITE, CfgRegAccEn, 0x55AA); // enable register config access
-  delay(1);
-  CommEnergyIC(WRITE, offset_reg, (signed short)val);
-  CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
+  // CommEnergyIC(WRITE, CfgRegAccEn, 0x55AA); // enable register config access
+  // delay(1);
+  // CommEnergyIC(WRITE, offset_reg, (signed short)val);
+  // CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
 
   return (offset);
 }
@@ -173,12 +217,12 @@ double ATM90E32::CalibrateVI(unsigned short reg, unsigned short actualVal) {
 	gain = m;
 	
 	//write new value to gain register
-  CommEnergyIC(WRITE, CfgRegAccEn, 0x55AA); // enable register config access
-  delay(1);
-	CommEnergyIC(WRITE, gainReg, gain);
-  CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
+  // CommEnergyIC(WRITE, CfgRegAccEn, 0x55AA); // enable register config access
+  // delay(1);
+	// CommEnergyIC(WRITE, gainReg, gain);
+  // CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
 	
-	return(gain);
+	return (gain);
 }
 
 
@@ -433,52 +477,6 @@ unsigned short ATM90E32::GetMeterStatus1() {
   return CommEnergyIC(READ, EMMState1, 0xFFFF);
 }
 
-
-/* Checksum Error Function */
-bool ATM90E32::calibrationError()
-{
-  bool CS0, CS1, CS2, CS3;
-  unsigned short systemstatus0 = GetSysStatus0();
-
-  if (systemstatus0 & 0x4000)
-  {
-    CS0 = true;
-  }
-  else
-  {
-    CS0 = false;
-  }
-
-  if (systemstatus0 & 0x0100)
-  {
-    CS1 = true;
-  }
-  else
-  {
-    CS1 = false;
-  }
-  if (systemstatus0 & 0x0400)
-  {
-    CS2 = true;
-  }
-  else
-  {
-    CS2 = false;
-  }
-  if (systemstatus0 & 0x0100)
-  {
-    CS3 = true;
-  }
-  else
-  {
-    CS3 = false;
-  }
-
-  if (CS0 || CS1 || CS2 || CS3) return (true);
-  else return (false);
-
-}
-
 /* BEGIN FUNCTION */
 /*
   - Define the pin to be used as Chip Select
@@ -492,8 +490,8 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   _pgagain = pgagain; //PGA Gain for current channels
   _ugain = ugain; //voltage rms gain
   _igainA = igainA; //CT1
-  _igainB = igainB; //CT2 - not used for single split phase meter
-  _igainC = igainC; //CT2 for single split phase meter - CT3 otherwise
+  _igainB = igainB; //CT2
+  _igainC = igainC; //CT3
 
   pinMode(_cs, OUTPUT);
   pinMode(pin_pm0, OUTPUT);
@@ -503,13 +501,15 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
 
   /* Enable SPI */
   SPI.begin();
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE3);
-  SPI.setClockDivider(SPI_CLOCK_DIV128);
+
   //SPI.setHwCs(_cs);
 
   Log.println("Connecting to ATM90E32");
-
+#if defined(ENERGIA)
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setClockDivider(SPI_CLOCK_DIV16);
+#endif
 
   //determine proper low and high frequency threshold
   unsigned short FreqHiThresh;
@@ -543,9 +543,11 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
 
   //Initialize registers
   CommEnergyIC(WRITE, SoftReset, 0x789A);   // Perform soft reset
-  delay(50);
+  delay(100);
   
   CommEnergyIC(WRITE, CfgRegAccEn, 0x55AA); // enable register config access
+  delay(1);
+  CommEnergyIC(WRITE, MeterEn, 0x0001);   // Enable Metering
 
   CommEnergyIC(WRITE, SagTh, vSagTh);         // Voltage sag threshold
   CommEnergyIC(WRITE, FreqHiTh, FreqHiThresh);  // High frequency threshold
@@ -554,21 +556,21 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   CommEnergyIC(WRITE, EMMIntEn1, 0x0000);   // Disable interrupts
   CommEnergyIC(WRITE, EMMIntState0, 0xFFFF);  // Clear interrupt flags
   CommEnergyIC(WRITE, EMMIntState1, 0xFFFF);  // Clear interrupt flags
-  CommEnergyIC(WRITE, ZXConfig, 0x0001);      // ZX2, ZX1, ZX0 pin config
+  // CommEnergyIC(WRITE, ZXConfig, 0x0001);      // ZX2, ZX1, ZX0 pin config
 
   //Set metering config values (CONFIG)
-  CommEnergyIC(WRITE, PLconstH, 0x0861);    // PL Constant MSB (default) - Meter Constant = 3200 - PL Constant = 140625000
-  CommEnergyIC(WRITE, PLconstL, 0xC468);    // PL Constant LSB (default) - this is 4C68 in the application note, which is incorrect
+  // CommEnergyIC(WRITE, PLconstH, 0x0861);    // PL Constant MSB (default) - Meter Constant = 3200 - PL Constant = 140625000
+  // CommEnergyIC(WRITE, PLconstL, 0xC468);    // PL Constant LSB (default) - this is 4C68 in the application note, which is incorrect
   CommEnergyIC(WRITE, MMode0, _lineFreq);   // Mode Config (frequency set in main program)
   CommEnergyIC(WRITE, MMode1, _pgagain);    // PGA Gain Configuration for Current Channels - 0x002A (x4) // 0x0015 (x2) // 0x0000 (1x)
-  CommEnergyIC(WRITE, PStartTh, 0x0000);    // Active Startup Power Threshold - 50% of startup current = 0.9/0.00032 = 2812.5
-  CommEnergyIC(WRITE, QStartTh, 0x0000);    // Reactive Startup Power Threshold
-  CommEnergyIC(WRITE, SStartTh, 0x0000);    // Apparent Startup Power Threshold
-  CommEnergyIC(WRITE, PPhaseTh, 0x0000);    // Active Phase Threshold = 10% of startup current = 0.06/0.00032 = 187.5
-  CommEnergyIC(WRITE, QPhaseTh, 0x0000);    // Reactive Phase Threshold
-  CommEnergyIC(WRITE, SPhaseTh, 0x0000);    // Apparent  Phase Threshold
+  // CommEnergyIC(WRITE, PStartTh, 0x0AFC);    // Active Startup Power Threshold - 50% of startup current = 0.9/0.00032 = 2812.5
+  // CommEnergyIC(WRITE, QStartTh, 0x0AEC);    // Reactive Startup Power Threshold
+  // CommEnergyIC(WRITE, SStartTh, 0x0000);    // Apparent Startup Power Threshold
+  // CommEnergyIC(WRITE, PPhaseTh, 0x00BC);    // Active Phase Threshold = 10% of startup current = 0.06/0.00032 = 187.5
+  // CommEnergyIC(WRITE, QPhaseTh, 0x0000);    // Reactive Phase Threshold
+  // CommEnergyIC(WRITE, SPhaseTh, 0x0000);    // Apparent  Phase Threshold
 
-  //Set metering calibration values (CALIBRATION)
+  // Set metering calibration values (CALIBRATION)
   CommEnergyIC(WRITE, PQGainA, 0x0000);     // Line calibration gain
   CommEnergyIC(WRITE, PhiA, 0x0000);        // Line calibration angle
   CommEnergyIC(WRITE, PQGainB, 0x0000);     // Line calibration gain
@@ -582,7 +584,7 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   CommEnergyIC(WRITE, PoffsetC, 0x0000);    // C line active power offset
   CommEnergyIC(WRITE, QoffsetC, 0x0000);    // C line reactive power offset
 
-  //Set metering calibration values (HARMONIC)
+  // Set metering calibration values (HARMONIC)
   CommEnergyIC(WRITE, POffsetAF, 0x0000);   // A Fund. active power offset
   CommEnergyIC(WRITE, POffsetBF, 0x0000);   // B Fund. active power offset
   CommEnergyIC(WRITE, POffsetCF, 0x0000);   // C Fund. active power offset
@@ -590,7 +592,7 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   CommEnergyIC(WRITE, PGainBF, 0x0000);     // B Fund. active power gain
   CommEnergyIC(WRITE, PGainCF, 0x0000);     // C Fund. active power gain
 
-  //Set measurement calibration values (ADJUST)
+  // Set measurement calibration values (ADJUST)
   CommEnergyIC(WRITE, UgainA, _ugain);      // A Voltage rms gain
   CommEnergyIC(WRITE, IgainA, _igainA);      // A line current gain
   CommEnergyIC(WRITE, UoffsetA, 0xF400);    // A Voltage offset (-3072)
@@ -604,138 +606,8 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   CommEnergyIC(WRITE, UoffsetC, 0xF400);    // C Voltage offset (-3072)
   CommEnergyIC(WRITE, IoffsetC, 0xFC60);    // C line current offset (-928)
 
-  CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
   delay(10);
-  CommEnergyIC(WRITE, MeterEn, 0x00FF);   // Enable Metering
-
-  /*
-    ERROR REGISTERS
-
-    EMMState0
-    Bit Name Description
-    15 OIPhaseAST Set to 1: if there is over current on phase A
-    14 OIPhaseBST Set to 1: if there is over current on phase B
-    13 OIPhaseCST Set to 1: if there is over current on phase C
-    12 OVPhaseAST Set to 1: if there is over voltage on phase A
-    11 OVPhaseBST Set to 1: if there is over voltage on phase B
-    10 OVPhaseCST Set to 1: if there is over voltage on phase C
-    9 URevWnST Voltage Phase Sequence Error status
-    8 IRevWnST Current Phase Sequence Error status
-    7 INOv0ST When the calculated N line current is greater than the threshold set by the INWarnTh register, this bit is
-    set.
-    6 TQNoloadST All phase sum reactive power no-load condition status
-    5 TPNoloadST All phase sum active power no-load condition status
-    4 TASNoloadST All phase arithmetic sum apparent power no-load condition status
-    3 CF1RevST
-    Energy for CF1 Forward/Reverse status:
-    0: Forward
-    1: Reverse
-    2 CF2RevST
-    Energy for CF2 Forward/Reverse status:
-    0: Forward
-    1: Reverse
-    1 CF3RevST
-    Energy for CF3 Forward/Reverse status:
-    0: Forward
-    1: Reverse
-    0 CF4RevST
-    Energy for CF4 Forward/Reverse status:
-    0: Forward
-    1: Reverse
-
-
-    Bit Name Description
-    15 FreqHiST This bit indicates whether frequency is greater than the high threshold
-    14 SagPhaseAST
-    This bit indicates whether there is voltage sag on phase A
-    13 SagPhaseBST
-    This bit indicates whether there is voltage sag on phase B
-    12 SagPhaseCST
-    This bit indicates whether there is voltage sag on phase C
-    11 FreqLoST This bit indicates whether frequency is lesser than the low threshold
-    10 PhaseLossAST
-    This bit indicates whether there is a phase loss in Phase A
-    9 PhaseLossBST
-    This bit indicates whether there is a phase loss in Phase B
-    8 PhaseLossCST
-    This bit indicates whether there is a phase loss in Phase C
-    7 QERegTPST
-    ReActive (Q) Energy (E) Register (Reg) of all channel total sum (T) Positive (P) Status (ST):
-    0: Positive,
-    1: Negative
-    6 QERegAPST ReActive (Q) Energy (E) Register (Reg) of Channel (A/B/C) Positive (P) Status (ST):
-    0: Positive,
-    1: Negative
-    5 QERegBPST
-    4 QERegCPST
-    3 PERegTPST
-    Active (P) Energy (E) Register (Reg) of all channel total sum (T) Positive (P) Status (ST)
-    0: Positive,
-    1: Negative
-    2 PERegAPST Active (P) Energy (E) Register (Reg) of Channel (A/B/C) Positive (P) Status (ST)
-    0: Positive,
-    1: Negative
-    1 PERegBPST
-    0 PERegCPST
-
-    EMMIntState0
-    Bit Name Description
-    15 OIPhaseAIntS
-    T Over current on phase A status change flag
-    14 OIPhaseBIntS
-    T Over current on phase B status change flag
-    13 OIPhaseCInt
-    ST Over current on phase C status change flag
-    12 OVPhaseAInt
-    ST Over Voltage on phase A status change flag
-    11 OVPhaseBInt
-    ST Over Voltage on phase B status change flag
-    10 OVPhaseCInt
-    ST Over Voltage on phase C status change flag
-    9 URevWnIntST
-    Voltage Phase Sequence Error status change flag
-    8 IRevWnIntST Current Phase Sequence Error status change flag
-    7 INOv0IntST Neutral line over current status change flag
-    6 TQNoloadIntST
-    All phase sum reactive power no-load condition status change flag
-    5 TPNoloadIntST
-    All phase sum active power no-load condition status change flag
-    4 TASNoloadIntST
-    All phase arithmetic sum apparent power no-load condition status change flag
-    3 CF1RevIntST Energy for CF1 Forward/Reverse status change flag
-    2 CF2RevIntST Energy for CF2 Forward/Reverse status change flag
-    1 CF3RevIntST Energy for CF3 Forward/Reverse status change flag
-    0 CF4RevIntST Energy for CF4 Forward/Reverse status change flag
-
-    Bit Name Description
-    15 FreqHiIntST FreqHiST change flag
-    14 SagPhaseAIntST
-    Voltage sag on phase A status change flag
-    13 SagPhaseBIntST
-    Voltage sag on phase B status change flag
-    12 SagPhaseCIntST
-    Voltage sag on phase C status change flag
-    11 FreqLoIntST FreqLoST change flag
-    10 PhaseLossAIntST
-    Voltage PhaseLoss on phase A status change flag
-    9 PhaseLossBIntST
-    Voltage PhaseLoss on phase B status change flag
-    8 PhaseLossCIntST
-    Voltage PhaseLoss on phase C status change flag
-    7 QERegTPIntST
-    ReActive (Q) Energy (E) Register (Reg) of all channel total sum (T) Positive (P) status change flag (IntST)
-    6 QERegAPIntST
-    5 ReActive (Q) Energy (E) Register (Reg) of all channel (A/B/C) Positive (P) status change flag (IntST) QERegBPIntST
-    4 QE
-    RegCPIntST
-    3 PERegTPIntST
-    Active (P) Energy (E) Register (Reg) of all channel total sum (T) Positive (P) status change flag (IntST)
-    2 PERegAPIntST
-    1 Active (P) Energy(E) Register (Reg) of Channel (A/B/C) Positive (P) status change flag (IntST) PERegBPIntST
-    0 PE
-    RegCPIntST
-  */
-
+  CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) 

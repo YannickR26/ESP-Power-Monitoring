@@ -5,7 +5,9 @@
 
 /******* Debug **************/
 #define DEBUG_SERIAL
-#define DEBUG_TELNET  // Open a read-only telnet debug port
+// #define DEBUG_TELNET  // Open a read-only telnet debug port
+
+#define USE_DST_ADJUST
 
 class Logger 
 {
@@ -16,16 +18,20 @@ class Logger
 	void setup();
 	void handle();
 
-	size_t println(const String &s = String());
-  size_t println(const char str[]) { return println(String(str)); }
+	void println(const String &s = String());
+  void println(const char str[]) { println(String(str)); }
 
-	size_t print(const String &s);
-  size_t print(const char str[]) { return print(String(str)); }
+	void print(const String &s);
+  void print(const char str[]) { print(String(str)); }
 
   private:
+	void send(String &s);
+	void addTime(String &s);
 #ifdef DEBUG_TELNET
 	void handleTelnetClient();
 #endif
+
+	bool addTimeToString;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)

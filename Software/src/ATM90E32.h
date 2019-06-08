@@ -314,15 +314,11 @@ class ATM90E32
 		double GetExportEnergy();
 		double GetExportReactiveEnergy();
 		
-
 		/* System Status */
 		unsigned short GetSysStatus0();
 		unsigned short GetSysStatus1();
 		unsigned short GetMeterStatus0();
 		unsigned short GetMeterStatus1();
-
-		/* Checksum Function */
-		bool calibrationError();
 	};
 #endif
 

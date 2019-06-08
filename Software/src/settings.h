@@ -1,15 +1,14 @@
 #pragma once
 
 // Version
-#define VERSION     "V1.1"
+#define VERSION     "V1.2"
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
 #define DEFAULT_MQTTIPSERVER        "192.168.1.75"
 #define DEFAULT_MQTTPORTSERVER      1883
 
 #define DEFAULT_NTP_UPDATE_INTERVAL_SEC     (1 * 3600)      // Update time from NTP server every 1 hours
-#define DEFAULT_SEND_DATA_INTERVAL_SEC      1               // Log data every 1 minutes
-#define DEFAULT_SCREEN_UPDATE_INTERVAL_SEC  5               // Update screen every 5 secondes
+#define DEFAULT_SEND_DATA_INTERVAL_SEC      5               // Log data every 1 minutes
 
 // Mode
 #define MODE_MONO   0

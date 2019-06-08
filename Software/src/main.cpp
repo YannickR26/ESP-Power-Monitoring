@@ -34,7 +34,6 @@ void setup() {
   Log.println(String(F("ESP_Power_Monitoring - Build: ")) + F(__DATE__) + " " +  F(__TIME__));
 
   pinMode(RELAY_PIN, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
 
   /* Read configuration from SPIFFS */
   Configuration.setup();
@@ -81,7 +80,8 @@ void setup() {
   Configuration.saveConfig();
 
   /* Initialize the ATM90E32 + SPI port */
-  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, 0x87, 0, 30250, 9200, 9200, 9200);
+  uint16_t mmode0 = (Configuration._mode == 0) ? 0x87 : 0x185;
+  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, 30000, 9500, 9500, 9500);
   
   /* Initialize HTTP Server */
   HTTPServer.setup();
@@ -124,55 +124,24 @@ void setup() {
 #endif
 
   updateNTP();
-}
 
-// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= //
-// get Energy Vals                                               //
-// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= //
-void getATM90()
-{
-  float voltageA, voltageB, voltageC, totalVoltage, currentA, currentB, currentC, totalCurrent, realPower, powerFactor, chipTemp, powerFreq, totalWatts;
-  unsigned short sys0, sys1, en0, en1;
+  // Log.println("Offset IA: " + String(Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA)));
+  // Log.println("Offset IB: " + String(Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB)));
+  // Log.println("Offset IC: " + String(Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC)));
 
-  delay(10);
-  sys0 = Monitoring.GetSysStatus0();
-  sys1 = Monitoring.GetSysStatus1();
-  en0 = Monitoring.GetMeterStatus0();
-  en1 = Monitoring.GetMeterStatus1();
-
-  Log.println(String(F("ATM90: Sys Status: S0:0x")) + String(sys0, HEX) + String(F(" S1:0x")) + String(sys1, HEX));
-  Log.println(String(F("ATM90: Meter Status: E0:0x")) + String(en0, HEX) + String(F(" E1:0x")) + String(en1, HEX));
-
-  voltageA    = Monitoring.GetLineVoltageA();
-  voltageB    = Monitoring.GetLineVoltageB();
-  voltageC    = Monitoring.GetLineVoltageC();
-  currentA    = Monitoring.GetLineCurrentA();
-  currentB    = Monitoring.GetLineCurrentB();
-  currentC    = Monitoring.GetLineCurrentC();
-  realPower   = Monitoring.GetTotalActivePower();
-  powerFactor = Monitoring.GetTotalPowerFactor();
-  chipTemp    = Monitoring.GetTemperature(); 
-  powerFreq   = Monitoring.GetFrequency();
-
-  totalVoltage = voltageA + voltageB + voltageC ;
-  totalCurrent = currentA + currentB + currentC;
-  totalWatts  = (voltageA * currentA) + (voltageB * currentB) + (voltageC * currentC);
-
-  Log.println(String(F("ATM90: VA: ")) + String(voltageA) + String(F("V - VB: ")) + String(voltageB) + String(F("V - VC: ")) + String(voltageC) + String(F("V")));
-  Log.println(String(F("ATM90: IA: ")) + String(currentA) + String(F("A - IB: ")) + String(currentB) + String(F("A - IC: ")) + String(currentC, 4) + String(F("A")));
-  Log.println(String(F("ATM90: RP: ")) + String(realPower) + String(F(" - PF: ")) + String(powerFactor));
-  Log.println(String(F("ATM90: ATM90Temp: ")) + String(chipTemp) + String(F("C - Freq: ")) + String(powerFreq)+ String(F("hz")));
-  Log.println(String(F("ATM90: TotalV: ")) + String(totalVoltage) + String(F("V - TotalA: ")) + String(totalCurrent) + String(F("A - TotalW: ")) + String(totalWatts) + String(F("W")));
-  Log.println();
+  // Log.println("Offset UA: " + String(Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA)));
+  // Log.println("Offset UB: " + String(Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB)));
+  // Log.println("Offset UC: " + String(Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC)));
 }
 
 /************/
 /*** LOOP ***/
 /************/
 void loop() {
-  static unsigned long tickNTPUpdate, tickSendData, tickLed;
+  static unsigned long tickNTPUpdate, tickSendData, tickPrintData;
+  unsigned long currentMillis = millis();
 
-  MqttClient.handle();
+  // MqttClient.handle();
   Log.handle();
   HTTPServer.handle();
 
@@ -180,30 +149,24 @@ void loop() {
   ArduinoOTA.handle();
 #endif
 
-  if ((millis() - tickNTPUpdate) >= (unsigned long)(Configuration._timeUpdateNtp*1000)) {
+  if ((currentMillis - tickNTPUpdate) >= (unsigned long)(Configuration._timeUpdateNtp*1000)) {
     updateNTP();
-    tickNTPUpdate = millis();
+    tickNTPUpdate = currentMillis;
   }
   
-  if ((millis() - tickSendData) >= (unsigned long)(Configuration._timeSendData*1000)) {
-    Log.println("Send data to MQTT");
-    // MqttClient.publishMonitoringData();
-    getATM90();
-    tickSendData = millis();
+  if ((currentMillis - tickSendData) >= (unsigned long)(Configuration._timeSendData*1000)) {
+    // Log.println("Send data to MQTT");
+    MqttClient.publishMonitoringData();
+    tickSendData = currentMillis;
   }
 
-  if (MqttClient.isConnected()) {
-    if ((millis() - tickLed) >= (unsigned long)(LEDTIME_WORK)) {
-      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-      tickLed = millis();
-    }
+  if ((currentMillis - tickPrintData) >= 1000 ) {
+    Log.println("Line A: " + String(Monitoring.GetLineVoltageA()) + "V, " + String(Monitoring.GetLineCurrentA()) + "A, " + String(Monitoring.GetActivePowerA()) + "W");
+    Log.println("Line B: " + String(Monitoring.GetLineVoltageB()) + "V, " + String(Monitoring.GetLineCurrentB()) + "A, " + String(Monitoring.GetActivePowerB()) + "W");
+    Log.println("Line C: " + String(Monitoring.GetLineVoltageC()) + "V, " + String(Monitoring.GetLineCurrentC()) + "A, " + String(Monitoring.GetActivePowerC()) + "W");
+    Log.println();
+    tickPrintData = currentMillis;
   }
-  else {
-     if ((millis() - tickLed) >= (unsigned long)(LEDTIME_NOMQTT)) {
-      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-      tickLed = millis();
-    }
-  }
- 
+
   delay(50);
 }
