@@ -35,6 +35,9 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   unsigned short output;
   unsigned short address1;
 
+  /* Shut Off LED */
+  // digitalWrite(LED_BUILTIN, HIGH);
+
   //SPI interface rate is 200 to 160k bps. It Will need to be slowed down for EnergyIC
 #if !defined(ENERGIA) && !defined(ESP8266) && !defined(ESP32) && !defined(ARDUINO_ARCH_SAMD)
   SPISettings settings(200000, MSBFIRST, SPI_MODE0);
@@ -483,17 +486,17 @@ unsigned short ATM90E32::GetMeterStatus1() {
   - Set LogFlag to true for Log debugging
   - Use SPI MODE 0 for the ATM90E32
 */
-void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, uint16_t pgagain, uint16_t ugain, uint16_t igainA, uint16_t igainB, uint16_t igainC)   // Object
+void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, uint16_t pgagain, uint16_t ugain, uint16_t igain)   // Object
 {
   _cs = pin_cs;  // SS PIN
   _lineFreq = lineFreq; //frequency of power
   _pgagain = pgagain; //PGA Gain for current channels
   _ugain = ugain; //voltage rms gain
-  _igainA = igainA; //CT1
-  _igainB = igainB; //CT2
-  _igainC = igainC; //CT3
+  _igain = igain; //CT1, CT2 and CT3
 
   pinMode(_cs, OUTPUT);
+
+  /* Set MODE to Normal MODE */
   pinMode(pin_pm0, OUTPUT);
   digitalWrite(pin_pm0, HIGH);
   pinMode(pin_pm1, OUTPUT);
@@ -594,15 +597,15 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
 
   // Set measurement calibration values (ADJUST)
   CommEnergyIC(WRITE, UgainA, _ugain);      // A Voltage rms gain
-  CommEnergyIC(WRITE, IgainA, _igainA);      // A line current gain
+  CommEnergyIC(WRITE, IgainA, _igain);      // A line current gain
   CommEnergyIC(WRITE, UoffsetA, 0xF400);    // A Voltage offset (-3072)
   CommEnergyIC(WRITE, IoffsetA, 0xFC60);    // A line current offset (-928)
   CommEnergyIC(WRITE, UgainB, _ugain);      // B Voltage rms gain
-  CommEnergyIC(WRITE, IgainB, _igainB);      // B line current gain
+  CommEnergyIC(WRITE, IgainB, _igain);      // B line current gain
   CommEnergyIC(WRITE, UoffsetB, 0xF400);    // B Voltage offset (-3072)
   CommEnergyIC(WRITE, IoffsetB, 0xFC60);    // B line current offset (-928)
   CommEnergyIC(WRITE, UgainC, _ugain);      // C Voltage rms gain
-  CommEnergyIC(WRITE, IgainC, _igainC);      // C line current gain
+  CommEnergyIC(WRITE, IgainC, _igain);      // C line current gain
   CommEnergyIC(WRITE, UoffsetC, 0xF400);    // C Voltage offset (-3072)
   CommEnergyIC(WRITE, IoffsetC, 0xFC60);    // C line current offset (-928)
 

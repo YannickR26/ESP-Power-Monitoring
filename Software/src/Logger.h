@@ -5,7 +5,7 @@
 
 /******* Debug **************/
 #define DEBUG_SERIAL
-// #define DEBUG_TELNET  // Open a read-only telnet debug port
+#define DEBUG_TELNET  // Open a read-only telnet debug port
 
 #define USE_DST_ADJUST
 

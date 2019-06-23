@@ -41,7 +41,7 @@ void setup() {
 
   // Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
-  wifiManager.setDebugOutput(false);
+  // wifiManager.setDebugOutput(false);
   // wifiManager.resetSettings();
 
   // WiFiManagerParameter
@@ -58,9 +58,9 @@ void setup() {
   wifiManager.addParameter(&custom_time_update);
   wifiManager.addParameter(&custom_mode);
 
-  // wifiManager.resetSettings();
-
-  if (!wifiManager.autoConnect(Configuration._hostname.c_str())) {
+  Log.println("Try to connect to WiFi...");
+  wifiManager.setConfigPortalTimeout(300); // Set Timeout for portal configuration to 120 seconds
+  if (!wifiManager.autoConnect(Configuration._hostname.c_str(), Configuration._hostname.c_str())) {
     Log.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
@@ -80,8 +80,8 @@ void setup() {
   Configuration.saveConfig();
 
   /* Initialize the ATM90E32 + SPI port */
-  uint16_t mmode0 = (Configuration._mode == 0) ? 0x87 : 0x185;
-  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, 30000, 9500, 9500, 9500);
+  uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x87 : 0x185;
+  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, 30000, 9500);
   
   /* Initialize HTTP Server */
   HTTPServer.setup();
@@ -138,10 +138,10 @@ void setup() {
 /*** LOOP ***/
 /************/
 void loop() {
-  static unsigned long tickNTPUpdate, tickSendData, tickPrintData;
+  static unsigned long tickNTPUpdate, tickSendData, tickPrintData, tickLed;
   unsigned long currentMillis = millis();
 
-  // MqttClient.handle();
+  MqttClient.handle();
   Log.handle();
   HTTPServer.handle();
 
@@ -155,7 +155,7 @@ void loop() {
   }
   
   if ((currentMillis - tickSendData) >= (unsigned long)(Configuration._timeSendData*1000)) {
-    // Log.println("Send data to MQTT");
+    Log.println("Send data to MQTT");
     MqttClient.publishMonitoringData();
     tickSendData = currentMillis;
   }
@@ -167,6 +167,19 @@ void loop() {
     Log.println();
     tickPrintData = currentMillis;
   }
+
+  // if (MqttClient.isConnected()) {
+  //   if ((currentMillis - tickLed) >= (unsigned long)(LEDTIME_WORK)) {
+  //     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  //     tickLed = currentMillis;
+  //   }
+  // }
+  // else {
+  //    if ((currentMillis - tickLed) >= (unsigned long)(LEDTIME_NOMQTT)) {
+  //     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  //     tickLed = currentMillis;
+  //   }
+  // }
 
   delay(50);
 }

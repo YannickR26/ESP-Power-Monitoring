@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include "settings.h"
 
 #ifdef USE_DST_ADJUST
   #include <simpleDSTadjust.h>
