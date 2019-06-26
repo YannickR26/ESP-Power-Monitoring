@@ -60,7 +60,7 @@ void setup() {
 
   Log.println("Try to connect to WiFi...");
   wifiManager.setConfigPortalTimeout(300); // Set Timeout for portal configuration to 120 seconds
-  if (!wifiManager.autoConnect(Configuration._hostname.c_str(), Configuration._hostname.c_str())) {
+  if (!wifiManager.autoConnect(Configuration._hostname.c_str())) {
     Log.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
