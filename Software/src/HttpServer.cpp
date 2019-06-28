@@ -28,15 +28,18 @@ void HttpServer::setup(void)
 
   _webServer.on("/reboot", [&]() {
     _webServer.send(200, "text/plain", "ESP reboot now !");
-    delay(1000);
+    delay(200);
     ESP.restart();
   });
   
   _webServer.on("/wifimanager", [&]() {
-    _webServer.send(200, "text/plain", "Launch WifiManager");
-    delay(1000);
+    _webServer.send(200, "text/plain", "Reset settings of WifiManager, the card reboot now in AP mode");
+    delay(200);
     WiFiManager wifiManager;
-    wifiManager.startConfigPortal("AQiT-Ramp-Simu");
+    wifiManager.resetSettings();
+    delay(200);
+    ESP.restart();
+    //wifiManager.startConfigPortal(Configuration._hostname.c_str());
   });
 
   _webServer.onNotFound([&]() {
