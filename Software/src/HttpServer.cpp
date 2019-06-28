@@ -4,6 +4,7 @@
 
 // You can update by 'curl -F "image=@firmware.bin" ESP_Monitoring.local/'
 
+#include "WiFiManager.h"
 #include "HttpServer.h"
 #include "Logger.h"
 
@@ -24,6 +25,19 @@ void HttpServer::setup(void)
 {
   MDNS.begin(Configuration._hostname.c_str()); 
   MDNS.addService("http", "tcp", 80);
+
+  _webServer.on("/reboot", [&]() {
+    _webServer.send(200, "text/plain", "ESP reboot now !");
+    delay(1000);
+    ESP.restart();
+  });
+  
+  _webServer.on("/wifimanager", [&]() {
+    _webServer.send(200, "text/plain", "Launch WifiManager");
+    delay(1000);
+    WiFiManager wifiManager;
+    wifiManager.startConfigPortal("AQiT-Ramp-Simu");
+  });
 
   _webServer.onNotFound([&]() {
     if (!handleFileRead(_webServer.uri())) {

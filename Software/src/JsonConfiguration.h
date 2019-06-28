@@ -17,14 +17,14 @@ class JsonConfiguration
     
     String toJson();
   
-		/* Members */
+	/* Members */
   	String _hostname;
-		String _mqttIpServer;
-		int _mqttPortServer;
-		int _timeUpdateNtp;
-		int _timeSendData;
-		int _mode;
-		String _namePhaseA, _namePhaseB, _namePhaseC;
+	String _mqttIpServer;
+	int _mqttPortServer;
+	int _timeUpdateNtp;
+	int _timeSendData;
+	int _mode;
+	String _namePhaseA, _namePhaseB, _namePhaseC;
      	
   private:
   
