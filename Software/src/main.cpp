@@ -81,7 +81,7 @@ void setup() {
 
   /* Initialize the ATM90E32 + SPI port */
   uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x87 : 0x185;
-  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, 30000, 9500);
+  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, ATM90E32_UGAIN, ATM90E32_IGAIN);
   
   /* Initialize HTTP Server */
   HTTPServer.setup();
@@ -125,6 +125,9 @@ void setup() {
 
   updateNTP();
 
+  /* Uncomment if you want calculate the offset of I and U
+    ! Warning ! the voltage and the current must be at 0
+  */
   // Log.println("Offset IA: " + String(Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA)));
   // Log.println("Offset IB: " + String(Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB)));
   // Log.println("Offset IC: " + String(Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC)));
@@ -164,6 +167,11 @@ void loop() {
     Log.println("Line A: " + String(Monitoring.GetLineVoltageA()) + "V, " + String(Monitoring.GetLineCurrentA()) + "A, " + String(Monitoring.GetActivePowerA()) + "W");
     Log.println("Line B: " + String(Monitoring.GetLineVoltageB()) + "V, " + String(Monitoring.GetLineCurrentB()) + "A, " + String(Monitoring.GetActivePowerB()) + "W");
     Log.println("Line C: " + String(Monitoring.GetLineVoltageC()) + "V, " + String(Monitoring.GetLineCurrentC()) + "A, " + String(Monitoring.GetActivePowerC()) + "W");
+    if (Configuration._mode == MODE_DEBUG) {
+      Log.println("Total Active Fond Power: " + String(Monitoring.GetTotalActiveFundPower()) + "W");
+      Log.println("Total Active Harm Power: " + String(Monitoring.GetTotalActiveHarPower()) + "W");
+      Log.println("Phase => A: " + String(Monitoring.GetPhaseA()) + "°, B: " + String(Monitoring.GetPhaseB()) +  "°, C: " + String(Monitoring.GetPhaseC()) + "°");
+    }
     Log.println();
     tickPrintData = currentMillis;
   }

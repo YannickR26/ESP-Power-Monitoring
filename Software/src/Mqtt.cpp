@@ -51,7 +51,7 @@ void Mqtt::publishMonitoringData()
     /* Send Line B */
     clientMqtt.publish(String(Configuration._hostname + "/lineB/voltage").c_str(), String(Monitoring.GetLineVoltageB()).c_str());
     clientMqtt.publish(String(Configuration._hostname + "/lineB/current").c_str(), String(Monitoring.GetLineCurrentB()).c_str());
-    clientMqtt.publish(String(Configuration._hostname + "/lineB/power").c_str(), String(Monitoring.GetActivePowerB()).c_str()); 
+    clientMqtt.publish(String(Configuration._hostname + "/lineB/power").c_str(), String(Monitoring.GetActivePowerB()).c_str());
     // clientMqtt.publish(String(Configuration._hostname + "/lineB/conso").c_str(), String(line.conso).c_str());
 
     /* Send Line C */
@@ -65,7 +65,6 @@ void Mqtt::publishMonitoringData()
     clientMqtt.publish(String(Configuration._hostname + "/lineA/voltage").c_str(), String(Monitoring.GetLineVoltageA()).c_str());
     clientMqtt.publish(String(Configuration._hostname + "/lineA/current").c_str(), String(Monitoring.GetLineCurrentA()*3).c_str());
     clientMqtt.publish(String(Configuration._hostname + "/lineA/power").c_str(), String(Monitoring.GetActivePowerA()*3).c_str());
-    // clientMqtt.publish(String(Configuration._hostname + "/lineA/conso").c_str(), String(line.conso*3).c_str());
   }
   else if (Configuration._mode == MODE_TRI_2) {
     /* Send Total Line */
@@ -73,6 +72,22 @@ void Mqtt::publishMonitoringData()
     clientMqtt.publish(String(Configuration._hostname + "/lineA/current").c_str(), String(Monitoring.GetLineCurrentA()*2 + Monitoring.GetLineCurrentC()).c_str());
     clientMqtt.publish(String(Configuration._hostname + "/lineA/power").c_str(), String(Monitoring.GetActivePowerA()*2 + Monitoring.GetActivePowerC()).c_str());
     // clientMqtt.publish(String(Configuration._hostname + "/lineA/conso").c_str(), String(line.conso*2 + lineC.conso).c_str());
+  }
+  else if (Configuration._mode == MODE_DEBUG) {
+    /* Send Line A */
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/voltage").c_str(), String(Monitoring.GetLineVoltageA()).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/current").c_str(), String(Monitoring.GetLineCurrentA()).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineA/power").c_str(), String(Monitoring.GetActivePowerA()).c_str());
+
+    /* Send Line B */
+    clientMqtt.publish(String(Configuration._hostname + "/lineB/voltage").c_str(), String(Monitoring.GetLineVoltageB()).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineB/current").c_str(), String(Monitoring.GetLineCurrentB()).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineB/power").c_str(), String(Monitoring.GetActivePowerB()).c_str());
+
+    /* Send Line C */
+    clientMqtt.publish(String(Configuration._hostname + "/lineC/voltage").c_str(), String(Monitoring.GetLineVoltageC()).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineC/current").c_str(), String(Monitoring.GetLineCurrentC()).c_str());
+    clientMqtt.publish(String(Configuration._hostname + "/lineC/power").c_str(), String(Monitoring.GetActivePowerC()).c_str());
   }
 
   /* Send Frequency */

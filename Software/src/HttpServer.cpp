@@ -39,7 +39,6 @@ void HttpServer::setup(void)
     wifiManager.resetSettings();
     delay(200);
     ESP.restart();
-    //wifiManager.startConfigPortal(Configuration._hostname.c_str());
   });
 
   _webServer.onNotFound([&]() {
