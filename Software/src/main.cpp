@@ -124,17 +124,6 @@ void setup() {
 #endif
 
   updateNTP();
-
-  /* Uncomment if you want calculate the offset of I and U
-    ! Warning ! the voltage and the current must be at 0
-  */
-  // Log.println("Offset IA: " + String(Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA)));
-  // Log.println("Offset IB: " + String(Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB)));
-  // Log.println("Offset IC: " + String(Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC)));
-
-  // Log.println("Offset UA: " + String(Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA)));
-  // Log.println("Offset UB: " + String(Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB)));
-  // Log.println("Offset UC: " + String(Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC)));
 }
 
 /************/
@@ -171,6 +160,17 @@ void loop() {
       Log.println("Total Active Fond Power: " + String(Monitoring.GetTotalActiveFundPower()) + "W");
       Log.println("Total Active Harm Power: " + String(Monitoring.GetTotalActiveHarPower()) + "W");
       Log.println("Phase => A: " + String(Monitoring.GetPhaseA()) + "°, B: " + String(Monitoring.GetPhaseB()) +  "°, C: " + String(Monitoring.GetPhaseC()) + "°");
+    
+      /* Uncomment if you want calculate the offset of I and U
+        ! Warning ! the voltage and the current must be at 0
+      */
+      // Log.println("Offset IA: " + String(Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA)));
+      // Log.println("Offset IB: " + String(Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB)));
+      // Log.println("Offset IC: " + String(Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC)));
+
+      // Log.println("Offset UA: " + String(Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA)));
+      // Log.println("Offset UB: " + String(Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB)));
+      // Log.println("Offset UC: " + String(Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC)));
     }
     Log.println();
     tickPrintData = currentMillis;
