@@ -15,6 +15,7 @@
 
 #include "ATM90E32.h"
 #include "Logger.h"
+#include "JsonConfiguration.h"
 
 // #define debug
 
@@ -611,6 +612,43 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
 
   delay(10);
   CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
+}
+
+/* Read all data from ATM90E32 device */
+void ATM90E32::handle(void)
+{
+  static unsigned long oldTick;
+  unsigned long time = (millis() - oldTick) / 1000;
+  oldTick = millis();
+
+  _line_A.voltage = GetLineVoltageA();
+  _line_B.voltage = GetLineVoltageB();
+  _line_C.voltage = GetLineVoltageC();
+
+  _line_A.current = GetLineCurrentA();
+  _line_B.current = GetLineCurrentB();
+  _line_C.current = GetLineCurrentC();
+
+  if (Configuration._mode == MODE_MONO) {
+    _line_A.power = GetActivePowerA();
+    _line_B.power = GetActivePowerB();
+    _line_C.power = GetActivePowerC();
+  }
+  else if (Configuration._mode == MODE_TRI_1) {
+    _line_A.power = GetActivePowerA() * sqrt(3);
+    _line_C.power = GetActivePowerC() * sqrt(3);
+  }
+  else if (Configuration._mode == MODE_TRI_2) {
+    _line_A.power = GetActivePowerA() * (2*sqrt(3))/3 + GetActivePowerC() * sqrt(3)/3;
+  }
+
+  _line_A.conso += (_line_A.power / 3600) * time;
+  _line_B.conso += (_line_B.power / 3600) * time;
+  _line_C.conso += (_line_C.power / 3600) * time;
+
+  Log.println("Line A: " + String(_line_A.voltage) + "V, " + String(_line_A.current) + "A, " + String(_line_A.power) + "W, " + String(_line_A.conso) + "kW/h");
+  Log.println("Line B: " + String(_line_B.voltage) + "V, " + String(_line_B.current) + "A, " + String(_line_B.power) + "W, " + String(_line_B.conso) + "kW/h");
+  Log.println("Line C: " + String(_line_C.voltage) + "V, " + String(_line_C.current) + "A, " + String(_line_C.power) + "W, " + String(_line_C.conso) + "kW/h");
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) 

@@ -148,18 +148,23 @@ void loop() {
   
   if ((currentMillis - tickSendData) >= (unsigned long)(Configuration._timeSendData*1000)) {
     Log.println("Send data to MQTT");
+    Monitoring.handle();
     MqttClient.publishMonitoringData();
     tickSendData = currentMillis;
   }
 
   if ((currentMillis - tickPrintData) >= 1000 ) {
-    Log.println("Line A: " + String(Monitoring.GetLineVoltageA()) + "V, " + String(Monitoring.GetLineCurrentA()) + "A, " + String(Monitoring.GetActivePowerA()) + "W");
-    Log.println("Line B: " + String(Monitoring.GetLineVoltageB()) + "V, " + String(Monitoring.GetLineCurrentB()) + "A, " + String(Monitoring.GetActivePowerB()) + "W");
-    Log.println("Line C: " + String(Monitoring.GetLineVoltageC()) + "V, " + String(Monitoring.GetLineCurrentC()) + "A, " + String(Monitoring.GetActivePowerC()) + "W");
     if (Configuration._mode == MODE_DEBUG) {
+      Log.println("Line A: " + String(Monitoring.GetLineVoltageA()) + "V, " + String(Monitoring.GetLineCurrentA()) + "A, " + String(Monitoring.GetActivePowerA()) + "W");
+      Log.println("Line B: " + String(Monitoring.GetLineVoltageB()) + "V, " + String(Monitoring.GetLineCurrentB()) + "A, " + String(Monitoring.GetActivePowerB()) + "W");
+      Log.println("Line C: " + String(Monitoring.GetLineVoltageC()) + "V, " + String(Monitoring.GetLineCurrentC()) + "A, " + String(Monitoring.GetActivePowerC()) + "W");
+      Log.println("Frequency: " + String(Monitoring.GetFrequency()) + "Hz");
       Log.println("Total Active Fond Power: " + String(Monitoring.GetTotalActiveFundPower()) + "W");
       Log.println("Total Active Harm Power: " + String(Monitoring.GetTotalActiveHarPower()) + "W");
+      Log.println("Reactive Power => A: " + String(Monitoring.GetReactivePowerA()) + "W, B: " + String(Monitoring.GetReactivePowerB()) +  "W, C: " + String(Monitoring.GetReactivePowerC()) + "W");
+      Log.println("Apparent Power => A: " + String(Monitoring.GetApparentPowerA()) + "W, B: " + String(Monitoring.GetApparentPowerB()) +  "W, C: " + String(Monitoring.GetApparentPowerC()) + "W");
       Log.println("Phase => A: " + String(Monitoring.GetPhaseA()) + "°, B: " + String(Monitoring.GetPhaseB()) +  "°, C: " + String(Monitoring.GetPhaseC()) + "°");
+      Log.println("PF => A: " + String(Monitoring.GetPowerFactorA()) + ", B: " + String(Monitoring.GetPowerFactorB()) +  ", C: " + String(Monitoring.GetPowerFactorC()));
     
       /* Uncomment if you want calculate the offset of I and U
         ! Warning ! the voltage and the current must be at 0

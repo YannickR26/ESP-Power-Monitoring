@@ -239,6 +239,10 @@ The MIT License (MIT)
 #define UangleB 0xFE		// B Voltage Phase Angle
 #define UangleC 0xFF		// C Voltage Phase Angle
 
+struct metering {
+  double voltage, current, power, conso;
+};
+
 class ATM90E32
 	{
 	private:		
@@ -248,16 +252,25 @@ class ATM90E32
 		uint16_t _pgagain;
 		uint16_t _ugain;
 		uint16_t _igain;
+    	metering _line_A, _line_B, _line_C;
 		
 		int Read32Register(signed short regh_addr, signed short regl_addr);
-		
 
 	public:
 		ATM90E32();
 
 		/* Initialization Functions */	
 		void begin(int pin, int pin_pm0, int pin_pm1, uint16_t _lineFreq, uint16_t _pgagain, uint16_t ugain, uint16_t igain);
-		
+		void handle(void);
+
+		metering getLineA() { return _line_A; }
+		metering getLineB() { return _line_B; }
+		metering getLineC() { return _line_C; }
+
+		void resetConsoLineA() { _line_A.conso = 0; }
+		void resetConsoLineB() { _line_B.conso = 0; }
+		void resetConsoLineC() { _line_C.conso = 0; }
+
 		double CalculateVIOffset(unsigned short regh_addr, unsigned short regl_addr, unsigned short offset_reg);
 		double CalibrateVI(unsigned short reg, unsigned short actualVal);
 		
