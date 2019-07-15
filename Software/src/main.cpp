@@ -161,8 +161,8 @@ void loop() {
       Log.println("Frequency: " + String(Monitoring.GetFrequency()) + "Hz");
       Log.println("Total Active Fond Power: " + String(Monitoring.GetTotalActiveFundPower()) + "W");
       Log.println("Total Active Harm Power: " + String(Monitoring.GetTotalActiveHarPower()) + "W");
-      Log.println("Reactive Power => A: " + String(Monitoring.GetReactivePowerA()) + "W, B: " + String(Monitoring.GetReactivePowerB()) +  "W, C: " + String(Monitoring.GetReactivePowerC()) + "W");
-      Log.println("Apparent Power => A: " + String(Monitoring.GetApparentPowerA()) + "W, B: " + String(Monitoring.GetApparentPowerB()) +  "W, C: " + String(Monitoring.GetApparentPowerC()) + "W");
+      Log.println("Reactive Power => A: " + String(Monitoring.GetReactivePowerA()) + "VARS, B: " + String(Monitoring.GetReactivePowerB()) +  "VARS, C: " + String(Monitoring.GetReactivePowerC()) + "VARS");
+      Log.println("Apparent Power => A: " + String(Monitoring.GetApparentPowerA()) + "VA, B: " + String(Monitoring.GetApparentPowerB()) +  "VA, C: " + String(Monitoring.GetApparentPowerC()) + "VA");
       Log.println("Phase => A: " + String(Monitoring.GetPhaseA()) + "°, B: " + String(Monitoring.GetPhaseB()) +  "°, C: " + String(Monitoring.GetPhaseC()) + "°");
       Log.println("PF => A: " + String(Monitoring.GetPowerFactorA()) + ", B: " + String(Monitoring.GetPowerFactorB()) +  ", C: " + String(Monitoring.GetPowerFactorC()));
     

@@ -630,16 +630,17 @@ void ATM90E32::handle(void)
   _line_C.current = GetLineCurrentC();
 
   if (Configuration._mode == MODE_MONO) {
-    _line_A.power = GetActivePowerA();
-    _line_B.power = GetActivePowerB();
-    _line_C.power = GetActivePowerC();
+    _line_A.power = GetActivePowerA() * GetPowerFactorA();
+    _line_B.power = GetActivePowerB() * GetPowerFactorB();
+    _line_C.power = GetActivePowerC() * GetPowerFactorC();
   }
   else if (Configuration._mode == MODE_TRI_1) {
-    _line_A.power = GetActivePowerA() * sqrt(3);
-    _line_C.power = GetActivePowerC() * sqrt(3);
+    _line_A.power = GetActivePowerA() * sqrt(3) * GetPowerFactorA();
+    _line_C.power = GetActivePowerC() * sqrt(3) * GetPowerFactorC();
   }
   else if (Configuration._mode == MODE_TRI_2) {
-    _line_A.power = GetActivePowerA() * (2*sqrt(3))/3 + GetActivePowerC() * sqrt(3)/3;
+    _line_A.power  = (GetActivePowerA() * (2*sqrt(3))/3 * GetPowerFactorA());
+    _line_A.power += (GetActivePowerC() * sqrt(3)/3 * GetPowerFactorC());
   }
 
   _line_A.conso += (_line_A.power / 3600) * time;
