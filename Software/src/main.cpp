@@ -80,7 +80,7 @@ void setup() {
   Configuration.saveConfig();
 
   /* Initialize the ATM90E32 + SPI port */
-  uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x87 : 0x185;
+  uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x0087 : 0x0185;
   Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, ATM90E32_UGAIN, ATM90E32_IGAIN);
   
   /* Initialize HTTP Server */
@@ -130,7 +130,7 @@ void setup() {
 /*** LOOP ***/
 /************/
 void loop() {
-  static unsigned long tickNTPUpdate, tickSendData, tickPrintData, tickLed;
+  static unsigned long tickNTPUpdate, tickSendData, tickPrintData;
   unsigned long currentMillis = millis();
 
   MqttClient.handle();
@@ -154,6 +154,16 @@ void loop() {
   }
 
   if ((currentMillis - tickPrintData) >= 1000 ) {
+    /* Uncomment if you want calculate the offset of I and U
+      ! Warning ! the voltage and the current must be at 0
+    */
+    // Log.println("Offset IA: " + String(Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA), HEX) + ")");
+    // Log.println("Offset IB: " + String(Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB), HEX) + ")");
+    // Log.println("Offset IC: " + String(Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC), HEX) + ")");
+
+    // Log.println("Offset UA: " + String(Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA), HEX) + ")");
+    // Log.println("Offset UB: " + String(Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB), HEX) + ")");
+    // Log.println("Offset UC: " + String(Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC), HEX) + ")");
     if (Configuration._mode == MODE_DEBUG) {
       Log.println("Line A: " + String(Monitoring.GetLineVoltageA()) + "V, " + String(Monitoring.GetLineCurrentA()) + "A, " + String(Monitoring.GetActivePowerA()) + "W");
       Log.println("Line B: " + String(Monitoring.GetLineVoltageB()) + "V, " + String(Monitoring.GetLineCurrentB()) + "A, " + String(Monitoring.GetActivePowerB()) + "W");
@@ -166,33 +176,10 @@ void loop() {
       Log.println("Phase => A: " + String(Monitoring.GetPhaseA()) + "°, B: " + String(Monitoring.GetPhaseB()) +  "°, C: " + String(Monitoring.GetPhaseC()) + "°");
       Log.println("PF => A: " + String(Monitoring.GetPowerFactorA()) + ", B: " + String(Monitoring.GetPowerFactorB()) +  ", C: " + String(Monitoring.GetPowerFactorC()));
     
-      /* Uncomment if you want calculate the offset of I and U
-        ! Warning ! the voltage and the current must be at 0
-      */
-      // Log.println("Offset IA: " + String(Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA)));
-      // Log.println("Offset IB: " + String(Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB)));
-      // Log.println("Offset IC: " + String(Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC)));
-
-      // Log.println("Offset UA: " + String(Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA)));
-      // Log.println("Offset UB: " + String(Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB)));
-      // Log.println("Offset UC: " + String(Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC)));
+      Log.println();
     }
-    Log.println();
     tickPrintData = currentMillis;
   }
-
-  // if (MqttClient.isConnected()) {
-  //   if ((currentMillis - tickLed) >= (unsigned long)(LEDTIME_WORK)) {
-  //     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  //     tickLed = currentMillis;
-  //   }
-  // }
-  // else {
-  //    if ((currentMillis - tickLed) >= (unsigned long)(LEDTIME_NOMQTT)) {
-  //     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  //     tickLed = currentMillis;
-  //   }
-  // }
 
   delay(50);
 }

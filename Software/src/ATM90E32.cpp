@@ -599,16 +599,16 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   // Set measurement calibration values (ADJUST)
   CommEnergyIC(WRITE, UgainA, _ugain);      // A Voltage rms gain
   CommEnergyIC(WRITE, IgainA, _igain);      // A line current gain
-  CommEnergyIC(WRITE, UoffsetA, 0xF400);    // A Voltage offset (-3072)
-  CommEnergyIC(WRITE, IoffsetA, 0xFC60);    // A line current offset (-928)
+  CommEnergyIC(WRITE, UoffsetA, 0xe470);    // A Voltage offset (-7056)
+  CommEnergyIC(WRITE, IoffsetA, 0xf658);    // A line current offset (-2472)
   CommEnergyIC(WRITE, UgainB, _ugain);      // B Voltage rms gain
   CommEnergyIC(WRITE, IgainB, _igain);      // B line current gain
   CommEnergyIC(WRITE, UoffsetB, 0xF400);    // B Voltage offset (-3072)
   CommEnergyIC(WRITE, IoffsetB, 0xFC60);    // B line current offset (-928)
   CommEnergyIC(WRITE, UgainC, _ugain);      // C Voltage rms gain
   CommEnergyIC(WRITE, IgainC, _igain);      // C line current gain
-  CommEnergyIC(WRITE, UoffsetC, 0xF400);    // C Voltage offset (-3072)
-  CommEnergyIC(WRITE, IoffsetC, 0xFC60);    // C line current offset (-928)
+  CommEnergyIC(WRITE, UoffsetC, 0xfc60);    // C Voltage offset (-928)
+  CommEnergyIC(WRITE, IoffsetC, 0xf3e8);    // C line current offset (-3096)
 
   delay(10);
   CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
@@ -625,31 +625,58 @@ void ATM90E32::handle(void)
   _line_B.voltage = GetLineVoltageB();
   _line_C.voltage = GetLineVoltageC();
 
-  _line_A.current = GetLineCurrentA();
-  _line_B.current = GetLineCurrentB();
-  _line_C.current = GetLineCurrentC();
-
   if (Configuration._mode == MODE_MONO) {
-    _line_A.power = GetActivePowerA() * GetPowerFactorA();
-    _line_B.power = GetActivePowerB() * GetPowerFactorB();
-    _line_C.power = GetActivePowerC() * GetPowerFactorC();
+    _line_A.current = GetLineCurrentA();
+    _line_B.current = GetLineCurrentB();
+    _line_C.current = GetLineCurrentC();
+    _line_A.power = GetActivePowerA();
+    _line_B.power = GetActivePowerB();
+    _line_C.power = GetActivePowerC();
+    _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    _line_B.conso += (_line_B.power / 3600) * time / 1000;
+    _line_C.conso += (_line_C.power / 3600) * time / 1000;
   }
   else if (Configuration._mode == MODE_TRI_1) {
-    _line_A.power = GetActivePowerA() * sqrt(3) * GetPowerFactorA();
-    _line_C.power = GetActivePowerC() * sqrt(3) * GetPowerFactorC();
+    _line_A.current = GetLineCurrentA() * sqrt(3);
+    _line_B.current = 0;
+    _line_C.current = GetLineCurrentC() * sqrt(3);
+    _line_A.power = GetActivePowerA() * sqrt(3);
+    _line_B.power = 0;
+    _line_C.power = GetActivePowerC() * sqrt(3);
+    _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    _line_B.conso = 0;
+    _line_C.conso += (_line_C.power / 3600) * time / 1000;
   }
   else if (Configuration._mode == MODE_TRI_2) {
-    _line_A.power  = (GetActivePowerA() * (2*sqrt(3))/3 * GetPowerFactorA());
-    _line_A.power += (GetActivePowerC() * sqrt(3)/3 * GetPowerFactorC());
+    _line_A.current  = (GetLineCurrentA() * (2*sqrt(3))/3);
+    _line_A.current += (GetLineCurrentA() * sqrt(3)/3);
+    _line_B.current = 0;
+    _line_C.current = 0;
+    _line_A.power  = (GetActivePowerA() * (2*sqrt(3))/3);
+    _line_A.power += (GetActivePowerC() * sqrt(3)/3);
+    _line_B.power = 0;
+    _line_C.power = 0;
+    _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    _line_B.conso = 0;
+    _line_C.conso = 0;
+  }
+  else if (Configuration._mode == MODE_DEBUG) {
+    _line_A.current = GetLineCurrentA();
+    _line_B.current = GetLineCurrentB();
+    _line_C.current = GetLineCurrentC();
+    _line_A.power = GetActivePowerA();
+    _line_B.power = GetActivePowerB();
+    _line_C.power = GetActivePowerC();
+    _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    _line_B.conso += (_line_B.power / 3600) * time / 1000;
+    _line_C.conso += (_line_C.power / 3600) * time / 1000;
   }
 
-  _line_A.conso += (_line_A.power / 3600) * time;
-  _line_B.conso += (_line_B.power / 3600) * time;
-  _line_C.conso += (_line_C.power / 3600) * time;
 
-  Log.println("Line A: " + String(_line_A.voltage) + "V, " + String(_line_A.current) + "A, " + String(_line_A.power) + "W, " + String(_line_A.conso) + "kW/h");
-  Log.println("Line B: " + String(_line_B.voltage) + "V, " + String(_line_B.current) + "A, " + String(_line_B.power) + "W, " + String(_line_B.conso) + "kW/h");
-  Log.println("Line C: " + String(_line_C.voltage) + "V, " + String(_line_C.current) + "A, " + String(_line_C.power) + "W, " + String(_line_C.conso) + "kW/h");
+  Log.println("Line A: " + String(_line_A.voltage) + "V, " + String(_line_A.current) + "A, " + String(_line_A.power) + "W, " + String(_line_A.conso) + "kW/h, cos phy " + String(GetPowerFactorA()));
+  Log.println("Line B: " + String(_line_B.voltage) + "V, " + String(_line_B.current) + "A, " + String(_line_B.power) + "W, " + String(_line_B.conso) + "kW/h, cos phy " + String(GetPowerFactorB()));
+  Log.println("Line C: " + String(_line_C.voltage) + "V, " + String(_line_C.current) + "A, " + String(_line_C.power) + "W, " + String(_line_C.conso) + "kW/h, cos phy " + String(GetPowerFactorC()));
+  Log.println();
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) 
