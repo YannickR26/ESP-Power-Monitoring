@@ -649,7 +649,7 @@ void ATM90E32::handle(void)
   }
   else if (Configuration._mode == MODE_TRI_2) {
     _line_A.current  = (GetLineCurrentA() * (2*sqrt(3))/3);
-    _line_A.current += (GetLineCurrentA() * sqrt(3)/3);
+    _line_A.current += (GetLineCurrentC() * sqrt(3)/3);
     _line_B.current = 0;
     _line_C.current = 0;
     _line_A.power  = (GetActivePowerA() * (2*sqrt(3))/3);
