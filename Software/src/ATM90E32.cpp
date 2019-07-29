@@ -637,17 +637,6 @@ void ATM90E32::handle(void)
     _line_C.conso += (_line_C.power / 3600) * time / 1000;
   }
   else if (Configuration._mode == MODE_TRI_1) {
-    _line_A.current = GetLineCurrentA() * sqrt(3);
-    _line_B.current = 0;
-    _line_C.current = GetLineCurrentC() * sqrt(3);
-    _line_A.power = GetActivePowerA() * sqrt(3);
-    _line_B.power = 0;
-    _line_C.power = GetActivePowerC() * sqrt(3);
-    _line_A.conso += (_line_A.power / 3600) * time / 1000;
-    _line_B.conso = 0;
-    _line_C.conso += (_line_C.power / 3600) * time / 1000;
-  }
-  else if (Configuration._mode == MODE_TRI_2) {
     _line_A.current  = (GetLineCurrentA() * (2*sqrt(3))/3);
     _line_A.current += (GetLineCurrentC() * sqrt(3)/3);
     _line_B.current = 0;
@@ -659,6 +648,18 @@ void ATM90E32::handle(void)
     _line_A.conso += (_line_A.power / 3600) * time / 1000;
     _line_B.conso = 0;
     _line_C.conso = 0;
+  }
+  else if (Configuration._mode == MODE_TRI_2) {
+    _line_A.current = GetLineCurrentA() * sqrt(3);
+    _line_B.current = 0;
+    _line_C.current = GetLineCurrentC() * sqrt(3);
+    _line_A.power = GetActivePowerA() * sqrt(3);
+    _line_B.power = 0;
+    _line_C.power = GetActivePowerC() * sqrt(3);
+    _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    _line_B.conso = 0;
+    _line_C.conso += (_line_C.power / 3600) * time / 1000;
+    
   }
   else if (Configuration._mode == MODE_DEBUG) {
     _line_A.current = GetLineCurrentA();
