@@ -240,7 +240,7 @@ The MIT License (MIT)
 #define UangleC 0xFF		// C Voltage Phase Angle
 
 struct metering {
-  double voltage, current, power, conso;
+  double voltage, current, power, cosPhy, conso;
 };
 
 class ATM90E32
