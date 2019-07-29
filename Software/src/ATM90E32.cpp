@@ -599,16 +599,16 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   // Set measurement calibration values (ADJUST)
   CommEnergyIC(WRITE, UgainA, _ugain);      // A Voltage rms gain
   CommEnergyIC(WRITE, IgainA, _igain);      // A line current gain
-  CommEnergyIC(WRITE, UoffsetA, 0xe470);    // A Voltage offset (-7056)
-  CommEnergyIC(WRITE, IoffsetA, 0xf658);    // A line current offset (-2472)
+  CommEnergyIC(WRITE, UoffsetA, 0x0000);    // A Voltage offset (-7056)
+  CommEnergyIC(WRITE, IoffsetA, 0x0000);    // A line current offset (-2472)
   CommEnergyIC(WRITE, UgainB, _ugain);      // B Voltage rms gain
   CommEnergyIC(WRITE, IgainB, _igain);      // B line current gain
-  CommEnergyIC(WRITE, UoffsetB, 0xF400);    // B Voltage offset (-3072)
-  CommEnergyIC(WRITE, IoffsetB, 0xFC60);    // B line current offset (-928)
+  CommEnergyIC(WRITE, UoffsetB, 0x0000);    // B Voltage offset (-3072)
+  CommEnergyIC(WRITE, IoffsetB, 0x0000);    // B line current offset (-928)
   CommEnergyIC(WRITE, UgainC, _ugain);      // C Voltage rms gain
   CommEnergyIC(WRITE, IgainC, _igain);      // C line current gain
-  CommEnergyIC(WRITE, UoffsetC, 0xfc60);    // C Voltage offset (-928)
-  CommEnergyIC(WRITE, IoffsetC, 0xf3e8);    // C line current offset (-3096)
+  CommEnergyIC(WRITE, UoffsetC, 0x0000);    // C Voltage offset (-928)
+  CommEnergyIC(WRITE, IoffsetC, 0x0000);    // C line current offset (-3096)
 
   delay(10);
   CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
