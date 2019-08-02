@@ -41,8 +41,7 @@ void Mqtt::publishMonitoringData()
   metering line;
 
   /* Send Status */
-  clientMqtt.publish(String(Configuration._hostname + "/status").c_str(), "online");
-  clientMqtt.publish(String(Configuration._hostname + "/relay").c_str(), String(0).c_str());
+  clientMqtt.publish(String(Configuration._hostname + "/relay").c_str(), String(digitalRead(RELAY_PIN)).c_str());
   clientMqtt.publish(String(Configuration._hostname + "/timeIntervalUpdate").c_str(), String(Configuration._timeSendData).c_str());
   clientMqtt.publish(String(Configuration._hostname + "/mode").c_str(), String(Configuration._mode).c_str());
   clientMqtt.publish(String(Configuration._hostname + "/version").c_str(), String(VERSION).c_str());
@@ -95,8 +94,7 @@ void Mqtt::reconnect()
       if (clientMqtt.connect(clientId.c_str())) {
         Log.println("connected");
         // Once connected, publish an announcement...
-        clientMqtt.publish(String(Configuration._hostname + "/status").c_str(), "online");
-        clientMqtt.publish(String(Configuration._hostname + "/relay").c_str(), String(0).c_str());
+        clientMqtt.publish(String(Configuration._hostname + "/relay").c_str(), String(digitalRead(RELAY_PIN)).c_str());
         clientMqtt.publish(String(Configuration._hostname + "/timeIntervalUpdate").c_str(), String(Configuration._timeSendData).c_str());
         clientMqtt.publish(String(Configuration._hostname + "/mode").c_str(), String(Configuration._mode).c_str());
         clientMqtt.publish(String(Configuration._hostname + "/version").c_str(), String(VERSION).c_str());
@@ -167,7 +165,9 @@ void Mqtt::callback(char* topic, uint8_t* payload, unsigned int length)
   }
   else if (topicStr == String("resetAllConso")) {
     Log.println("Reset All conso");
-    // Monitoring.resetAllConso();
+    Monitoring.resetConsoLineA();
+    Monitoring.resetConsoLineB();
+    Monitoring.resetConsoLineC();
     publishMonitoringData();
   }
   else {
