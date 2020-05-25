@@ -64,9 +64,9 @@ bool JsonConfiguration::readConfig()
   _timeUpdateNtp      = doc["ntpUpdateIntervale"] | DEFAULT_NTP_UPDATE_INTERVAL_SEC;
   _timeSendData       = doc["SendDataIntervale"] | DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode               = doc["mode"] | MODE_MONO;
-  _namePhaseA         = doc["namePhaseA"] | "Phase A";
-  _namePhaseB         = doc["namePhaseB"] | "Phase B";
-  _namePhaseC         = doc["namePhaseC"] | "Phase C";
+  _consoA             = doc["consoA"] | 0;
+  _consoB             = doc["consoB"] | 0;
+  _consoC             = doc["consoC"] | 0;
 
   configFile.close();
 
@@ -84,9 +84,9 @@ bool JsonConfiguration::saveConfig()
 	doc["ntpUpdateIntervale"]     = _timeUpdateNtp;
 	doc["SendDataIntervale"]      = _timeSendData;
 	doc["mode"]                   = _mode;
-	doc["namePhaseA"]             = _namePhaseA;
-	doc["namePhaseB"]             = _namePhaseB;
-	doc["namePhaseC"]             = _namePhaseC;
+	doc["consoA"]                 = _consoA;
+	doc["consoB"]                 = _consoB;
+	doc["consoC"]                 = _consoC;
   
 	File configFile = SPIFFS.open("/config.json", "w");
 	if (!configFile) {
@@ -122,9 +122,9 @@ void JsonConfiguration::restoreDefault()
 	_timeUpdateNtp      = DEFAULT_NTP_UPDATE_INTERVAL_SEC;
 	_timeSendData       = DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode               = MODE_MONO;
-  _namePhaseA         = "Phase A";
-  _namePhaseB         = "Phase B";
-  _namePhaseC         = "Phase C";
+  _consoA             = 0;
+  _consoB             = 0;
+  _consoC             = 0;
 
 	saveConfig();
 	Log.println("configuration restored.");

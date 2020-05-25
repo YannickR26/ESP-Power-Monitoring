@@ -267,6 +267,9 @@ class ATM90E32
 		metering getLineB() { return _line_B; }
 		metering getLineC() { return _line_C; }
 
+		void setConsoLineA(uint32_t conso) { _line_A.conso = conso; }
+		void setConsoLineB(uint32_t conso) { _line_B.conso = conso; }
+		void setConsoLineC(uint32_t conso) { _line_C.conso = conso; }
 		void resetConsoLineA() { _line_A.conso = 0; }
 		void resetConsoLineB() { _line_B.conso = 0; }
 		void resetConsoLineC() { _line_C.conso = 0; }

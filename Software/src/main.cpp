@@ -59,6 +59,7 @@ void setup() {
   wifiManager.addParameter(&custom_mode);
 
   Log.println("Try to connect to WiFi...");
+  // wifiManager.setWiFiChannel(6);
   wifiManager.setConfigPortalTimeout(300); // Set Timeout for portal configuration to 120 seconds
   if (!wifiManager.autoConnect(Configuration._hostname.c_str())) {
     Log.println("failed to connect and hit timeout");
@@ -82,6 +83,9 @@ void setup() {
   /* Initialize the ATM90E32 + SPI port */
   uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x0087 : 0x0185;
   Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, ATM90E32_UGAIN, ATM90E32_IGAIN);
+  Monitoring.setConsoLineA(Configuration._consoA);
+  Monitoring.setConsoLineB(Configuration._consoB);
+  Monitoring.setConsoLineC(Configuration._consoC);
   
   /* Initialize HTTP Server */
   HTTPServer.setup();
@@ -130,7 +134,7 @@ void setup() {
 /*** LOOP ***/
 /************/
 void loop() {
-  static unsigned long tickNTPUpdate, tickSendData, tickPrintData;
+  static unsigned long tickNTPUpdate, tickSendData, tickSaveData, tickPrintData;
   unsigned long currentMillis = millis();
 
   MqttClient.handle();
@@ -151,6 +155,16 @@ void loop() {
     Monitoring.handle();
     MqttClient.publishMonitoringData();
     tickSendData = currentMillis;
+  }
+
+  // Save conso every hour
+  if ((currentMillis - tickSaveData) >= (unsigned long)(3600 * 1000)) {
+    Log.println("Save data");
+    Configuration._consoA = Monitoring.getLineA().conso;
+    Configuration._consoB = Monitoring.getLineB().conso;
+    Configuration._consoC = Monitoring.getLineC().conso;
+    Configuration.saveConfig();
+    tickSaveData = currentMillis;
   }
 
   if ((currentMillis - tickPrintData) >= 1000 ) {

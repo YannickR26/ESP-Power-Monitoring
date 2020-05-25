@@ -20,11 +20,11 @@ class JsonConfiguration
 	/* Members */
   	String _hostname;
 	String _mqttIpServer;
-	int _mqttPortServer;
-	int _timeUpdateNtp;
-	int _timeSendData;
-	int _mode;
-	String _namePhaseA, _namePhaseB, _namePhaseC;
+	uint16_t _mqttPortServer;
+	uint16_t _timeUpdateNtp;
+	uint16_t _timeSendData;
+	uint8_t _mode;
+	uint32_t _consoA, _consoB, _consoC;
      	
   private:
   

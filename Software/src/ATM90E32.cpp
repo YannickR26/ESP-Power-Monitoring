@@ -675,7 +675,6 @@ void ATM90E32::handle(void)
     _line_C.conso += (_line_C.power / 3600) * time / 1000;
   }
 
-
   Log.println("Line A: " + String(_line_A.voltage) + "V, " + String(_line_A.current) + "A, " + String(_line_A.power) + "W, " + String(_line_A.conso) + "kW/h, cos phy " + String(_line_A.cosPhy));
   Log.println("Line B: " + String(_line_B.voltage) + "V, " + String(_line_B.current) + "A, " + String(_line_B.power) + "W, " + String(_line_B.conso) + "kW/h, cos phy " + String(_line_B.cosPhy));
   Log.println("Line C: " + String(_line_C.voltage) + "V, " + String(_line_C.current) + "A, " + String(_line_C.power) + "W, " + String(_line_C.conso) + "kW/h, cos phy " + String(_line_C.cosPhy));

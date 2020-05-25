@@ -170,6 +170,21 @@ void Mqtt::callback(char* topic, uint8_t* payload, unsigned int length)
     Monitoring.resetConsoLineC();
     publishMonitoringData();
   }
+  else if (topicStr == String("consoA")) {
+    Log.println("Set conso A to " + data);
+    int conso = data.toInt();
+    Monitoring.setConsoLineA(conso);
+  }
+  else if (topicStr == String("consoB")) {
+    Log.println("Set conso B to " + data);
+    int conso = data.toInt();
+    Monitoring.setConsoLineB(conso);
+  }
+  else if (topicStr == String("consoC")) {
+    Log.println("Set conso C to " + data);
+    int conso = data.toInt();
+    Monitoring.setConsoLineC(conso);
+  }
   else {
     Log.println("Unknow command");
   }
