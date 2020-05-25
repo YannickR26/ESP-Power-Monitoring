@@ -1,4 +1,4 @@
-#include <FS.h>
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 
 #include "JsonConfiguration.h"
@@ -18,9 +18,14 @@ JsonConfiguration::~JsonConfiguration()
 
 void JsonConfiguration::setup(void)
 {
-  /* Initialize SPIFFS */
-  if (!SPIFFS.begin()) {
-    Log.println("failed to initialize SPIFFS");
+  /* Initialize LittleFS */
+  if (!LittleFS.begin()) {
+    Log.println("failed to initialize LittleFS, try to format");
+    LittleFS.format();
+    if (!LittleFS.begin()) {
+      Log.println("definitely failed to initialize LittleFS !");
+      return;
+    }
   }
 
 	if (!readConfig()) {
@@ -34,6 +39,9 @@ void JsonConfiguration::setup(void)
 	Log.println(String("    timeUpdateNTP: ") + String(_timeUpdateNtp));
 	Log.println(String("    timeSendData: ") + String(_timeSendData));
 	Log.println(String("    mode: ") + String(_mode));
+	Log.println(String("    consoA: ") + String(_consoA));
+	Log.println(String("    consoB: ") + String(_consoB));
+	Log.println(String("    consoC: ") + String(_consoC));
 }
 
 bool JsonConfiguration::readConfig()
@@ -41,7 +49,7 @@ bool JsonConfiguration::readConfig()
   Log.println("Read Configuration file from SPIFFS...");
   
   // Open file
-  File configFile = SPIFFS.open("/config.json", "r");
+  File configFile = LittleFS.open("/config.json", "r");
   if (!configFile) 
   {
     Log.println("Failed to open config file");
@@ -88,7 +96,7 @@ bool JsonConfiguration::saveConfig()
 	doc["consoB"]                 = _consoB;
 	doc["consoC"]                 = _consoC;
   
-	File configFile = SPIFFS.open("/config.json", "w");
+	File configFile = LittleFS.open("/config.json", "w");
 	if (!configFile) {
 		Log.println("Failed to open config file for writing");
 		return false;
