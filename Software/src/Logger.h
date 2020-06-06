@@ -3,12 +3,6 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 
-/******* Debug **************/
-#define DEBUG_SERIAL
-#define DEBUG_TELNET  // Open a read-only telnet debug port
-
-#define USE_DST_ADJUST
-
 class Logger 
 {
   public:
