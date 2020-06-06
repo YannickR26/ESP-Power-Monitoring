@@ -4,22 +4,23 @@
 
 #include "settings.h"
 
-class Mqtt 
+class Mqtt
 {
-  public:
-		Mqtt();
-  	virtual ~Mqtt();
-  
-  	void setup();
-		void handle();
-		void publishMonitoringData();
-		bool isConnected() { return clientMqtt.connected(); }
+public:
+	Mqtt();
+	virtual ~Mqtt();
 
-  private:
-		void reconnect();
-    void callback(char* topic, uint8_t* payload, unsigned int length);
-		
-		PubSubClient clientMqtt;
+	void setup();
+	void handle();
+	void publish(String topic, String body);
+	void publishMonitoringData();
+	bool isConnected() { return clientMqtt.connected(); }
+
+private:
+	void reconnect();
+	void callback(char *topic, uint8_t *payload, unsigned int length);
+
+	PubSubClient clientMqtt;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)
