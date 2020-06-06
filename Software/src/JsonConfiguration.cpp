@@ -1,4 +1,4 @@
-#include <FS.h>
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 
 #include "JsonConfiguration.h"
@@ -19,8 +19,8 @@ JsonConfiguration::~JsonConfiguration()
 void JsonConfiguration::setup(void)
 {
   /* Initialize SPIFFS */
-  if (!SPIFFS.begin()) {
-    Log.println("failed to initialize SPIFFS");
+  if (!LittleFS.begin()) {
+    Log.println("failed to initialize LittleFS");
   }
 
 	if (!readConfig()) {
@@ -38,10 +38,10 @@ void JsonConfiguration::setup(void)
 
 bool JsonConfiguration::readConfig()
 {
-  Log.println("Read Configuration file from SPIFFS...");
-  
+  Log.println("Read Configuration file from LittleFS...");
+
   // Open file
-  File configFile = SPIFFS.open("/config.json", "r");
+  File configFile = LittleFS.open("/config.json", "r");
   if (!configFile) 
   {
     Log.println("Failed to open config file");
@@ -87,9 +87,9 @@ bool JsonConfiguration::saveConfig()
 	doc["consoA"]                 = _consoA;
 	doc["consoB"]                 = _consoB;
 	doc["consoC"]                 = _consoC;
-  
-	File configFile = SPIFFS.open("/config.json", "w");
-	if (!configFile) {
+
+  File configFile = LittleFS.open("/config.json", "w");
+  if (!configFile) {
 		Log.println("Failed to open config file for writing");
 		return false;
 	}
