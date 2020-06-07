@@ -110,6 +110,7 @@ void setup()
   Log.println(String(F("=== ESP_Power_Monitoring ===")));
   Log.println(String(F("  Version: ")) + F(VERSION));
   Log.println(String(F("  Build: ")) + F(__DATE__) + " " + F(__TIME__));
+  Log.println();
 
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
@@ -248,5 +249,5 @@ void loop()
     tickPrintData = currentMillis;
   }
 
-  delay(50);
+  // delay(50);
 }

@@ -28,6 +28,9 @@ void HttpServer::setup(void)
   MDNS.begin(Configuration._hostname.c_str());
   MDNS.addService("http", "tcp", 80);
 
+  _ftpServer.begin(Configuration._hostname, Configuration._hostname);
+  MDNS.addService("ftp", "tcp", 21);
+
   _webServer.on("/restart", [&]() {
     _webServer.send(200, "text/plain", "ESP restart now !");
     delay(200);
@@ -43,11 +46,14 @@ void HttpServer::setup(void)
     ESP.restart();
   });
 
+  _webServer.on("/config", HTTP_GET, HttpServer::getConfig);
+  _webServer.on("/config", HTTP_POST, HttpServer::setConfig);
+  _webServer.on("/status", HTTP_GET, HttpServer::getStatus);
   _webServer.on("/set", HttpServer::handleSet);
 
   _webServer.onNotFound(HttpServer::handleNotFound);
 
-  _httpUpdater.setup(&_webServer, String("/"));
+  _httpUpdater.setup(&_webServer, String("/update"));
   _webServer.begin();
 }
 
@@ -55,11 +61,12 @@ void HttpServer::handle(void)
 {
   _webServer.handleClient();
   MDNS.update();
+  _ftpServer.handleFTP();
 }
 
 String HttpServer::getContentType(String filename)
 {
-  if (_webServer.hasArg("download"))
+  if (HTTPServer.webServer().hasArg("download"))
     return "application/octet-stream";
   else if (filename.endsWith(".htm"))
     return "text/html";
@@ -114,19 +121,98 @@ bool HttpServer::handleFileRead(String path)
 
 void HttpServer::handleNotFound()
 {
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += HTTPServer.webServer().uri();
-  message += "\nMethod: ";
-  message += (HTTPServer.webServer().method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += HTTPServer.webServer().args();
-  message += "\n";
-  for (uint8_t i = 0; i < HTTPServer.webServer().args(); i++)
-  {
-    message += " " + HTTPServer.webServer().argName(i) + ": " + HTTPServer.webServer().arg(i) + "\n";
+  if (!HTTPServer.handleFileRead(HTTPServer.webServer().uri())) {
+    String message = "File Not Found\n\n";
+    message += "URI: ";
+    message += HTTPServer.webServer().uri();
+    message += "\nMethod: ";
+    message += (HTTPServer.webServer().method() == HTTP_GET) ? "GET" : "POST";
+    message += "\nArguments: ";
+    message += HTTPServer.webServer().args();
+    message += "\n";
+    for (uint8_t i = 0; i < HTTPServer.webServer().args(); i++)
+    {
+      message += " " + HTTPServer.webServer().argName(i) + ": " + HTTPServer.webServer().arg(i) + "\n";
+    }
+    HTTPServer.webServer().send(404, "text/plain", message);
   }
-  HTTPServer.webServer().send(404, "text/plain", message);
+}
+
+void HttpServer::getStatus()
+{
+  Log.println("Send Status");
+  
+  DynamicJsonDocument doc(1024);
+  doc.clear();
+
+  doc["version"] = String(VERSION);
+  doc["build"] = String(String(__DATE__) + " " + String(__TIME__));
+  doc["relay"] = digitalRead(RELAY_PIN);
+
+  JsonObject jsonLineA = doc.createNestedObject("lineA");
+  metering line = Monitoring.getLineA();
+  jsonLineA["voltage"] = line.voltage;
+  jsonLineA["current"] = line.current;
+  jsonLineA["power"] = line.power;
+  jsonLineA["cosPhy"] = line.cosPhy;
+  jsonLineA["conso"] = line.conso;
+
+  JsonObject jsonLineB = doc.createNestedObject("lineB");
+  line = Monitoring.getLineB();
+  jsonLineB["voltage"] = line.voltage;
+  jsonLineB["current"] = line.current;
+  jsonLineB["power"] = line.power;
+  jsonLineB["cosPhy"] = line.cosPhy;
+  jsonLineB["conso"] = line.conso;
+
+  JsonObject jsonLineC = doc.createNestedObject("lineC");
+  line = Monitoring.getLineC();
+  jsonLineC["voltage"] = line.voltage;
+  jsonLineC["current"] = line.current;
+  jsonLineC["power"] = line.power;
+  jsonLineC["cosPhy"] = line.cosPhy;
+  jsonLineC["conso"] = line.conso;
+
+  // Send Status
+  HTTPServer.sendJson(200, doc);
+}
+
+void HttpServer::getConfig() 
+{
+  Log.println("Send Configuration");
+  
+  DynamicJsonDocument doc(1024);
+  Configuration.encodeToJson(doc);
+
+  // Send Configuration
+  HTTPServer.sendJson(200, doc);
+}
+
+void HttpServer::setConfig() 
+{
+  if (HTTPServer.webServer().hasArg("plain") == false) {
+    Log.println("Error, no body received !");
+    HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
+    HTTPServer.webServer().send(404, "text/plain", "Body not received");
+  }
+  else {
+    if (!Configuration.decodeJsonFromFile(HTTPServer.webServer().arg("plain").c_str())) {
+      Log.println("Received new configuration !");
+      HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
+      if (Configuration.saveConfig()) {
+      // HTTPServer.webServer().send(200, "application/json", Configuration.encodeToJson());
+        HTTPServer.webServer().send(200, "application/json", "{\"result\":true}");
+      }
+      else {
+        HTTPServer.webServer().send(200, "application/json", "{\"result\":false}");
+      }
+    }
+    else {
+      Log.println("Error, parsing JSON !");
+      HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
+      HTTPServer.webServer().send(404, "text/plain", "Error with parsing JSON");
+    }
+  }
 }
 
 void HttpServer::handleSet()

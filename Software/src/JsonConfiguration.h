@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ArduinoJson.h>
 #include "settings.h"
 
 class JsonConfiguration 
@@ -15,7 +16,8 @@ class JsonConfiguration
   
   	void restoreDefault();
     
-    String toJson();
+	uint8_t encodeToJson(JsonDocument &_json);
+	uint8_t decodeJsonFromFile(const char* input);
   
 	/* Members */
   	String _hostname;
