@@ -39,6 +39,7 @@ void JsonConfiguration::setup(void)
 	Log.println(String("    timeUpdateNTP: ") + String(_timeUpdateNtp));
 	Log.println(String("    timeSendData: ") + String(_timeSendData));
 	Log.println(String("    mode: ") + String(_mode));
+	Log.println(String("    iGain: ") + String(_iGain));
 	Log.println(String("    consoA: ") + String(_consoA));
 	Log.println(String("    consoB: ") + String(_consoB));
 	Log.println(String("    consoC: ") + String(_consoC));
@@ -72,6 +73,7 @@ bool JsonConfiguration::readConfig()
   _timeUpdateNtp      = doc["ntpUpdateIntervale"] | DEFAULT_NTP_UPDATE_INTERVAL_SEC;
   _timeSendData       = doc["SendDataIntervale"] | DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode               = doc["mode"] | MODE_MONO;
+  _iGain              = doc["iGain"] | 30;
   _consoA             = doc["consoA"] | 0;
   _consoB             = doc["consoB"] | 0;
   _consoC             = doc["consoC"] | 0;
@@ -92,6 +94,7 @@ bool JsonConfiguration::saveConfig()
 	doc["ntpUpdateIntervale"]     = _timeUpdateNtp;
 	doc["SendDataIntervale"]      = _timeSendData;
 	doc["mode"]                   = _mode;
+	doc["iGain"]                  = _iGain;
 	doc["consoA"]                 = _consoA;
 	doc["consoB"]                 = _consoB;
 	doc["consoC"]                 = _consoC;
@@ -118,6 +121,10 @@ bool JsonConfiguration::saveConfig()
 	Log.println(String("    timeUpdateNTP: ") + String(_timeUpdateNtp));
 	Log.println(String("    timeSendData: ") + String(_timeSendData));
 	Log.println(String("    mode: ") + String(_mode));
+	Log.println(String("    iGain: ") + String(_iGain));
+	Log.println(String("    consoA: ") + String(_consoA));
+	Log.println(String("    consoB: ") + String(_consoB));
+	Log.println(String("    consoC: ") + String(_consoC));
 	
 	return true;
 }
@@ -130,6 +137,7 @@ void JsonConfiguration::restoreDefault()
 	_timeUpdateNtp      = DEFAULT_NTP_UPDATE_INTERVAL_SEC;
 	_timeSendData       = DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode               = MODE_MONO;
+  _iGain              = 30;
   _consoA             = 0;
   _consoB             = 0;
   _consoC             = 0;

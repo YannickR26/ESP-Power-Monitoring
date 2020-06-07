@@ -17,11 +17,11 @@
 #define MODE_DEBUG  3
 
 // ATM90E32
-#define ATM90E32_CS     D8
-#define ATM90E32_PM0    D4
-#define ATM90E32_PM1    D3
-#define ATM90E32_UGAIN  30000
-#define ATM90E32_IGAIN  9500
+#define ATM90E32_CS         D8
+#define ATM90E32_PM0        D4
+#define ATM90E32_PM1        D3
+#define ATM90E32_UGAIN      30000
+#define ATM90E32_IGAIN      300     // x capacité de la pince amperemetrique (defaut 30A)
 
 // Relay
 #define RELAY_PIN       D0
@@ -32,7 +32,7 @@
 #define LED_TIME_WORK       500
 
 // Timezone
-#define UTC_OFFSET + 1
+#define UTC_OFFSET      +1
 
 // change for different ntp (time servers)
 #define NTP_SERVERS "0.fr.pool.ntp.org", "time.nist.gov", "pool.ntp.org"

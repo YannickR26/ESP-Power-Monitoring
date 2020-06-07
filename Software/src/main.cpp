@@ -42,11 +42,11 @@ void blinkLED()
   // Check state of MQTT
   if (MqttClient.isConnected())
   {
-    tick_blinker.once(LED_TIME_WORK, blinkLED);
+    tick_blinker.once_ms(LED_TIME_WORK, blinkLED);
   }
   else
   {
-    tick_blinker.once(LED_TIME_NOMQTT, blinkLED);
+    tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
   }
 }
 
@@ -111,7 +111,6 @@ void setup()
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
 
-
   /* Read configuration from SPIFFS */
   Configuration.setup();
   // Configuration.restoreDefault();
@@ -120,7 +119,8 @@ void setup()
 
   /* Initialize the ATM90E32 + SPI port */
   uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x0087 : 0x0185;
-  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, ATM90E32_UGAIN, ATM90E32_IGAIN);
+  uint16_t currentGain = Configuration._iGain * ATM90E32_IGAIN;
+  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, ATM90E32_UGAIN, currentGain);
   Monitoring.setConsoLineA(Configuration._consoA);
   Monitoring.setConsoLineB(Configuration._consoB);
   Monitoring.setConsoLineC(Configuration._consoC);
@@ -171,7 +171,7 @@ void setup()
   updateNTP();
 
   // Create ticker for blink LED
-  tick_blinker.attach_ms(LED_TIME_NOMQTT, blinkLED);
+  tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
 }
 
 /************/

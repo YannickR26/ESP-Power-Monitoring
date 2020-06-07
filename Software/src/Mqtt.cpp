@@ -102,6 +102,7 @@ void Mqtt::reconnect()
         publish(String("/relay"), String(digitalRead(RELAY_PIN)));
         publish(String("/timeIntervalUpdate"), String(Configuration._timeSendData));
         publish(String("/mode"), String(Configuration._mode));
+        publish(String("/current"), String(Configuration._iGain));
         publish(String("/version"), String(VERSION));
         publish(String("/build"), String(String(__DATE__) + " " + String(__TIME__)));
         publish(String("/ip"), WiFi.localIP().toString());
@@ -153,6 +154,13 @@ void Mqtt::callback(char* topic, uint8_t* payload, unsigned int length)
     Configuration.saveConfig();
     publish(String("/mode"), String(Configuration._mode));
   }
+  else if (topicStr == String("current")) {
+    int current = data.toInt();
+    Log.println(String("set current to ") + String(current) + String("V"));
+    Configuration._iGain = current;
+    Configuration.saveConfig();
+    publish(String("/current"), String(Configuration._iGain));
+  }
   else if (topicStr == String("hostname")) {
     Log.println("Change hostname to " + data);
     Configuration._hostname = data;
@@ -192,7 +200,14 @@ void Mqtt::callback(char* topic, uint8_t* payload, unsigned int length)
   }
   else {
     Log.println("Unknow command");
+    return;
   }
+
+  Log.println("Save data");
+  Configuration._consoA = Monitoring.getLineA().conso;
+  Configuration._consoB = Monitoring.getLineB().conso;
+  Configuration._consoC = Monitoring.getLineC().conso;
+  Configuration.saveConfig();
 }
 
 

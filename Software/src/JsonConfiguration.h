@@ -24,6 +24,7 @@ class JsonConfiguration
 	uint16_t _timeUpdateNtp;
 	uint16_t _timeSendData;
 	uint8_t _mode;
+	uint8_t _iGain;
 	uint32_t _consoA, _consoB, _consoC;
      	
   private:
