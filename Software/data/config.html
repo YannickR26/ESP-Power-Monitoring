@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<!--Import Google Icon Font-->
+	<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<!--Import materialize.css-->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
+	<link rel="stylesheet" href="style.css">
+
+	<!--Let browser know website is optimized for mobile-->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ESP Power Monitoring</title>
+</head>
+
+<body class="bg">
+	<nav>
+		<div class="nav-wrapper">
+			<a href="#!" class="brand-logo center">ESP Power Monitoring</a>
+			<ul class="right hide-on-small-and-down">
+				<li>
+					<a href="index.html">Visualisation</a>
+				</li>
+				<li class="active">
+					<a href="config.html">Configuration</a>
+				</li>
+			</ul>
+		</div>
+	</nav>
+
+	<div class="container">
+		<div class="row"></div>
+		<div class="row">
+
+			<div id="Global" class="col s12 m12 l12">
+				<div class="row"></div>
+				<div class="input-field col s6">
+					<input id="hostname" type="text" class="validate">
+					<label for="hostname">Hostname</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="mqttIpServer" type="text" class="validate">
+					<label for="mqttIpServer">MQTT Ip Server</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="mqttPortServer" type="text" class="validate">
+					<label for="mqttPortServer">MQTT Port Server</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="ntpUpdateIntervale" type="text" class="validate">
+					<label for="ntpUpdateIntervale">NTP Update Intervale (s)</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="SendDataIntervale" type="text" class="validate">
+					<label for="SendDataIntervale">Send Data Intervale (s)</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="mode" type="text" class="validate">
+					<label for="mode">Mode</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="iGain" type="text" class="validate">
+					<label for="iGain">Max Current Sensor (A)</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="consoA" type="text" class="validate">
+					<label for="consoA">Conso A</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="consoB" type="text" class="validate">
+					<label for="consoB">Conso B</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="consoC" type="text" class="validate">
+					<label for="consoC">Conso C</label>
+				</div>
+				<div class="col s12 m12 l12" align="left">
+					<a class="waves-effect waves-light btn" onClick="save()">
+						<i class="fas fa-save"></i>
+						Enregistrer
+					</a>
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+
+	<!--Import jQuery before materialize.js-->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
+	<script src="https://use.fontawesome.com/releases/v5.2.0/js/all.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
+	<script src="api.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.0.4/jscolor.js"></script>
+
+	<script>
+		var ENV_PROD = false;
+
+		var URI;
+		if (ENV_PROD == true) {
+			URI = document.location.origin + "/";
+		} else {
+			URI = "http://192.168.1.17/";
+		}
+
+		var errorConnectionToast;
+
+		function save() {
+			var json = {};
+			json = {};
+			json.hostname = $('#hostname').val();
+			json.mqttIpServer = $('#mqttIpServer').val();
+			json.mqttPortServer = $('#mqttPortServer').val();
+			json.ntpUpdateIntervale = $('#ntpUpdateIntervale').val();
+			json.SendDataIntervale = $('#SendDataIntervale').val();
+			json.mode = $('#mode').val();
+			json.iGain = $('#iGain').val();
+			json.consoA = $('#consoA').val();
+			json.consoB = $('#consoB').val();
+			json.consoC = $('#consoC').val();
+			$.post(URI + "config", JSON.stringify(json))
+				.done(function (res) {
+					M.toast({ html: "Configuration sauvegard&eacute; !" });
+				})
+				.fail(function () {
+					/* Display Toast Error */
+					if (!errorConnectionToast) {
+						errorConnectionToast = M.toast({ html: "Impossible d'envoyer la configuration !" });
+					}
+				})
+				.always(function () {
+				});
+		}
+
+		function getConfig() {
+			console.log("try to read config...")
+			$.get(URI + "config")
+				.done(function (res) {
+					// {
+					// 	"hostname": "ESP_Monitoring",
+					// 	"mqttIpServer": "192.168.1.201",
+					// 	"mqttPortServer": 1883,
+					// 	"ntpUpdateIntervale": 3600,
+					// 	"SendDataIntervale": 5,
+					// 	"mode": 0,
+					// 	"iGain": 30,
+					// 	"consoA": 0,
+					// 	"consoB": 0,
+					// 	"consoC": 0
+					// }
+
+					console.log("configuration read successfully !")
+
+					/* Remove Toast */
+					if (errorConnectionToast)
+						errorConnectionToast.remove();
+
+					/* Get Data */
+					var params = res;
+
+					/* Add Data to GUI */
+					$('#hostname').val(params.hostname);
+					$('#mqttIpServer').val(params.mqttIpServer);
+					$('#mqttPortServer').val(params.mqttPortServer);
+					$('#ntpUpdateIntervale').val(params.ntpUpdateIntervale);
+					$('#SendDataIntervale').val(params.SendDataIntervale);
+					$('#mode').val(params.mode);
+					$('#iGain').val(params.iGain);
+					$('#consoA').val(params.consoA);
+					$('#consoB').val(params.consoB);
+					$('#consoC').val(params.consoC);
+					M.updateTextFields();
+				})
+				.fail(function () {
+					/* Display Toast Error */
+					if (!errorConnectionToast) {
+						errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
+					}
+				})
+				.always(function () {
+				});
+		}
+
+		$(document).ready(function () {
+			console.log("ready !");
+			getConfig();
+		});
+
+	</script>
+</body>
+
+</html>

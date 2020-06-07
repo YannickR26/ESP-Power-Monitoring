@@ -1,0 +1,87 @@
+body, html {
+	height: 100%;
+	background-color: slategrey;
+}
+
+.bg { 
+	/* The image used */
+	/*background-image: url("background1.jpg");*/
+
+	/* Full height */
+	height: 100%; 
+	width: 100%;
+
+	/* Center and scale the image nicely */
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	max-width: initial !important;
+}
+
+input {
+	color: white;
+}
+
+ul.tabs {
+	background-color: rgba(255, 255, 255, 0.17);
+}
+.tabs .tab a{
+	color:white;
+}
+.tabs .tab a.active {
+	color:black;
+}
+.tabs .tab a:focus.active {
+	color: black;
+}
+.tabs .tab a:hover {
+  color: white;
+}
+
+.tabs .indicator {
+		background-color:black;
+} /*Color of underline*/
+
+.eventList * {
+	text-align: center;
+}
+
+.jscolor { 
+	margin-bottom: 0 !important;
+	border: 5px solid #f2f2f2 !important;
+	border-radius: 2px !important;
+	text-align: center;
+	box-sizing: border-box !important;
+	color: rgba(0,0,0,0) !important;
+}
+
+.semi-transparent-container {
+	background: rgba(204, 204, 204, 0.5);
+	text-align: center;
+	padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.container {
+	text-align: center;
+}
+.title {
+	text-align: center;
+}
+
+.lower-card {
+	height: 250px;
+}
+
+#time {
+	margin-left: 10px;
+}
+
+.toast {
+	background-color: #c91717 !important;
+}
+
+nav {
+	background-color: rgba(223, 149, 149, 0.17);
+	font-size: 30px;
+}
