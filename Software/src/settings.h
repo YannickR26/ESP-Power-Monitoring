@@ -4,7 +4,7 @@
 #define VERSION                     "V1.7.0"
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
-#define DEFAULT_MQTTIPSERVER        "192.168.1.75"
+#define DEFAULT_MQTTIPSERVER        "192.168.1.201"
 #define DEFAULT_MQTTPORTSERVER      1883
 
 #define DEFAULT_NTP_UPDATE_INTERVAL_SEC     (1 * 3600)      // Update time from NTP server every 1 hours
@@ -24,11 +24,12 @@
 #define ATM90E32_IGAIN  9500
 
 // Relay
-#define RELAY_PIN   D0
+#define RELAY_PIN       D0
 
 // LED
-#define LEDTIME_NOMQTT  100
-#define LEDTIME_WORK    500
+#define LED_PIN             LED_BUILTIN
+#define LED_TIME_NOMQTT     100
+#define LED_TIME_WORK       500
 
 // Timezone
 #define UTC_OFFSET + 1

@@ -46,8 +46,8 @@ void JsonConfiguration::setup(void)
 
 bool JsonConfiguration::readConfig()
 {
-  Log.println("Read Configuration file from SPIFFS...");
-  
+  Log.println("Read Configuration file from LittleFS...");
+
   // Open file
   File configFile = LittleFS.open("/config.json", "r");
   if (!configFile) 

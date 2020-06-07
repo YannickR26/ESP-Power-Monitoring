@@ -36,44 +36,49 @@ void Mqtt::handle()
   clientMqtt.loop();
 }
 
+void Mqtt::publish(String topic, String body)
+{
+  clientMqtt.publish(String(Configuration._hostname + topic).c_str(), String(body).c_str());
+}
+
 void Mqtt::publishMonitoringData()
 {
   metering line;
 
   /* Send Status */
-  clientMqtt.publish(String(Configuration._hostname + "/relay").c_str(), String(digitalRead(RELAY_PIN)).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/timeIntervalUpdate").c_str(), String(Configuration._timeSendData).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/mode").c_str(), String(Configuration._mode).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/version").c_str(), String(VERSION).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/build").c_str(), String(String(__DATE__) + " " + String(__TIME__)).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/ip").c_str(), WiFi.localIP().toString().c_str());
+  publish(String("/relay"), String(digitalRead(RELAY_PIN)));
+  publish(String("/timeIntervalUpdate"), String(Configuration._timeSendData));
+  publish(String("/mode"), String(Configuration._mode));
+  publish(String("/version"), String(VERSION));
+  publish(String("/build"), String(String(__DATE__) + " " + String(__TIME__)));
+  publish(String("/ip"), WiFi.localIP().toString());
 
   /* Send Line A */
   line = Monitoring.getLineA();
-  clientMqtt.publish(String(Configuration._hostname + "/lineA/voltage").c_str(), String(line.voltage).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineA/current").c_str(), String(line.current).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineA/power").c_str(), String(line.power).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineA/cosPhy").c_str(), String(line.cosPhy).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineA/conso").c_str(), String(line.conso).c_str());
+  publish(String("/lineA/voltage"), String(line.voltage));
+  publish(String("/lineA/current"), String(line.current));
+  publish(String("/lineA/power"), String(line.power));
+  publish(String("/lineA/cosPhy"), String(line.cosPhy));
+  publish(String("/lineA/conso"), String(line.conso));
 
   /* Send Line B */
   line = Monitoring.getLineB();
-  clientMqtt.publish(String(Configuration._hostname + "/lineB/voltage").c_str(), String(line.voltage).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineB/current").c_str(), String(line.current).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineB/power").c_str(), String(line.power).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineB/cosPhy").c_str(), String(line.cosPhy).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineB/conso").c_str(), String(line.conso).c_str());
+  publish(String("/lineB/voltage"), String(line.voltage));
+  publish(String("/lineB/current"), String(line.current));
+  publish(String("/lineB/power"), String(line.power));
+  publish(String("/lineB/cosPhy"), String(line.cosPhy));
+  publish(String("/lineB/conso"), String(line.conso));
 
   /* Send Line C */
   line = Monitoring.getLineC();
-  clientMqtt.publish(String(Configuration._hostname + "/lineC/voltage").c_str(), String(line.voltage).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineC/current").c_str(), String(line.current).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineC/power").c_str(), String(line.power).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineC/cosPhy").c_str(), String(line.cosPhy).c_str());
-  clientMqtt.publish(String(Configuration._hostname + "/lineC/conso").c_str(), String(line.conso).c_str());
+  publish(String("/lineC/voltage"), String(line.voltage));
+  publish(String("/lineC/current"), String(line.current));
+  publish(String("/lineC/power"), String(line.power));
+  publish(String("/lineC/cosPhy"), String(line.cosPhy));
+  publish(String("/lineC/conso"), String(line.conso));
 
   /* Send Frequency */
-  clientMqtt.publish(String(Configuration._hostname + "/frequency").c_str(), String(Monitoring.GetFrequency()).c_str());
+  publish(String("/frequency"), String(Monitoring.GetFrequency()));
 }
 
 /********************************************************/
@@ -94,14 +99,14 @@ void Mqtt::reconnect()
       if (clientMqtt.connect(clientId.c_str())) {
         Log.println("connected");
         // Once connected, publish an announcement...
-        clientMqtt.publish(String(Configuration._hostname + "/relay").c_str(), String(digitalRead(RELAY_PIN)).c_str());
-        clientMqtt.publish(String(Configuration._hostname + "/timeIntervalUpdate").c_str(), String(Configuration._timeSendData).c_str());
-        clientMqtt.publish(String(Configuration._hostname + "/mode").c_str(), String(Configuration._mode).c_str());
-        clientMqtt.publish(String(Configuration._hostname + "/version").c_str(), String(VERSION).c_str());
-        clientMqtt.publish(String(Configuration._hostname + "/build").c_str(), String(String(__DATE__) + " " + String(__TIME__)).c_str());
-        clientMqtt.publish(String(Configuration._hostname + "/ip").c_str(), WiFi.localIP().toString().c_str());
+        publish(String("/relay"), String(digitalRead(RELAY_PIN)));
+        publish(String("/timeIntervalUpdate"), String(Configuration._timeSendData));
+        publish(String("/mode"), String(Configuration._mode));
+        publish(String("/version"), String(VERSION));
+        publish(String("/build"), String(String(__DATE__) + " " + String(__TIME__)));
+        publish(String("/ip"), WiFi.localIP().toString());
         // ... and resubscribe
-        clientMqtt.subscribe(String(Configuration._hostname + "/set/#").c_str());
+        clientMqtt.subscribe(String("/set/#").c_str());
       } else {
         Log.print("failed, rc=");
         Log.print(String(clientMqtt.state()));
@@ -132,21 +137,21 @@ void Mqtt::callback(char* topic, uint8_t* payload, unsigned int length)
     int status = data.toInt();
     digitalWrite(RELAY_PIN, status);
     Log.println(String("set relay status to ") + String(status));
-    clientMqtt.publish(String(Configuration._hostname + "/relay").c_str(), String(status).c_str());
+    publish(String("/relay"), String(status));
   }
   else if (topicStr == String("timeIntervalUpdate")) {
     int time = data.toInt();
     Log.println(String("set timeSendData to ") + String(time));
     Configuration._timeSendData = time;
     Configuration.saveConfig();
-    clientMqtt.publish(String(Configuration._hostname + "/timeIntervalUpdate").c_str(), String(Configuration._timeSendData).c_str());
+    publish(String("/timeIntervalUpdate"), String(Configuration._timeSendData));
   }
   else if (topicStr == String("mode")) {
     int mode = data.toInt();
     Log.println(String("set mode to ") + String(mode));
     Configuration._mode = mode;
     Configuration.saveConfig();
-    clientMqtt.publish(String(Configuration._hostname + "/mode").c_str(), String(Configuration._mode).c_str());
+    publish(String("/mode"), String(Configuration._mode));
   }
   else if (topicStr == String("hostname")) {
     Log.println("Change hostname to " + data);

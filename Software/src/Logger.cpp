@@ -9,7 +9,7 @@
   simpleDSTadjust dstAdjusted(StartRule, EndRule);
 #endif
 
-#ifdef DEBUG_TELNET
+#ifdef DEBUG_BY_TELNET
   WiFiServer telnetServer(23);
   WiFiClient telnetClient;
 #endif
@@ -21,14 +21,14 @@ void Logger::setup()
 {
   addTimeToString = true;
 
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG_BY_SERIAL
   Serial.begin(115200);
   while (!Serial) {} // wait for serial port to connect. Needed for native USB
   println();
   println("Starting...");
 #endif
 
-#ifdef DEBUG_TELNET
+#ifdef DEBUG_BY_TELNET
   // Setup telnet server for remote debug output
   telnetServer.setNoDelay(true);
   telnetServer.begin();
@@ -38,7 +38,7 @@ void Logger::setup()
 
 void Logger::handle()
 {
-#ifdef DEBUG_TELNET
+#ifdef DEBUG_BY_TELNET
   handleTelnetClient();
 #endif
 }
@@ -74,12 +74,12 @@ void Logger::print(const String &s)
 
 void Logger::send(String &s)
 {
-#ifdef DEBUG_SERIAL
+#ifdef DEBUG_BY_SERIAL
   Serial.print(s);
   Serial.flush();
 #endif
 
-#ifdef DEBUG_TELNET
+#ifdef DEBUG_BY_TELNET
   if (telnetClient.connected()) {
     const size_t len = s.length();
     const char *buffer = s.c_str();
@@ -105,7 +105,7 @@ void Logger::addTime(String &s)
 #endif
 }
 
-#ifdef DEBUG_TELNET
+#ifdef DEBUG_BY_TELNET
 void Logger::handleTelnetClient()
 { 
   if (telnetServer.hasClient())
