@@ -62,6 +62,7 @@ void wifiSetup()
   WiFiManagerParameter custom_mqtt_port("port", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
   WiFiManagerParameter custom_time_update("timeUpdate", "time update data (s)", String(Configuration._timeSendData).c_str(), 6);
   WiFiManagerParameter custom_mode("mode", "mode", String(Configuration._mode).c_str(), 1);
+  WiFiManagerParameter custom_current("current", "capacité de la pince amperemetrique (A)", String(Configuration._iGain).c_str(), 3);
 
   // add all your parameters here
   wifiManager.addParameter(&custom_mqtt_hostname);
@@ -69,6 +70,7 @@ void wifiSetup()
   wifiManager.addParameter(&custom_mqtt_port);
   wifiManager.addParameter(&custom_time_update);
   wifiManager.addParameter(&custom_mode);
+  wifiManager.addParameter(&custom_current);
 
   Log.println("Try to connect to WiFi...");
   // wifiManager.setWiFiChannel(6);
@@ -91,6 +93,7 @@ void wifiSetup()
   Configuration._mqttPortServer = atoi(custom_mqtt_port.getValue());
   Configuration._timeSendData = atoi(custom_time_update.getValue());
   Configuration._mode = atoi(custom_mode.getValue());
+  Configuration._iGain = atoi(custom_current.getValue());
   Configuration.saveConfig();
 }
 
