@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFiManager.h>
+#include <Ticker.h>
 
 #include "JsonConfiguration.h"
 #include "HttpServer.h"
@@ -8,38 +9,49 @@
 #include "settings.h"
 #include "Logger.h"
 
+static Ticker tick_blinker;
+
 // #define ENABLE_OTA    // If defined, enable Arduino OTA code.
 
 // OTA
 #ifdef ENABLE_OTA
-  #include <ArduinoOTA.h>
+#include <ArduinoOTA.h>
 #endif
 
-void updateNTP() {
+void updateNTP()
+{
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
   delay(500);
-  while (!time(nullptr)) {
+  while (!time(nullptr))
+  {
     Log.print("#");
     delay(1000);
   }
   Log.println("Update NTP");
 }
 
-/*************/
-/*** SETUP ***/
-/*************/
-void setup() {
-  /* Initialize Logger */
-  Log.setup();
-  Log.println(String(F("ESP_Power_Monitoring - Build: ")) + F(__DATE__) + " " +  F(__TIME__));
+/**************/
+/*** TICKER ***/
+/**************/
 
-  pinMode(RELAY_PIN, OUTPUT);
+// LED blink
+void blinkLED()
+{
+  digitalWrite(LED_PIN, !digitalRead(LED_PIN));
 
-  /* Read configuration from SPIFFS */
-  Configuration.setup();
-  // Configuration.restoreDefault();
+  // Check state of MQTT
+  if (MqttClient.isConnected())
+  {
+    tick_blinker.once(LED_TIME_WORK, blinkLED);
+  }
+  else
+  {
+    tick_blinker.once(LED_TIME_NOMQTT, blinkLED);
+  }
+}
 
-  // Local intialization. Once its business is done, there is no need to keep it around
+void wifiSetup()
+{
   WiFiManager wifiManager;
   // wifiManager.setDebugOutput(false);
   // wifiManager.resetSettings();
@@ -61,14 +73,15 @@ void setup() {
   Log.println("Try to connect to WiFi...");
   // wifiManager.setWiFiChannel(6);
   wifiManager.setConfigPortalTimeout(300); // Set Timeout for portal configuration to 120 seconds
-  if (!wifiManager.autoConnect(Configuration._hostname.c_str())) {
+  if (!wifiManager.autoConnect(Configuration._hostname.c_str()))
+  {
     Log.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
     ESP.reset();
     delay(5000);
   }
-  
+
   Log.println(String("Connected to ") + WiFi.SSID());
   Log.println(String("IP address: ") + WiFi.localIP().toString());
 
@@ -79,6 +92,31 @@ void setup() {
   Configuration._timeSendData = atoi(custom_time_update.getValue());
   Configuration._mode = atoi(custom_mode.getValue());
   Configuration.saveConfig();
+}
+
+/*************/
+/*** SETUP ***/
+/*************/
+void setup()
+{
+  delay(100);
+
+  /* Initialize Logger */
+  Log.setup();
+  Log.println();
+  Log.println(String(F("=== ESP_Power_Monitoring ===")));
+  Log.println(String(F("  Version: ")) + F(VERSION));
+  Log.println(String(F("  Build: ")) + F(__DATE__) + " " + F(__TIME__));
+
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+
+
+  /* Read configuration from SPIFFS */
+  Configuration.setup();
+  // Configuration.restoreDefault();
+
+  wifiSetup();
 
   /* Initialize the ATM90E32 + SPI port */
   uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x0087 : 0x0185;
@@ -86,11 +124,9 @@ void setup() {
   Monitoring.setConsoLineA(Configuration._consoA);
   Monitoring.setConsoLineB(Configuration._consoB);
   Monitoring.setConsoLineC(Configuration._consoC);
-  
+
   /* Initialize HTTP Server */
   HTTPServer.setup();
-  
-  delay(100);
 
   /* Initialize MQTT Client */
   MqttClient.setup();
@@ -98,7 +134,7 @@ void setup() {
   // Init OTA
 #ifdef ENABLE_OTA
   Log.println("Arduino OTA activated");
-  
+
   // Port defaults to 8266
   ArduinoOTA.setPort(8266);
 
@@ -116,11 +152,16 @@ void setup() {
   });
   ArduinoOTA.onError([](ota_error_t error) {
     Log.printf("Arduino OTA Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Log.println("Arduino OTA: Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Log.println("Arduino OTA: Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Log.println("Arduino OTA: Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Log.println("Arduino OTA: Receive Failed");
-    else if (error == OTA_END_ERROR) Log.println("Arduino OTA: End Failed");
+    if (error == OTA_AUTH_ERROR)
+      Log.println("Arduino OTA: Auth Failed");
+    else if (error == OTA_BEGIN_ERROR)
+      Log.println("Arduino OTA: Begin Failed");
+    else if (error == OTA_CONNECT_ERROR)
+      Log.println("Arduino OTA: Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR)
+      Log.println("Arduino OTA: Receive Failed");
+    else if (error == OTA_END_ERROR)
+      Log.println("Arduino OTA: End Failed");
   });
 
   ArduinoOTA.begin();
@@ -128,12 +169,16 @@ void setup() {
 #endif
 
   updateNTP();
+
+  // Create ticker for blink LED
+  tick_blinker.attach_ms(LED_TIME_NOMQTT, blinkLED);
 }
 
 /************/
 /*** LOOP ***/
 /************/
-void loop() {
+void loop()
+{
   static unsigned long tickNTPUpdate, tickSendData, tickSaveData, tickPrintData;
   unsigned long currentMillis = millis();
 
@@ -145,12 +190,14 @@ void loop() {
   ArduinoOTA.handle();
 #endif
 
-  if ((currentMillis - tickNTPUpdate) >= (unsigned long)(Configuration._timeUpdateNtp*1000)) {
+  if ((currentMillis - tickNTPUpdate) >= (unsigned long)(Configuration._timeUpdateNtp * 1000))
+  {
     updateNTP();
     tickNTPUpdate = currentMillis;
   }
-  
-  if ((currentMillis - tickSendData) >= (unsigned long)(Configuration._timeSendData*1000)) {
+
+  if ((currentMillis - tickSendData) >= (unsigned long)(Configuration._timeSendData * 1000))
+  {
     Log.println("Send data to MQTT");
     Monitoring.handle();
     MqttClient.publishMonitoringData();
@@ -158,7 +205,8 @@ void loop() {
   }
 
   // Save conso every hour
-  if ((currentMillis - tickSaveData) >= (unsigned long)(3600 * 1000)) {
+  if ((currentMillis - tickSaveData) >= (unsigned long)(3600 * 1000))
+  {
     Log.println("Save data");
     Configuration._consoA = Monitoring.getLineA().conso;
     Configuration._consoB = Monitoring.getLineB().conso;
@@ -167,7 +215,8 @@ void loop() {
     tickSaveData = currentMillis;
   }
 
-  if ((currentMillis - tickPrintData) >= 1000 ) {
+  if ((currentMillis - tickPrintData) >= 1000)
+  {
     /* Uncomment if you want calculate the offset of I and U
       ! Warning ! the voltage and the current must be at 0
     */
@@ -178,18 +227,19 @@ void loop() {
     // Log.println("Offset UA: " + String(Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA), HEX) + ")");
     // Log.println("Offset UB: " + String(Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB), HEX) + ")");
     // Log.println("Offset UC: " + String(Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC), HEX) + ")");
-    if (Configuration._mode == MODE_DEBUG) {
+    if (Configuration._mode == MODE_DEBUG)
+    {
       Log.println("Line A: " + String(Monitoring.GetLineVoltageA()) + "V, " + String(Monitoring.GetLineCurrentA()) + "A, " + String(Monitoring.GetActivePowerA()) + "W");
       Log.println("Line B: " + String(Monitoring.GetLineVoltageB()) + "V, " + String(Monitoring.GetLineCurrentB()) + "A, " + String(Monitoring.GetActivePowerB()) + "W");
       Log.println("Line C: " + String(Monitoring.GetLineVoltageC()) + "V, " + String(Monitoring.GetLineCurrentC()) + "A, " + String(Monitoring.GetActivePowerC()) + "W");
       Log.println("Frequency: " + String(Monitoring.GetFrequency()) + "Hz");
       Log.println("Total Active Fond Power: " + String(Monitoring.GetTotalActiveFundPower()) + "W");
       Log.println("Total Active Harm Power: " + String(Monitoring.GetTotalActiveHarPower()) + "W");
-      Log.println("Reactive Power => A: " + String(Monitoring.GetReactivePowerA()) + "VARS, B: " + String(Monitoring.GetReactivePowerB()) +  "VARS, C: " + String(Monitoring.GetReactivePowerC()) + "VARS");
-      Log.println("Apparent Power => A: " + String(Monitoring.GetApparentPowerA()) + "VA, B: " + String(Monitoring.GetApparentPowerB()) +  "VA, C: " + String(Monitoring.GetApparentPowerC()) + "VA");
-      Log.println("Phase => A: " + String(Monitoring.GetPhaseA()) + "°, B: " + String(Monitoring.GetPhaseB()) +  "°, C: " + String(Monitoring.GetPhaseC()) + "°");
-      Log.println("PF => A: " + String(Monitoring.GetPowerFactorA()) + ", B: " + String(Monitoring.GetPowerFactorB()) +  ", C: " + String(Monitoring.GetPowerFactorC()));
-    
+      Log.println("Reactive Power => A: " + String(Monitoring.GetReactivePowerA()) + "VARS, B: " + String(Monitoring.GetReactivePowerB()) + "VARS, C: " + String(Monitoring.GetReactivePowerC()) + "VARS");
+      Log.println("Apparent Power => A: " + String(Monitoring.GetApparentPowerA()) + "VA, B: " + String(Monitoring.GetApparentPowerB()) + "VA, C: " + String(Monitoring.GetApparentPowerC()) + "VA");
+      Log.println("Phase => A: " + String(Monitoring.GetPhaseA()) + "°, B: " + String(Monitoring.GetPhaseB()) + "°, C: " + String(Monitoring.GetPhaseC()) + "°");
+      Log.println("PF => A: " + String(Monitoring.GetPowerFactorA()) + ", B: " + String(Monitoring.GetPowerFactorB()) + ", C: " + String(Monitoring.GetPowerFactorC()));
+
       Log.println();
     }
     tickPrintData = currentMillis;
