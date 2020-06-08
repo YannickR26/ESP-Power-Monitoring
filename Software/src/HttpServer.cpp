@@ -279,6 +279,7 @@ void HttpServer::handleSet()
     }
   }
 
+  HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
   HTTPServer.webServer().send(200, "text/plain", message);
 }
 
