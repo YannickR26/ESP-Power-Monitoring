@@ -19,72 +19,213 @@
         <div class="nav-wrapper">
             <a href="#!" class="brand-logo center">ESP Power Monitoring</a>
             <ul class="right hide-on-small-and-down">
-				<li class="active">
-					<a href="index.html">Visualisation</a>
-				</li>
-				<li>
-					<a href="config.html">Configuration</a>
-				</li>
+                <li class="active">
+                    <a href="index.html">Visualisation</a>
+                </li>
+                <li>
+                    <a href="config.html">Configuration</a>
+                </li>
             </ul>
         </div>
     </nav>
 
     <div class="container">
-        <div class="row"></div>
         <div class="row">
-            <div class="col s12 m12 l4 offset-l4">
+            <div class="col s12 m4 offset-m4">
                 <div class="card blue-grey darken-1">
                     <div class="card-content white-text">
-                        Mode Automatique
+                        Relais
                         <div class="switch">
                             <label class="white-text">
-                                <input id="mode" type="checkbox">
+                                <input id="relay" type="checkbox">
                                 <span class="lever"></span>
                             </label>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- <div class = "row"> 
-                <div class="col m12 l6 ">
-                    <div class="card blue-grey darken-1 lower-card">
-                        <div class="card-content white-text">
-                            <span class="card-title">Eclairage du luminaire</span>
-                            <div id="slider"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col m12  l6">
-                    <div class="card blue-grey darken-1 lower-card">
-                        <div class="card-content white-text">
-                            <div class="ct-chart"></div>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
+        </div>        
+        <div id="linesContainer"></div>
+       
     </div>
 
     <!--Import jQuery before materialize.js-->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
     <script src="https://use.fontawesome.com/releases/v5.2.0/js/all.js"></script>
+    <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
     <script src="api.js"></script>
 
     <script>
         var ENV_PROD = false;
 
+        const config = {
+            lines:[
+                {
+                    name:'lineA'
+                },
+                {
+                    name:'lineB'
+                },
+                {
+                    name:'lineC'
+                },
+            ],
+            lineFields:[
+            {
+                name:"Voltage",
+                fieldName:"voltage",
+                unit:'V'
+            },            
+            {
+                name:"Current",
+                fieldName:'current',
+                unit:'A'
+            },            
+            {
+                name:"Power",
+                fieldName:'power',
+                unit:'Kw/H'
+            },            
+            {
+                name:"Cos phy",
+                fieldName:"cosPhy",
+                unit:''
+            },            
+            {
+                name:"Conso",
+                fieldName:'conso',
+                unit:'Kw'
+            }
+        ]};
+
+        for(currentLine of config.lines){
+            let container = document.createElement('div');
+            container.classList.add('row');
+
+            let valuesContainer = document.createElement('div');
+            valuesContainer.classList.add('col','s12','m4');
+            container.appendChild(valuesContainer);
+
+            let cardValue = document.createElement('div');
+            cardValue.classList.add('card','blue-grey','darken-1');
+            valuesContainer.appendChild(cardValue);
+
+            let cardContent = document.createElement('div');
+            cardContent.classList.add('card-content','white-text');
+            cardValue.appendChild(cardContent);
+
+            let cardTitle = document.createElement('span');
+            cardTitle.classList.add('card-title');
+            cardContent.appendChild(cardTitle);
+
+            for(let lineField of config.lineFields){
+                let fieldContainer = document.createElement('div');
+                fieldContainer.classList.add('row');
+
+                let name = document.createElement('div');
+                name.classList.add('col', 's4');
+                name.textContent = lineField.name;
+                fieldContainer.appendChild(name);
+
+                let value = document.createElement('div');
+                value.classList.add('col', 's4');
+                value.id=currentLine.name+'-'+lineField.fieldName;
+                fieldContainer.appendChild(value);
+
+                let unit = document.createElement('div');
+                unit.classList.add('col', 's4');
+                unit.textContent = lineField.unit;
+                fieldContainer.appendChild(unit);
+
+                cardContent.appendChild(fieldContainer);
+            }
+            
+            let graphContainer = document.createElement('div');
+            graphContainer.classList.add('col','s12','m8');
+            container.appendChild(graphContainer);
+            
+            let cardGraph = document.createElement('div');
+            cardGraph.classList.add('card','blue-grey','darken-1');
+            graphContainer.appendChild(cardGraph);
+
+            cardContent = document.createElement('div');
+            cardContent.classList.add('card-content','white-text');
+            cardGraph.appendChild(cardContent);
+            
+            let chartElement = document.createElement('div');
+            chartElement.classList.add('ct-chart');
+            chartElement.id=currentLine.name+'chart';
+            cardGraph.appendChild(chartElement);
+
+            document.querySelector('#linesContainer').appendChild(container);
+        }
+
+        var data = {
+            // Our series array that contains series objects or in this case series data arrays
+            series: config.lineFields.map(confField => ({name:confField.name, data:[]}))
+        };
+
+        var options = {
+            // axisX: {
+            //     type: Chartist.FixedScaleAxis,
+            //     divisor: 6,
+            //     labelInterpolationFnc: function (value) {
+
+            //         var t = timestampToTime(value);
+            //         return t.h + ":" + t.m;
+            //     }
+            // },
+            // series: {
+            //     "serie-journey": {
+            //         showArea: true,
+            //         showPoint: true,
+            //         showLine: true,
+
+            //     },
+            //     "series-currentValue": {
+
+            //     }
+            // }
+        };
+
+        var responsiveOptions = [
+            // ['screen and (min-width: 641px) and (max-width: 1024px)', {
+            //     seriesBarDistance: 10,
+            //     axisX: {
+            //         labelInterpolationFnc: function (value) {
+            //             return value;
+            //         }
+            //     }
+            // }],
+            // ['screen and (max-width: 640px)', {
+            //     seriesBarDistance: 5,
+            //     axisX: {
+            //         labelInterpolationFnc: function (value) {
+            //             return value[0];
+            //         }
+            //     }
+            // }]
+        ];
+
+        // Create a new line chart object where as first parameter we pass in a selector
+        // that is resolving to our chart container element. The Second parameter
+        // is the actual data object.
+        let charts = {};
+        config.lines.forEach((currentLine) => {
+            charts[currentLine.name] = new Chartist.Line('#'+currentLine.name+'chart', data, options, responsiveOptions);
+        });
+
         var URI;
         if (ENV_PROD == true) {
             URI = document.location.origin + "/";
         } else {
-            URI = "http://192.168.1.17/";
+			URI = "http://10.65.30.68/";
         }
 
         var poolingtimer;
         var errorConnectionToast;
-        var params;
 
         function pooling(callback) {
             //every 500ms
@@ -120,10 +261,27 @@
                     if (errorConnectionToast)
                         errorConnectionToast.remove();
 
-                    var lineA = res.lineA;
-                    var lineB = res.lineB;
-                    var lineC = res.lineC;
+                    if (res.relay == 0)
+                        $("#relay").prop('checked', false);
+                    else
+                        $("#relay").prop('checked', true);
 
+                    const nbMaxPoint = 10;
+                    config.lines.forEach((currentLine, index) => {
+                        config.lineFields.forEach((confField, index) => {
+                            $("#"+currentLine.name+'-'+confField.fieldName).text(res[currentLine.name][confField.fieldName]);
+                            var data = charts[currentLine.name].data.series[index].data;
+                            data.push({
+                                x:data.length,
+                                y:parseFloat(res[currentLine.name][confField.fieldName])
+                            });
+                            if(data.length > nbMaxPoint){
+                                data.splice(0,1);
+                            }
+                        });
+                        charts[currentLine.name].update();
+                    });
+                    
                     poolingtimer = setTimeout(pooling, 500);
                     if (callback)
                         callback();
@@ -131,7 +289,7 @@
                 .fail(function () {
                     poolingtimer = setTimeout(pooling, 2000);
                     if (!errorConnectionToast) {
-						errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
+                        errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
                     }
                 })
                 .always(function () {
@@ -139,102 +297,15 @@
                 });
         }
 
-        $("#mode").click(function () {
-            //on change de mode
-            var mode;
-            if ($('#mode').is(':checked')) {
-                $.get(URI + "rest/mode/auto");
+        $("#relay").click(function () {
+            if ($('#relay').is(':checked')) {
+                $.get(URI + "set?relay=1");
             } else {
-                $.get(URI + "rest/mode/manual");
-                //on envoie égalemenet la valeur courante
-                $.get(URI + "rest/led/" + slider.getValue());
+                $.get(URI + "set?relay=0");
             }
         });
 
         poolingtimer = setTimeout(pooling, 500);
-
-        var responsiveOptions = [
-            ['screen and (min-width: 641px) and (max-width: 1024px)', {
-                seriesBarDistance: 10,
-                axisX: {
-                    labelInterpolationFnc: function (value) {
-                        return value;
-                    }
-                }
-            }],
-            ['screen and (max-width: 640px)', {
-                seriesBarDistance: 5,
-                axisX: {
-                    labelInterpolationFnc: function (value) {
-                        return value[0];
-                    }
-                }
-            }]
-        ];
-
-        // Create a new line chart object where as first parameter we pass in a selector
-        // that is resolving to our chart container element. The Second parameter
-        // is the actual data object.
-        var chart = new Chartist.Line('.ct-chart', data, options, responsiveOptions);
-
-        //Chartist animation
-        //animateChart(chart);
-
-        var slider = $("#slider").roundSlider({
-            handleShape: "dot",
-            width: "50",
-            radius: "100",
-            value: 622,
-            editableTooltip: false,
-            keyboardAction: false,
-            mouseScrollAction: false,
-            max: "100",
-            startAngle: 90,
-            sliderType: "min-range",
-            circleShape: "half-top",
-
-            change: function (args) {
-                $.get(URI + "rest/led/" + slider.getValue());
-            }
-        }).data("roundSlider");
-
-        $(".modal").modal();
-
-
-        $("#configuration-btn").click(function () {
-            $('#configuration-modal').modal('open');
-            //clearTimeout(poolingtimer);
-            /*pooling(function() {
-                $("#txt-date-start").val(params.timeStart.h + ":" + params.timeStart.m);
-                
-                $("#txt-start-duration").val(params.startduration);
-                
-                $("#txt-date-end").val(params.timeEnd.h + ":" + params.timeEnd.m);
-                
-                $("#txt-end-duration").val(params.endDuration);
-
-                $('#configuration-modal').modal('open');
-
-                M.updateTextFields();
-            }); */
-        });
-
-        $("#validate-configuration-btn").click(function () {
-            $('#configuration-modal').modal('close');
-            $.get(URI + "rest/param/time-start/" + timeToSimestamp($("#txt-date-start").val()))
-                .done(() => {
-                    $.get(URI + "rest/param/time-end/" + timeToSimestamp($("#txt-date-end").val()))
-                        .done(() => {
-                            $.get(URI + "rest/param/start-duration/" + $("#txt-start-duration").val())
-                                .done(() => {
-                                    $.get(URI + "rest/param/end-duration/" + $("#txt-end-duration").val())
-                                        .done(() => {
-                                            M.toast("Parameters saved", 3000);
-                                        });
-                                });
-                        });
-                });
-        });
 
     </script>
 </body>
