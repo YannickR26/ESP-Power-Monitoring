@@ -20,6 +20,9 @@
     <nav>
         <div class="nav-wrapper">
             <a href="#!" class="brand-logo center">ESP Power Monitoring</a>
+            <ul class="left hide-on-small-and-down">
+                <div id='version'></div>
+            </ul>
             <ul class="right hide-on-small-and-down">
                 <li class="active">
                     <a href="index.html">Visualisation</a>
@@ -58,7 +61,6 @@
     <!-- <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
-    <script src="api.js"></script>
 
     <script>
         var ENV_PROD = false;
@@ -67,8 +69,8 @@
         if (ENV_PROD == true) {
             URI = document.location.origin + "/";
         } else {
-            // URI = "http://192.168.1.17/";
-            URI = "http://10.65.30.68/";
+            URI = "http://192.168.1.17/";
+            // URI = "http://10.65.30.68/";
         }
 
         const config = {
@@ -88,31 +90,36 @@
                     name: "Voltage",
                     fieldName: "voltage",
                     unit: 'V',
-                    color:"#FF0000"
+                    color: "#00FF00",
+                    axis: 'y1'
                 },
                 {
                     name: "Current",
                     fieldName: 'current',
                     unit: 'A',
-                    color:"#00FF00"
+                    color: "#FF0000",
+                    axis: 'y'
                 },
                 {
                     name: "Power",
                     fieldName: 'power',
                     unit: 'kW/h',
-                    color:"#0000FF"
+                    color: "#0000FF",
+                    axis: 'y'
                 },
                 {
                     name: "Cos phy",
                     fieldName: "cosPhy",
                     unit: '',
-                    color:"#FF00FF"
+                    color: "#FF00FF",
+                    axis: 'y'
                 },
                 {
                     name: "Conso",
                     fieldName: 'conso',
                     unit: 'kW',
-                    color:"#FFFF00"
+                    color: "#FFFF00",
+                    axis: 'y'
                 }
             ]
         };
@@ -172,8 +179,8 @@
             cardGraph.appendChild(cardContent);
 
             let chartElement = document.createElement('canvas');
-            chartElement.width="400";
-            chartElement.height="200";
+            chartElement.width = "400";
+            chartElement.height = "105";
             chartElement.id = currentLine.name + 'chart';
             cardGraph.appendChild(chartElement);
 
@@ -181,24 +188,39 @@
         }
 
         let chartsData = config.lines.map(line => ({
-            labels:[],
-            datasets:config.lineFields.map(confField => ({
-                fill:false,
-                borderColor:confField.color,
+            labels: [],
+            datasets: config.lineFields.map(confField => ({
                 label: confField.name,
-                data:[],
-                yAxisId:'y'
+                borderColor: confField.color,
+                backgroundColor: confField.color,
+                fill: false,
+                data: [],
+                yAxisId: confField.axis
             }))
         }));
-            
 
-        var options = {
-            responsive:true,
-            scales:{
-                y:{
-                    type:'linear',
-                    display:true,
-                    position:'left'
+
+        let chartsOptions = {
+            responsive: true,
+            stacked: false,
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
                 }
             }
         };
@@ -208,8 +230,10 @@
         // is the actual data object.
         var charts = {};
         config.lines.forEach((currentLine, index) => {
-            charts[index] = new Chart(currentLine.name + 'chart', { type: 'line', data: chartsData[index], options: options });
+            charts[index] = new Chart(currentLine.name + 'chart', { type: 'line', data: chartsData[index], options: chartsOptions });
         });
+
+        Chart.defaults.global.defaultFontColor = 'white';
 
         var poolingtimer;
         var errorConnectionToast;
@@ -253,12 +277,13 @@
                     else
                         $("#relay").prop('checked', true);
 
-                    const nbMaxPoint = 30;
-                    let labelIndex = 0;
+                    $('#version').text(res.version);
+
+                    const nbMaxPoint = 28;
                     let removeFirstPoint = false;
                     config.lines.forEach((currentLine, index) => {
                         var lineData = chartsData[index];
-                        lineData.labels.push(labelIndex);
+                        lineData.labels.push(new Date().toLocaleTimeString());
                         config.lineFields.forEach((confField, indexConf) => {
                             $("#" + currentLine.name + '-' + confField.fieldName).text(res[currentLine.name][confField.fieldName]);
                             let data = lineData.datasets[indexConf].data;
@@ -271,12 +296,11 @@
                                 removeFirstPoint = true;
                             }
                         });
-                        if(removeFirstPoint){
-                           lineData.labels.splice(0,1); 
+                        if (removeFirstPoint) {
+                            lineData.labels.splice(0, 1);
                         }
                         charts[index].update();
                     });
-                    labelIndex++;
 
                     poolingtimer = setTimeout(pooling, 1000);
                     if (callback)
