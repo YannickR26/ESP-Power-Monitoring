@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ArduinoJson.h>
 #include "settings.h"
 
 class JsonConfiguration 
@@ -15,16 +16,17 @@ class JsonConfiguration
   
   	void restoreDefault();
     
-    String toJson();
+	uint8_t encodeToJson(JsonDocument &_json);
+	uint8_t decodeJsonFromFile(const char* input);
   
 	/* Members */
   	String _hostname;
 	String _mqttIpServer;
 	uint16_t _mqttPortServer;
-	uint16_t _timeUpdateNtp;
+	uint16_t _timeSaveData;
 	uint16_t _timeSendData;
 	uint8_t _mode;
-	uint8_t _iGain;
+	uint8_t _currentClampA, _currentClampB, _currentClampC;
 	uint32_t _consoA, _consoB, _consoC;
      	
   private:

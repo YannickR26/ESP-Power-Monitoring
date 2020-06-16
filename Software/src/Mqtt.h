@@ -13,6 +13,7 @@ public:
 	void setup();
 	void handle();
 	void publish(String topic, String body);
+	void log(String level, String str);
 	void publishMonitoringData();
 	bool isConnected() { return clientMqtt.connected(); }
 
