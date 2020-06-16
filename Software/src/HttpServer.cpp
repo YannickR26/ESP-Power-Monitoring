@@ -199,6 +199,9 @@ void HttpServer::setConfig()
     if (!Configuration.decodeJsonFromFile(HTTPServer.webServer().arg("plain").c_str())) {
       Log.println("Received new configuration !");
       HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
+      Monitoring.setConsoLineA(Configuration._consoA);
+      Monitoring.setConsoLineB(Configuration._consoB);
+      Monitoring.setConsoLineC(Configuration._consoC);
       if (Configuration.saveConfig()) {
       // HTTPServer.webServer().send(200, "application/json", Configuration.encodeToJson());
         HTTPServer.webServer().send(200, "application/json", "{\"result\":true}");
