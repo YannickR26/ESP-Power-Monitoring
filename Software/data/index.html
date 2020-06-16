@@ -58,12 +58,11 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
     <script src="https://use.fontawesome.com/releases/v5.2.0/js/all.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
 
     <script>
-        var ENV_PROD = false;
+        var ENV_PROD = true;
 
         var URI;
         if (ENV_PROD == true) {
@@ -83,7 +82,7 @@
                 },
                 {
                     name: 'lineC'
-                },
+                }
             ],
             lineFields: [
                 {
@@ -103,7 +102,7 @@
                 {
                     name: "Power",
                     fieldName: 'power',
-                    unit: 'kW/h',
+                    unit: 'W',
                     color: "#0000FF",
                     axis: 'y'
                 },
@@ -142,6 +141,7 @@
 
             let cardTitle = document.createElement('span');
             cardTitle.classList.add('card-title');
+            cardTitle.textContent = currentLine.name;
             cardContent.appendChild(cardTitle);
 
             for (let lineField of config.lineFields) {
@@ -177,10 +177,15 @@
             cardContent = document.createElement('div');
             cardContent.classList.add('card-content', 'white-text');
             cardGraph.appendChild(cardContent);
+            
+            cardTitle = document.createElement('span');
+            cardTitle.classList.add('card-title');
+            cardTitle.textContent = currentLine.name;
+            cardContent.appendChild(cardTitle);
 
             let chartElement = document.createElement('canvas');
             chartElement.width = "400";
-            chartElement.height = "105";
+            chartElement.height = "100";
             chartElement.id = currentLine.name + 'chart';
             cardGraph.appendChild(chartElement);
 
@@ -239,7 +244,7 @@
         var errorConnectionToast;
 
         function pooling(callback) {
-            //every 500ms
+            //every 2s
             $.get(URI + "status")
                 .done(function (res) {
                     // {
@@ -302,12 +307,12 @@
                         charts[index].update();
                     });
 
-                    poolingtimer = setTimeout(pooling, 1000);
+                    poolingtimer = setTimeout(pooling, 2000);
                     if (callback)
                         callback();
                 })
                 .fail(function () {
-                    poolingtimer = setTimeout(pooling, 3000);
+                    poolingtimer = setTimeout(pooling, 5000);
                     if (!errorConnectionToast) {
                         errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
                     }
@@ -325,7 +330,7 @@
             }
         });
 
-        poolingtimer = setTimeout(pooling, 1000);
+        poolingtimer = setTimeout(pooling, 10);
 
     </script>
 </body>
