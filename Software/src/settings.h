@@ -7,8 +7,9 @@
 #define DEFAULT_MQTTIPSERVER        "192.168.1.201"
 #define DEFAULT_MQTTPORTSERVER      1883
 
-#define DEFAULT_NTP_UPDATE_INTERVAL_SEC     (1 * 3600)      // Update time from NTP server every 1 hours
-#define DEFAULT_SEND_DATA_INTERVAL_SEC      5               // Log data every 5 secondes
+#define DEFAULT_SAVE_DATA_INTERVAL_SEC  (1 * 3600)  // Update time from NTP server and save data every 1 hours
+#define DEFAULT_SEND_DATA_INTERVAL_SEC      5       // Send data every 5 secondes
+#define DEFAULT_CURRENT_CLAMP               30      // 30A current clamp by default
 
 // Mode
 #define MODE_MONO   0
