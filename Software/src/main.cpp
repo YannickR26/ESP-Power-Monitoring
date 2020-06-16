@@ -9,17 +9,21 @@
 #include "settings.h"
 #include "Logger.h"
 
-static Ticker tick_blinker;
-
-// #define ENABLE_OTA    // If defined, enable Arduino OTA code.
+static Ticker tick_blinker, tick_sendData, tick_saveData;
 
 // OTA
 #ifdef ENABLE_OTA
 #include <ArduinoOTA.h>
 #endif
 
-void updateNTP()
+/**************/
+/*** TICKER ***/
+/**************/
+
+// Update time from NTP and save data
+void updateTimeAndSaveData()
 {
+  Log.println("Update NTP");
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
   delay(500);
   while (!time(nullptr))
@@ -27,12 +31,15 @@ void updateNTP()
     Log.print("#");
     delay(1000);
   }
-  Log.println("Update NTP");
-}
 
-/**************/
-/*** TICKER ***/
-/**************/
+  Log.println("Save data");
+  Configuration._consoA = Monitoring.getLineA().conso;
+  Configuration._consoB = Monitoring.getLineB().conso;
+  Configuration._consoC = Monitoring.getLineC().conso;
+  Configuration.saveConfig();
+
+  tick_saveData.once(Configuration._timeSaveData, updateTimeAndSaveData);
+}
 
 // LED blink
 void blinkLED()
@@ -50,6 +57,23 @@ void blinkLED()
   }
 }
 
+// Send Data to MQTT
+void sendData()
+{
+  Log.println("Read data...");
+  Monitoring.handle();
+
+  Log.println("Send data to MQTT");
+  MqttClient.publishMonitoringData();
+
+  tick_sendData.once(Configuration._timeSendData, sendData);
+}
+
+/*************/
+/*** SETUP ***/
+/*************/
+
+// Wifi setup
 void wifiSetup()
 {
   WiFiManager wifiManager;
@@ -62,7 +86,9 @@ void wifiSetup()
   WiFiManagerParameter custom_mqtt_port("port", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
   WiFiManagerParameter custom_time_update("timeUpdate", "time update data (s)", String(Configuration._timeSendData).c_str(), 6);
   WiFiManagerParameter custom_mode("mode", "mode", String(Configuration._mode).c_str(), 1);
-  WiFiManagerParameter custom_current("current", "capacité de la pince amperemetrique (A)", String(Configuration._iGain).c_str(), 3);
+  WiFiManagerParameter custom_currentA("current", "capacité de la pince amperemetrique A (A)", String(Configuration._currentClampA).c_str(), 3);
+  WiFiManagerParameter custom_currentB("current", "capacité de la pince amperemetrique B (A)", String(Configuration._currentClampB).c_str(), 3);
+  WiFiManagerParameter custom_currentC("current", "capacité de la pince amperemetrique C (A)", String(Configuration._currentClampC).c_str(), 3);
 
   // add all your parameters here
   wifiManager.addParameter(&custom_mqtt_hostname);
@@ -70,7 +96,9 @@ void wifiSetup()
   wifiManager.addParameter(&custom_mqtt_port);
   wifiManager.addParameter(&custom_time_update);
   wifiManager.addParameter(&custom_mode);
-  wifiManager.addParameter(&custom_current);
+  wifiManager.addParameter(&custom_currentA);
+  wifiManager.addParameter(&custom_currentB);
+  wifiManager.addParameter(&custom_currentC);
 
   Log.println("Try to connect to WiFi...");
   // wifiManager.setWiFiChannel(6);
@@ -93,13 +121,13 @@ void wifiSetup()
   Configuration._mqttPortServer = atoi(custom_mqtt_port.getValue());
   Configuration._timeSendData = atoi(custom_time_update.getValue());
   Configuration._mode = atoi(custom_mode.getValue());
-  Configuration._iGain = atoi(custom_current.getValue());
+  Configuration._currentClampA = atoi(custom_currentA.getValue());
+  Configuration._currentClampB = atoi(custom_currentB.getValue());
+  Configuration._currentClampC = atoi(custom_currentC.getValue());
   Configuration.saveConfig();
 }
 
-/*************/
-/*** SETUP ***/
-/*************/
+// Setup
 void setup()
 {
   delay(100);
@@ -107,9 +135,11 @@ void setup()
   /* Initialize Logger */
   Log.setup();
   Log.println();
+  Log.println("==========================================");
   Log.println(String(F("=== ESP_Power_Monitoring ===")));
   Log.println(String(F("  Version: ")) + F(VERSION));
   Log.println(String(F("  Build: ")) + F(__DATE__) + " " + F(__TIME__));
+  Log.println("==========================================");
   Log.println();
 
   pinMode(RELAY_PIN, OUTPUT);
@@ -122,9 +152,7 @@ void setup()
   wifiSetup();
 
   /* Initialize the ATM90E32 + SPI port */
-  uint16_t mmode0 = (Configuration._mode == MODE_MONO) ? 0x0087 : 0x0185;
-  uint16_t currentGain = Configuration._iGain * ATM90E32_IGAIN;
-  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, mmode0, 0, ATM90E32_UGAIN, currentGain);
+  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, Configuration._mode, 0, ATM90E32_UGAIN, Configuration._currentClampA, Configuration._currentClampB, Configuration._currentClampC);
   Monitoring.setConsoLineA(Configuration._consoA);
   Monitoring.setConsoLineB(Configuration._consoB);
   Monitoring.setConsoLineC(Configuration._consoC);
@@ -172,10 +200,20 @@ void setup()
   Log.println("");
 #endif
 
-  updateNTP();
+  updateTimeAndSaveData();
 
   // Create ticker for blink LED
   tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
+
+  // Create ticker for send Data to MQTT
+  if (Configuration._timeSendData == 0)
+    Configuration._timeSendData = 1;
+  tick_sendData.once(Configuration._timeSendData, sendData);
+
+  // Create ticker for update NTP and save data
+  if (Configuration._timeSaveData == 0)
+    Configuration._timeSaveData = 1;
+  tick_saveData.once(Configuration._timeSaveData, updateTimeAndSaveData);
 }
 
 /************/
@@ -183,7 +221,7 @@ void setup()
 /************/
 void loop()
 {
-  static unsigned long tickNTPUpdate, tickSendData, tickSaveData, tickPrintData;
+  static unsigned long tickPrintData;
   unsigned long currentMillis = millis();
 
   MqttClient.handle();
@@ -193,31 +231,6 @@ void loop()
 #ifdef ENABLE_OTA
   ArduinoOTA.handle();
 #endif
-
-  if ((currentMillis - tickNTPUpdate) >= (unsigned long)(Configuration._timeUpdateNtp * 1000))
-  {
-    updateNTP();
-    tickNTPUpdate = currentMillis;
-  }
-
-  if ((currentMillis - tickSendData) >= (unsigned long)(Configuration._timeSendData * 1000))
-  {
-    Log.println("Send data to MQTT");
-    Monitoring.handle();
-    MqttClient.publishMonitoringData();
-    tickSendData = currentMillis;
-  }
-
-  // Save conso every hour
-  if ((currentMillis - tickSaveData) >= (unsigned long)(3600 * 1000))
-  {
-    Log.println("Save data");
-    Configuration._consoA = Monitoring.getLineA().conso;
-    Configuration._consoB = Monitoring.getLineB().conso;
-    Configuration._consoC = Monitoring.getLineC().conso;
-    Configuration.saveConfig();
-    tickSaveData = currentMillis;
-  }
 
   if ((currentMillis - tickPrintData) >= 1000)
   {
