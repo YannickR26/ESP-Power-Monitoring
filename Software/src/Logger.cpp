@@ -1,5 +1,6 @@
 #include "Logger.h"
 #include "settings.h"
+#include "Mqtt.h"
 
 #ifdef USE_DST_ADJUST
   #include <simpleDSTadjust.h>
@@ -85,6 +86,12 @@ void Logger::send(String &s)
     const char *buffer = s.c_str();
     telnetClient.write(buffer, len);
     handleTelnetClient();
+  }
+#endif
+
+#ifdef DEBUG_BY_MQTT
+  if (MqttClient.isConnected()) {
+    MqttClient.log("debug", s);
   }
 #endif
 }
