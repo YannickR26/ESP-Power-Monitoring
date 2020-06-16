@@ -77,18 +77,18 @@ void sendData()
 void wifiSetup()
 {
   WiFiManager wifiManager;
-  // wifiManager.setDebugOutput(false);
+  wifiManager.setDebugOutput(false);
   // wifiManager.resetSettings();
 
   // WiFiManagerParameter
   WiFiManagerParameter custom_mqtt_hostname("hostname", "hostname", Configuration._hostname.c_str(), 60);
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt ip", Configuration._mqttIpServer.c_str(), 40);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
-  WiFiManagerParameter custom_time_update("timeUpdate", "time update data (s)", String(Configuration._timeSendData).c_str(), 6);
+  WiFiManagerParameter custom_mqtt_server("mqttIpServer", "mqtt ip", Configuration._mqttIpServer.c_str(), 40);
+  WiFiManagerParameter custom_mqtt_port("mqttPortServer", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
+  WiFiManagerParameter custom_time_update("timeSendData", "intervale d'envoie des données (s)", String(Configuration._timeSendData).c_str(), 6);
   WiFiManagerParameter custom_mode("mode", "mode", String(Configuration._mode).c_str(), 1);
-  WiFiManagerParameter custom_currentA("current", "capacité de la pince amperemetrique A (A)", String(Configuration._currentClampA).c_str(), 3);
-  WiFiManagerParameter custom_currentB("current", "capacité de la pince amperemetrique B (A)", String(Configuration._currentClampB).c_str(), 3);
-  WiFiManagerParameter custom_currentC("current", "capacité de la pince amperemetrique C (A)", String(Configuration._currentClampC).c_str(), 3);
+  WiFiManagerParameter custom_currentA("currentClampA", "capacité de la pince amperemetrique A (A)", String(Configuration._currentClampA).c_str(), 3);
+  WiFiManagerParameter custom_currentB("currentClampB", "capacité de la pince amperemetrique B (A)", String(Configuration._currentClampB).c_str(), 3);
+  WiFiManagerParameter custom_currentC("currentClampC", "capacité de la pince amperemetrique C (A)", String(Configuration._currentClampC).c_str(), 3);
 
   // add all your parameters here
   wifiManager.addParameter(&custom_mqtt_hostname);
