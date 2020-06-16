@@ -23,10 +23,10 @@ class JsonConfiguration
   	String _hostname;
 	String _mqttIpServer;
 	uint16_t _mqttPortServer;
-	uint16_t _timeUpdateNtp;
+	uint16_t _timeSaveData;
 	uint16_t _timeSendData;
 	uint8_t _mode;
-	uint8_t _iGain;
+	uint8_t _currentClampA, _currentClampB, _currentClampC;
 	uint32_t _consoA, _consoB, _consoC;
      	
   private:

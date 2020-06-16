@@ -38,10 +38,12 @@ void JsonConfiguration::setup(void)
   Log.println(String("    hostname: ") + _hostname);
   Log.println(String("    mqttIpServer: ") + _mqttIpServer);
   Log.println(String("    mqttPortServer: ") + String(_mqttPortServer));
-  Log.println(String("    timeUpdateNTP: ") + String(_timeUpdateNtp));
+  Log.println(String("    timeSaveData: ") + String(_timeSaveData));
   Log.println(String("    timeSendData: ") + String(_timeSendData));
   Log.println(String("    mode: ") + String(_mode));
-  Log.println(String("    iGain: ") + String(_iGain));
+  Log.println(String("    currentClampA: ") + String(_currentClampA));
+  Log.println(String("    currentClampB: ") + String(_currentClampB));
+  Log.println(String("    currentClampC: ") + String(_currentClampC));
   Log.println(String("    consoA: ") + String(_consoA));
   Log.println(String("    consoB: ") + String(_consoB));
   Log.println(String("    consoC: ") + String(_consoC));
@@ -96,16 +98,6 @@ bool JsonConfiguration::saveConfig()
   configFile.close();
 
   Log.println("Save config successfully");
-  Log.println(String("    hostname: ") + _hostname);
-  Log.println(String("    mqttIpServer: ") + _mqttIpServer);
-  Log.println(String("    mqttPortServer: ") + String(_mqttPortServer));
-  Log.println(String("    timeUpdateNTP: ") + String(_timeUpdateNtp));
-  Log.println(String("    timeSendData: ") + String(_timeSendData));
-  Log.println(String("    mode: ") + String(_mode));
-  Log.println(String("    iGain: ") + String(_iGain));
-  Log.println(String("    consoA: ") + String(_consoA));
-  Log.println(String("    consoB: ") + String(_consoB));
-  Log.println(String("    consoC: ") + String(_consoC));
 
   return true;
 }
@@ -115,10 +107,12 @@ void JsonConfiguration::restoreDefault()
   _hostname = DEFAULT_HOSTNAME;
   _mqttIpServer = DEFAULT_MQTTIPSERVER;
   _mqttPortServer = DEFAULT_MQTTPORTSERVER;
-  _timeUpdateNtp = DEFAULT_NTP_UPDATE_INTERVAL_SEC;
+  _timeSaveData = DEFAULT_SAVE_DATA_INTERVAL_SEC;
   _timeSendData = DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode = MODE_MONO;
-  _iGain = 30;
+  _currentClampA = 30;
+  _currentClampB = 30;
+  _currentClampC = 30;
   _consoA = 0;
   _consoB = 0;
   _consoC = 0;
@@ -133,10 +127,12 @@ uint8_t JsonConfiguration::encodeToJson(JsonDocument &_json)
   _json["hostname"] = _hostname;
   _json["mqttIpServer"] = _mqttIpServer;
   _json["mqttPortServer"] = _mqttPortServer;
-  _json["ntpUpdateIntervale"] = _timeUpdateNtp;
-  _json["SendDataIntervale"] = _timeSendData;
+  _json["timeSaveData"] = _timeSaveData;
+  _json["timeSendData"] = _timeSendData;
   _json["mode"] = _mode;
-  _json["iGain"] = _iGain;
+  _json["currentClampA"] = _currentClampA;
+  _json["currentClampB"] = _currentClampB;
+  _json["currentClampC"] = _currentClampC;
   _json["consoA"] = _consoA;
   _json["consoB"] = _consoB;
   _json["consoC"] = _consoC;
@@ -162,10 +158,12 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
   _hostname = doc["hostname"].as<String>();
   _mqttIpServer = doc["mqttIpServer"].as<String>();
   _mqttPortServer = doc["mqttPortServer"].as<uint16_t>();
-  _timeUpdateNtp = doc["ntpUpdateIntervale"].as<uint16_t>();
-  _timeSendData = doc["SendDataIntervale"].as<uint16_t>();
+  _timeSaveData = doc["timeSaveData"].as<uint16_t>() | DEFAULT_SAVE_DATA_INTERVAL_SEC;
+  _timeSendData = doc["timeSendData"].as<uint16_t>() | DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode = doc["mode"].as<uint8_t>();
-  _iGain = doc["iGain"].as<uint8_t>();
+  _currentClampA = doc["currentClampA"].as<uint8_t>() | DEFAULT_CURRENT_CLAMP;
+  _currentClampB = doc["currentClampB"].as<uint8_t>() | DEFAULT_CURRENT_CLAMP;
+  _currentClampC = doc["currentClampC"].as<uint8_t>() | DEFAULT_CURRENT_CLAMP;
   _consoA = doc["consoA"].as<uint32_t>();
   _consoB = doc["consoB"].as<uint32_t>();
   _consoC = doc["consoC"].as<uint32_t>();
