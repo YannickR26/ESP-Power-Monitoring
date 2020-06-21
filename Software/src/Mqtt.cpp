@@ -158,7 +158,7 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     int status = data.toInt();
     digitalWrite(RELAY_PIN, status);
     Log.println(String("set relay status to ") + String(status));
-    publish(String("/relay"), String(status));
+    publish(String("relay"), String(status));
   }
   else if (topicStr == String("timeSendData"))
   {
@@ -166,7 +166,7 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     Log.println(String("set timeSendData to ") + String(time));
     Configuration._timeSendData = time;
     Configuration.saveConfig();
-    publish(String("/timeSendData"), String(Configuration._timeSendData));
+    publish(String("timeSendData"), String(Configuration._timeSendData));
   }
   else if (topicStr == String("timeSaveData"))
   {
@@ -182,7 +182,7 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     Log.println(String("set mode to ") + String(mode));
     Configuration._mode = mode;
     Configuration.saveConfig();
-    publish(String("/mode"), String(Configuration._mode));
+    publish(String("mode"), String(Configuration._mode));
   }
   else if (topicStr == String("currentClampA"))
   {
@@ -190,7 +190,7 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     Log.println(String("set currentClampA to ") + String(current) + String("A"));
     Configuration._currentClampA = current;
     Configuration.saveConfig();
-    publish(String("/currentClampA"), String(Configuration._currentClampA));
+    publish(String("currentClampA"), String(Configuration._currentClampA));
   }
   else if (topicStr == String("currentClampB"))
   {
@@ -198,7 +198,7 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     Log.println(String("set currentClampB to ") + String(current) + String("A"));
     Configuration._currentClampB = current;
     Configuration.saveConfig();
-    publish(String("/currentClampB"), String(Configuration._currentClampB));
+    publish(String("currentClampB"), String(Configuration._currentClampB));
   }
   else if (topicStr == String("currentClampC"))
   {
@@ -206,7 +206,7 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     Log.println(String("set currentClampC to ") + String(current) + String("A"));
     Configuration._currentClampC = current;
     Configuration.saveConfig();
-    publish(String("/currentClampC"), String(Configuration._currentClampC));
+    publish(String("currentClampC"), String(Configuration._currentClampC));
   }
   else if (topicStr == String("hostname"))
   {
