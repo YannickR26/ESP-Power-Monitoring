@@ -1,7 +1,7 @@
 #pragma once
 
 // Version
-#define VERSION                     "V1.7.0"
+#define VERSION                     "V2.0.0"
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
 #define DEFAULT_MQTTIPSERVER        "192.168.1.201"
@@ -22,7 +22,7 @@
 #define ATM90E32_PM0        D4
 #define ATM90E32_PM1        D3
 #define ATM90E32_UGAIN      30000
-#define ATM90E32_IGAIN      300     // x capacité de la pince amperemetrique (defaut 30A)
+#define ATM90E32_IGAIN      315     // x capacité de la pince amperemetrique (defaut 30A)
 
 // Relay
 #define RELAY_PIN       D0
