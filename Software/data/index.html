@@ -72,6 +72,8 @@
             // URI = "http://10.65.30.68/";
         }
 
+        let timePolling = 2000;
+
         const config = {
             lines: [
                 {
@@ -177,15 +179,15 @@
             cardContent = document.createElement('div');
             cardContent.classList.add('card-content', 'white-text');
             cardGraph.appendChild(cardContent);
-            
-            cardTitle = document.createElement('span');
-            cardTitle.classList.add('card-title');
-            cardTitle.textContent = currentLine.name;
-            cardContent.appendChild(cardTitle);
+
+            // cardTitle = document.createElement('span');
+            // cardTitle.classList.add('card-title');
+            // cardTitle.textContent = currentLine.name;
+            // cardContent.appendChild(cardTitle);
 
             let chartElement = document.createElement('canvas');
             chartElement.width = "400";
-            chartElement.height = "100";
+            chartElement.height = "120";
             chartElement.id = currentLine.name + 'chart';
             cardGraph.appendChild(chartElement);
 
@@ -307,18 +309,43 @@
                         charts[index].update();
                     });
 
-                    poolingtimer = setTimeout(pooling, 2000);
+                    poolingtimer = setTimeout(pooling, timePolling);
                     if (callback)
                         callback();
                 })
                 .fail(function () {
-                    poolingtimer = setTimeout(pooling, 5000);
+                    poolingtimer = setTimeout(pooling, timePolling * 2);
                     if (!errorConnectionToast) {
                         errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
                     }
                 })
                 .always(function () {
 
+                });
+        }
+
+        function getConfig() {
+            console.log("try to read config...")
+            $.get(URI + "config")
+                .done(function (res) {
+                    // {
+                    // 	"hostname": "ESP_Monitoring",
+                    // 	"mqttIpServer": "192.168.1.201",
+                    // 	"mqttPortServer": 1883,
+                    // 	"timeSaveData": 3600,
+                    // 	"timeSendData": 5,
+                    // 	"mode": 0,
+                    // 	"currentClampA": 30,
+                    // 	"currentClampB": 30,
+                    // 	"currentClampC": 60,
+                    // 	"consoA": 0,
+                    // 	"consoB": 0,
+                    // 	"consoC": 0
+                    // }
+
+                    console.log("configuration read successfully !")
+                    timePolling = res.timeSendData * 1000;
+                    console.log("Set timeout to: " + timePolling + " ms");
                 });
         }
 
@@ -331,6 +358,11 @@
         });
 
         poolingtimer = setTimeout(pooling, 10);
+        
+		$(document).ready(function () {
+			console.log("ready !");
+			getConfig();
+		});
 
     </script>
 </body>

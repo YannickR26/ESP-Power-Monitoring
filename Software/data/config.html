@@ -36,44 +36,52 @@
 			<div id="Global" class="col s12 m12 l12">
 				<div class="row"></div>
 				<div class="input-field col s6">
-					<input id="hostname" type="text" class="validate">
+					<input id="hostname" type="text">
 					<label for="hostname">Hostname</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="mqttIpServer" type="text" class="validate">
+					<input id="mqttIpServer" type="text">
 					<label for="mqttIpServer">MQTT Ip Server</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="mqttPortServer" type="text" class="validate">
+					<input id="mqttPortServer" type="text">
 					<label for="mqttPortServer">MQTT Port Server</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="ntpUpdateIntervale" type="text" class="validate">
-					<label for="ntpUpdateIntervale">NTP Update Intervale (s)</label>
+					<input id="timeSaveData" type="text">
+					<label for="timeSaveData">NTP and Save Data Intervale (s)</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="SendDataIntervale" type="text" class="validate">
-					<label for="SendDataIntervale">Send Data Intervale (s)</label>
+					<input id="timeSendData" type="text">
+					<label for="timeSendData">Send Data Intervale (s)</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="mode" type="text" class="validate">
-					<label for="mode">Mode</label>
+					<input id="mode" type="text">
+					<label for="mode">Mode (0: Mono, 1: 1x Tri, 2: 2x Tri)</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="iGain" type="text" class="validate">
-					<label for="iGain">Max Current Sensor (A)</label>
+					<input id="currentClampA" type="text">
+					<label for="currentClampA">Max Current Sensor, line A (A)</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="consoA" type="text" class="validate">
-					<label for="consoA">Conso A</label>
+					<input id="currentClampB" type="text">
+					<label for="currentClampB">Max Current Sensor, line B (A)</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="consoB" type="text" class="validate">
-					<label for="consoB">Conso B</label>
+					<input id="currentClampC" type="text">
+					<label for="currentClampC">Max Current Sensor, line C (A)</label>
 				</div>
 				<div class="input-field col s6">
-					<input id="consoC" type="text" class="validate">
-					<label for="consoC">Conso C</label>
+					<input id="consoA" type="text">
+					<label for="consoA">Conso, line A</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="consoB" type="text">
+					<label for="consoB">Conso, line B</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="consoC" type="text">
+					<label for="consoC">Conso, line C</label>
 				</div>
 				<div class="col s12 m12 l12" align="left">
 					<a class="waves-effect waves-light btn" onClick="save()">
@@ -113,10 +121,12 @@
 			json.hostname = $('#hostname').val();
 			json.mqttIpServer = $('#mqttIpServer').val();
 			json.mqttPortServer = $('#mqttPortServer').val();
-			json.ntpUpdateIntervale = $('#ntpUpdateIntervale').val();
-			json.SendDataIntervale = $('#SendDataIntervale').val();
+			json.timeSaveData = $('#timeSaveData').val();
+			json.timeSendData = $('#timeSendData').val();
 			json.mode = $('#mode').val();
-			json.iGain = $('#iGain').val();
+			json.currentClampA = $('#currentClampA').val();
+			json.currentClampB = $('#currentClampB').val();
+			json.currentClampC = $('#currentClampC').val();
 			json.consoA = $('#consoA').val();
 			json.consoB = $('#consoB').val();
 			json.consoC = $('#consoC').val();
@@ -142,10 +152,12 @@
 					// 	"hostname": "ESP_Monitoring",
 					// 	"mqttIpServer": "192.168.1.201",
 					// 	"mqttPortServer": 1883,
-					// 	"ntpUpdateIntervale": 3600,
-					// 	"SendDataIntervale": 5,
+					// 	"timeSaveData": 3600,
+					// 	"timeSendData": 5,
 					// 	"mode": 0,
-					// 	"iGain": 30,
+					// 	"currentClampA": 30,
+					// 	"currentClampB": 30,
+					// 	"currentClampC": 60,
 					// 	"consoA": 0,
 					// 	"consoB": 0,
 					// 	"consoC": 0
@@ -160,14 +172,18 @@
 					/* Get Data */
 					var params = res;
 
+					console.log("data receive: " + JSON.stringify(params));
+
 					/* Add Data to GUI */
 					$('#hostname').val(params.hostname);
 					$('#mqttIpServer').val(params.mqttIpServer);
 					$('#mqttPortServer').val(params.mqttPortServer);
-					$('#ntpUpdateIntervale').val(params.ntpUpdateIntervale);
-					$('#SendDataIntervale').val(params.SendDataIntervale);
+					$('#timeSaveData').val(params.timeSaveData);
+					$('#timeSendData').val(params.timeSendData);
 					$('#mode').val(params.mode);
-					$('#iGain').val(params.iGain);
+					$('#currentClampA').val(params.currentClampA);
+					$('#currentClampB').val(params.currentClampB);
+					$('#currentClampC').val(params.currentClampC);
 					$('#consoA').val(params.consoA);
 					$('#consoB').val(params.consoB);
 					$('#consoC').val(params.consoC);
