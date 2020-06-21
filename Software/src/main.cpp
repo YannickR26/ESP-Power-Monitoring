@@ -124,7 +124,6 @@ void wifiSetup()
   Configuration._currentClampA = atoi(custom_currentA.getValue());
   Configuration._currentClampB = atoi(custom_currentB.getValue());
   Configuration._currentClampC = atoi(custom_currentC.getValue());
-  Configuration.saveConfig();
 }
 
 // Setup
@@ -232,7 +231,7 @@ void loop()
   ArduinoOTA.handle();
 #endif
 
-  if ((currentMillis - tickPrintData) >= 1000)
+  if ((currentMillis - tickPrintData) >= 2000)
   {
     /* Uncomment if you want calculate the offset of I and U
       ! Warning ! the voltage and the current must be at 0
