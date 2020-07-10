@@ -77,14 +77,15 @@ void sendData()
 void wifiSetup()
 {
   WiFiManager wifiManager;
-  wifiManager.setDebugOutput(false);
+  // wifiManager.setDebugOutput(false);
   // wifiManager.resetSettings();
 
   // WiFiManagerParameter
   WiFiManagerParameter custom_mqtt_hostname("hostname", "hostname", Configuration._hostname.c_str(), 60);
   WiFiManagerParameter custom_mqtt_server("mqttIpServer", "mqtt ip", Configuration._mqttIpServer.c_str(), 40);
   WiFiManagerParameter custom_mqtt_port("mqttPortServer", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
-  WiFiManagerParameter custom_time_update("timeSendData", "intervale d'envoie des données (s)", String(Configuration._timeSendData).c_str(), 6);
+  WiFiManagerParameter custom_time_send_data("timeSendData", "intervale d'envoie des données (s)", String(Configuration._timeSendData).c_str(), 6);
+  WiFiManagerParameter custom_time_save_data("timeSaveData", "intervale de sauvegarde des données (s)", String(Configuration._timeSaveData).c_str(), 6);
   WiFiManagerParameter custom_mode("mode", "mode", String(Configuration._mode).c_str(), 1);
   WiFiManagerParameter custom_currentA("currentClampA", "capacité de la pince amperemetrique A (A)", String(Configuration._currentClampA).c_str(), 3);
   WiFiManagerParameter custom_currentB("currentClampB", "capacité de la pince amperemetrique B (A)", String(Configuration._currentClampB).c_str(), 3);
@@ -94,7 +95,8 @@ void wifiSetup()
   wifiManager.addParameter(&custom_mqtt_hostname);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
-  wifiManager.addParameter(&custom_time_update);
+  wifiManager.addParameter(&custom_time_send_data);
+  wifiManager.addParameter(&custom_time_save_data);
   wifiManager.addParameter(&custom_mode);
   wifiManager.addParameter(&custom_currentA);
   wifiManager.addParameter(&custom_currentB);
@@ -115,11 +117,15 @@ void wifiSetup()
   Log.println(String("Connected to ") + WiFi.SSID());
   Log.println(String("IP address: ") + WiFi.localIP().toString());
 
+  WiFi.enableAP(false);
+  WiFi.softAPdisconnect();
+
   /* Get configuration from WifiManager */
   Configuration._hostname = custom_mqtt_hostname.getValue();
   Configuration._mqttIpServer = custom_mqtt_server.getValue();
   Configuration._mqttPortServer = atoi(custom_mqtt_port.getValue());
-  Configuration._timeSendData = atoi(custom_time_update.getValue());
+  Configuration._timeSendData = atoi(custom_time_send_data.getValue());
+  Configuration._timeSaveData = atoi(custom_time_save_data.getValue());
   Configuration._mode = atoi(custom_mode.getValue());
   Configuration._currentClampA = atoi(custom_currentA.getValue());
   Configuration._currentClampB = atoi(custom_currentB.getValue());
@@ -135,7 +141,7 @@ void setup()
   Log.setup();
   Log.println();
   Log.println("==========================================");
-  Log.println(String(F("=== ESP_Power_Monitoring ===")));
+  Log.println(String(F("  === ESP_Power_Monitoring ===")));
   Log.println(String(F("  Version: ")) + F(VERSION));
   Log.println(String(F("  Build: ")) + F(__DATE__) + " " + F(__TIME__));
   Log.println("==========================================");
@@ -198,6 +204,8 @@ void setup()
   ArduinoOTA.begin();
   Log.println("");
 #endif
+
+  Log.setupTelnet();
 
   updateTimeAndSaveData();
 
