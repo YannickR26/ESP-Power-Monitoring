@@ -65,27 +65,27 @@ void Mqtt::publishMonitoringData()
 
   /* Send Line A */
   line = Monitoring.getLineA();
-  publish(String("lineA/voltage"), String(line.voltage));
-  publish(String("lineA/current"), String(line.current));
-  publish(String("lineA/power"), String(line.power));
-  publish(String("lineA/cosPhy"), String(line.cosPhy));
-  publish(String("lineA/conso"), String(line.conso));
+  publish(String(Configuration._nameA + "/voltage"), String(line.voltage));
+  publish(String(Configuration._nameA + "/current"), String(line.current));
+  publish(String(Configuration._nameA + "/power"), String(line.power));
+  publish(String(Configuration._nameA + "/cosPhy"), String(line.cosPhy));
+  publish(String(Configuration._nameA + "/conso"), String(line.conso));
 
   /* Send Line B */
   line = Monitoring.getLineB();
-  publish(String("lineB/voltage"), String(line.voltage));
-  publish(String("lineB/current"), String(line.current));
-  publish(String("lineB/power"), String(line.power));
-  publish(String("lineB/cosPhy"), String(line.cosPhy));
-  publish(String("lineB/conso"), String(line.conso));
+  publish(String(Configuration._nameB + "/voltage"), String(line.voltage));
+  publish(String(Configuration._nameB + "/current"), String(line.current));
+  publish(String(Configuration._nameB + "/power"), String(line.power));
+  publish(String(Configuration._nameB + "/cosPhy"), String(line.cosPhy));
+  publish(String(Configuration._nameB + "/conso"), String(line.conso));
 
   /* Send Line C */
   line = Monitoring.getLineC();
-  publish(String("lineC/voltage"), String(line.voltage));
-  publish(String("lineC/current"), String(line.current));
-  publish(String("lineC/power"), String(line.power));
-  publish(String("lineC/cosPhy"), String(line.cosPhy));
-  publish(String("lineC/conso"), String(line.conso));
+  publish(String(Configuration._nameC + "/voltage"), String(line.voltage));
+  publish(String(Configuration._nameC + "/current"), String(line.current));
+  publish(String(Configuration._nameC + "/power"), String(line.power));
+  publish(String(Configuration._nameC + "/cosPhy"), String(line.cosPhy));
+  publish(String(Configuration._nameC + "/conso"), String(line.conso));
 
   /* Send Frequency */
   publish(String("frequency"), String(Monitoring.GetFrequency()));
@@ -233,6 +233,24 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     Monitoring.resetConsoLineB();
     Monitoring.resetConsoLineC();
     publishMonitoringData();
+  }
+  else if (topicStr == String("nameA"))
+  {
+    Log.println("Set name A to " + data);
+    Configuration._nameA = data;
+    Configuration.saveConfig();
+  }
+  else if (topicStr == String("nameB"))
+  {
+    Log.println("Set name B to " + data);
+    Configuration._nameB = data;
+    Configuration.saveConfig();
+  }
+  else if (topicStr == String("nameC"))
+  {
+    Log.println("Set name C to " + data);
+    Configuration._nameC = data;
+    Configuration.saveConfig();
   }
   else if (topicStr == String("consoA"))
   {
