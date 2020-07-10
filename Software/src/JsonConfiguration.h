@@ -10,6 +10,8 @@ class JsonConfiguration
   	virtual ~JsonConfiguration();
   
   	void setup();
+	  
+	void print(void);
 
     bool readConfig();
   	bool saveConfig();
@@ -26,6 +28,7 @@ class JsonConfiguration
 	uint16_t _timeSaveData;
 	uint16_t _timeSendData;
 	uint8_t _mode;
+	String _nameA, _nameB, _nameC;
 	uint8_t _currentClampA, _currentClampB, _currentClampC;
 	uint32_t _consoA, _consoB, _consoC;
      	

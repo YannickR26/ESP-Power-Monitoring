@@ -35,12 +35,21 @@ void JsonConfiguration::setup(void)
     restoreDefault();
   }
 
+  print();
+}
+
+void JsonConfiguration::print(void)
+{
+  Log.println(String("Current configuration :"));
   Log.println(String("    hostname: ") + _hostname);
   Log.println(String("    mqttIpServer: ") + _mqttIpServer);
   Log.println(String("    mqttPortServer: ") + String(_mqttPortServer));
   Log.println(String("    timeSaveData: ") + String(_timeSaveData));
   Log.println(String("    timeSendData: ") + String(_timeSendData));
   Log.println(String("    mode: ") + String(_mode));
+  Log.println(String("    nameA: ") + String(_nameA));
+  Log.println(String("    nameB: ") + String(_nameB));
+  Log.println(String("    nameC: ") + String(_nameC));
   Log.println(String("    currentClampA: ") + String(_currentClampA));
   Log.println(String("    currentClampB: ") + String(_currentClampB));
   Log.println(String("    currentClampC: ") + String(_currentClampC));
@@ -110,6 +119,9 @@ void JsonConfiguration::restoreDefault()
   _timeSaveData = DEFAULT_SAVE_DATA_INTERVAL_SEC;
   _timeSendData = DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode = MODE_MONO;
+  _nameA = "lineA";
+  _nameB = "lineB";
+  _nameC = "lineC";
   _currentClampA = DEFAULT_CURRENT_CLAMP;
   _currentClampB = DEFAULT_CURRENT_CLAMP;
   _currentClampC = DEFAULT_CURRENT_CLAMP;
@@ -130,6 +142,9 @@ uint8_t JsonConfiguration::encodeToJson(JsonDocument &_json)
   _json["timeSaveData"] = _timeSaveData;
   _json["timeSendData"] = _timeSendData;
   _json["mode"] = _mode;
+  _json["nameA"] = _nameA;
+  _json["nameB"] = _nameB;
+  _json["nameC"] = _nameC;
   _json["currentClampA"] = _currentClampA;
   _json["currentClampB"] = _currentClampB;
   _json["currentClampC"] = _currentClampC;
@@ -155,15 +170,18 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
     return -1;
   }
 
-  _hostname = doc["hostname"].as<String>();
-  _mqttIpServer = doc["mqttIpServer"].as<String>();
-  _mqttPortServer = doc["mqttPortServer"].as<uint16_t>();
-  _timeSaveData = doc["timeSaveData"].as<uint16_t>();
-  _timeSendData = doc["timeSendData"].as<uint16_t>();
+  _hostname = doc["hostname"] | DEFAULT_HOSTNAME;
+  _mqttIpServer = doc["mqttIpServer"] | DEFAULT_MQTTIPSERVER;
+  _mqttPortServer = doc["mqttPortServer"] | DEFAULT_MQTTPORTSERVER;
+  _timeSaveData = doc["timeSaveData"] | DEFAULT_SAVE_DATA_INTERVAL_SEC;
+  _timeSendData = doc["timeSendData"] | DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode = doc["mode"].as<uint8_t>();
-  _currentClampA = doc["currentClampA"].as<uint8_t>();
-  _currentClampB = doc["currentClampB"].as<uint8_t>();
-  _currentClampC = doc["currentClampC"].as<uint8_t>();
+  _nameA = doc["nameA"] | "lineA";
+  _nameB = doc["nameB"] | "lineB";
+  _nameC = doc["nameC"] | "lineC";
+  _currentClampA = doc["currentClampA"] | DEFAULT_CURRENT_CLAMP;
+  _currentClampB = doc["currentClampB"] | DEFAULT_CURRENT_CLAMP;
+  _currentClampC = doc["currentClampC"] | DEFAULT_CURRENT_CLAMP;
   _consoA = doc["consoA"].as<uint32_t>();
   _consoB = doc["consoB"].as<uint32_t>();
   _consoC = doc["consoC"].as<uint32_t>();
