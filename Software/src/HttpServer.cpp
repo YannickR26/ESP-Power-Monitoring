@@ -32,12 +32,13 @@ void HttpServer::setup(void)
   MDNS.addService("ftp", "tcp", 21);
 
   _webServer.on("/restart", [&]() {
+    _webServer.sendHeader("Access-Control-Allow-Origin", "*");
     _webServer.send(200, "text/plain", "ESP restart now !");
-    delay(200);
+    delay(1000);
     ESP.restart();
   });
 
-  _webServer.on("/wifimanager", [&]() {
+  _webServer.on("/reset", [&]() {
     _webServer.send(200, "text/plain", "Reset WifiManager configuration, restart now in AP mode...");
     delay(200);
     WiFiManager wifiManager;
@@ -196,8 +197,10 @@ void HttpServer::setConfig()
     HTTPServer.webServer().send(404, "text/plain", "Body not received");
   }
   else {
+    Log.println("Received new configuration !");
+    Log.println(HTTPServer.webServer().arg("plain"));
     if (!Configuration.decodeJsonFromFile(HTTPServer.webServer().arg("plain").c_str())) {
-      Log.println("Received new configuration !");
+      Configuration.print();
       HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
       Monitoring.setConsoLineA(Configuration._consoA);
       Monitoring.setConsoLineB(Configuration._consoB);
