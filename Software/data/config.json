@@ -1,0 +1,1 @@
+{"hostname":"ESP_Monitoring","mqttIpServer":"192.168.1.201","mqttPortServer":1883,"timeSaveData":3600,"timeSendData":15,"mode":0,"nameA":"lineA","nameB":"lineB","nameC":"lineC","currentClampA":30,"currentClampB":30,"currentClampC":30,"consoA":0,"consoB":0,"consoC":0}
