@@ -3,25 +3,26 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 
-class Logger 
+class Logger
 {
-  public:
-	Logger() {} ;
-  	virtual ~Logger() {} ;
+public:
+	Logger(){};
+	virtual ~Logger(){};
 
 	void setup();
+	void setupTelnet();
 	void handle();
 
 	void println(const String &s = String());
-  void println(const char str[]) { println(String(str)); }
+	void println(const char str[]) { println(String(str)); }
 
 	void print(const String &s);
-  void print(const char str[]) { print(String(str)); }
+	void print(const char str[]) { print(String(str)); }
 
-  private:
+private:
 	void send(String &s);
 	void addTime(String &s);
-#ifdef DEBUG_TELNET
+#ifdef DEBUG_BY_TELNET
 	void handleTelnetClient();
 #endif
 

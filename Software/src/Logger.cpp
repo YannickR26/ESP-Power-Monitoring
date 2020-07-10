@@ -3,16 +3,16 @@
 #include "Mqtt.h"
 
 #ifdef USE_DST_ADJUST
-  #include <simpleDSTadjust.h>
+#include <simpleDSTadjust.h>
 
-  struct dstRule StartRule = {"CEST", Last, Sun, Mar, 2, 3600}; // Central European Summer Time = UTC/GMT +2 hours
-  struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central European Time = UTC/GMT +1 hour
-  simpleDSTadjust dstAdjusted(StartRule, EndRule);
+struct dstRule StartRule = {"CEST", Last, Sun, Mar, 2, 3600}; // Central European Summer Time = UTC/GMT +2 hours
+struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central European Time = UTC/GMT +1 hour
+simpleDSTadjust dstAdjusted(StartRule, EndRule);
 #endif
 
 #ifdef DEBUG_BY_TELNET
-  WiFiServer telnetServer(23);
-  WiFiClient telnetClient;
+WiFiServer telnetServer(23);
+WiFiClient telnetClient;
 #endif
 
 /********************************************************/
@@ -24,16 +24,21 @@ void Logger::setup()
 
 #ifdef DEBUG_BY_SERIAL
   Serial.begin(115200);
-  while (!Serial) {} // wait for serial port to connect. Needed for native USB
+  while (!Serial)
+  {
+  } // wait for serial port to connect. Needed for native USB
   println();
   println("Starting...");
 #endif
+}
 
+void Logger::setupTelnet()
+{
 #ifdef DEBUG_BY_TELNET
   // Setup telnet server for remote debug output
-  telnetServer.setNoDelay(true);
   telnetServer.begin();
-  println("Telnet: Started on port 23 - IP:" + WiFi.localIP().toString());
+  telnetServer.setNoDelay(true);
+  println("Telnet: Started on port 23 - IP: " + WiFi.localIP().toString());
 #endif
 }
 
@@ -49,7 +54,8 @@ void Logger::println(const String &s)
   String debugText = s;
   debugText += "\r\n";
 
-  if (addTimeToString) {
+  if (addTimeToString)
+  {
     addTime(debugText);
   }
   addTimeToString = true;
@@ -58,10 +64,11 @@ void Logger::println(const String &s)
 }
 
 void Logger::print(const String &s)
-{ 
+{
   String debugText = s;
 
-  if (addTimeToString) {
+  if (addTimeToString)
+  {
     addTime(debugText);
     addTimeToString = false;
   }
@@ -81,7 +88,8 @@ void Logger::send(String &s)
 #endif
 
 #ifdef DEBUG_BY_TELNET
-  if (telnetClient.connected()) {
+  if (telnetClient.connected())
+  {
     const size_t len = s.length();
     const char *buffer = s.c_str();
     telnetClient.write(buffer, len);
@@ -90,7 +98,8 @@ void Logger::send(String &s)
 #endif
 
 #ifdef DEBUG_BY_MQTT
-  if (MqttClient.isConnected()) {
+  if (MqttClient.isConnected())
+  {
     MqttClient.log("debug", s);
   }
 #endif
@@ -114,7 +123,7 @@ void Logger::addTime(String &s)
 
 #ifdef DEBUG_BY_TELNET
 void Logger::handleTelnetClient()
-{ 
+{
   if (telnetServer.hasClient())
   {
     // client is connected
@@ -139,7 +148,7 @@ void Logger::handleTelnetClient()
       telnetClient.read();
     }
     println("=====================================================");
-    println(String("ESP_Power_Monitoring - Build: ") + F(__DATE__) + " " +  F(__TIME__));
+    println(String("ESP_Power_Monitoring - Build: ") + F(__DATE__) + " " + F(__TIME__));
     println(String("ESP_Power_Monitoring - Version: ") + String(VERSION));
     println("=====================================================");
     println();
@@ -147,6 +156,6 @@ void Logger::handleTelnetClient()
 }
 #endif
 
-#if !defined(NO_GLOBAL_INSTANCES) 
+#if !defined(NO_GLOBAL_INSTANCES)
 Logger Log;
 #endif
