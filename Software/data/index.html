@@ -68,7 +68,7 @@
         if (ENV_PROD == true) {
             URI = document.location.origin + "/";
         } else {
-            URI = "http://192.168.1.17/";
+            URI = "http://192.168.1.19/";
             // URI = "http://10.65.30.68/";
         }
 
@@ -143,7 +143,7 @@
 
             let cardTitle = document.createElement('span');
             cardTitle.classList.add('card-title');
-            cardTitle.textContent = currentLine.name;
+            cardTitle.id = currentLine.name;
             cardContent.appendChild(cardTitle);
 
             for (let lineField of config.lineFields) {
@@ -335,6 +335,9 @@
                     // 	"timeSaveData": 3600,
                     // 	"timeSendData": 5,
                     // 	"mode": 0,
+					// 	"nameA": "lineA",
+					// 	"nameB": "lineB",
+					// 	"nameC": "lineC",
                     // 	"currentClampA": 30,
                     // 	"currentClampB": 30,
                     // 	"currentClampC": 60,
@@ -346,6 +349,9 @@
                     console.log("configuration read successfully !")
                     timePolling = res.timeSendData * 1000;
                     console.log("Set timeout to: " + timePolling + " ms");
+                    $("#" + config.lines[0].name).text(res.nameA);
+                    $("#" + config.lines[1].name).text(res.nameB);
+                    $("#" + config.lines[2].name).text(res.nameC);
                 });
         }
 
