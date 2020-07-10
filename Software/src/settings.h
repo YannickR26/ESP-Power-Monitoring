@@ -37,3 +37,4 @@
 
 // change for different ntp (time servers)
 #define NTP_SERVERS         "0.fr.pool.ntp.org", "time.nist.gov", "pool.ntp.org"
+#define EPOCH_1_1_2019  1546300800

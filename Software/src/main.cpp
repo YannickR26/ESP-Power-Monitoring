@@ -23,14 +23,17 @@ static Ticker tick_blinker, tick_sendData, tick_saveData;
 // Update time from NTP and save data
 void updateTimeAndSaveData()
 {
-  Log.println("Update NTP");
+  time_t now = time(nullptr);
+
+  Log.print("Update NTP");
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
   delay(500);
-  while (!time(nullptr))
-  {
-    Log.print("#");
-    delay(1000);
+  while (now < EPOCH_1_1_2019) {
+    now = time(nullptr);
+    Log.print(".");
+    delay(500);
   }
+  Log.println(" Done !");
 
   Log.println("Save data");
   Configuration._consoA = Monitoring.getLineA().conso;
