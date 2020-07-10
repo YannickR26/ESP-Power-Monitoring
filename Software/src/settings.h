@@ -1,15 +1,15 @@
 #pragma once
 
 // Version
-#define VERSION                     "V2.0.0"
+#define VERSION                     "V2.1.1"
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
 #define DEFAULT_MQTTIPSERVER        "192.168.1.201"
 #define DEFAULT_MQTTPORTSERVER      1883
 
-#define DEFAULT_SAVE_DATA_INTERVAL_SEC  (1 * 3600)  // Update time from NTP server and save data every 1 hours
-#define DEFAULT_SEND_DATA_INTERVAL_SEC      5       // Send data every 5 secondes
-#define DEFAULT_CURRENT_CLAMP               30      // 30A current clamp by default
+#define DEFAULT_SAVE_DATA_INTERVAL_SEC      (1 * 3600)  // Update time from NTP server and save data every 1 hours
+#define DEFAULT_SEND_DATA_INTERVAL_SEC      15          // Send data every 15 secondes
+#define DEFAULT_CURRENT_CLAMP               30          // 30A current clamp by default
 
 // Mode
 #define MODE_MONO   0
@@ -25,7 +25,7 @@
 #define ATM90E32_IGAIN      315     // x capacité de la pince amperemetrique (defaut 30A)
 
 // Relay
-#define RELAY_PIN       D0
+#define RELAY_PIN           D0
 
 // LED
 #define LED_PIN             LED_BUILTIN
@@ -33,7 +33,7 @@
 #define LED_TIME_WORK       500
 
 // Timezone
-#define UTC_OFFSET      +1
+#define UTC_OFFSET          +1
 
 // change for different ntp (time servers)
-#define NTP_SERVERS "0.fr.pool.ntp.org", "time.nist.gov", "pool.ntp.org"
+#define NTP_SERVERS         "0.fr.pool.ntp.org", "time.nist.gov", "pool.ntp.org"
