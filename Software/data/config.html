@@ -35,58 +35,76 @@
 
 			<div id="Global" class="col s12 m12 l12">
 				<div class="row"></div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="hostname" type="text">
 					<label for="hostname">Hostname</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="mqttIpServer" type="text">
 					<label for="mqttIpServer">MQTT Ip Server</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="mqttPortServer" type="text">
 					<label for="mqttPortServer">MQTT Port Server</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="timeSaveData" type="text">
 					<label for="timeSaveData">NTP and Save Data Intervale (s)</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="timeSendData" type="text">
 					<label for="timeSendData">Send Data Intervale (s)</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="mode" type="text">
 					<label for="mode">Mode (0: Mono, 1: 1x Tri, 2: 2x Tri)</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
+					<input id="nameA" type="text">
+					<label for="nameA">Name line A</label>
+				</div>
+				<div class="input-field col s4">
+					<input id="nameB" type="text">
+					<label for="nameB">Name line B</label>
+				</div>
+				<div class="input-field col s4">
+					<input id="nameC" type="text">
+					<label for="nameC">Name line C</label>
+				</div>
+				<div class="input-field col s4">
 					<input id="currentClampA" type="text">
 					<label for="currentClampA">Max Current Sensor, line A (A)</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="currentClampB" type="text">
 					<label for="currentClampB">Max Current Sensor, line B (A)</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="currentClampC" type="text">
 					<label for="currentClampC">Max Current Sensor, line C (A)</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="consoA" type="text">
 					<label for="consoA">Conso, line A</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="consoB" type="text">
 					<label for="consoB">Conso, line B</label>
 				</div>
-				<div class="input-field col s6">
+				<div class="input-field col s4">
 					<input id="consoC" type="text">
 					<label for="consoC">Conso, line C</label>
 				</div>
 				<div class="col s12 m12 l12" align="left">
 					<a class="waves-effect waves-light btn" onClick="save()">
-						<i class="fas fa-save"></i>
+						<i class="material-icons right">send</i>
 						Enregistrer
+					</a>
+				</div>
+				<div class="col s12 m12 l12" align="right">
+					<a class="waves-effect waves-ligt btn-small" onClick="restart()">
+						<i class="material-icons left">autorenew</i>
+						Redémarrer
 					</a>
 				</div>
 			</div>
@@ -109,30 +127,49 @@
 		if (ENV_PROD == true) {
 			URI = document.location.origin + "/";
 		} else {
-			URI = "http://192.168.1.17/";
+			URI = "http://192.168.1.19/";
 			// URI = "http://10.65.30.68/";
 		}
 
 		var errorConnectionToast;
+
+		function restart() {
+			$.post(URI + "restart")
+				.done(function (res) {
+					M.toast({ html: "Red&eacute;marrage en cours..." });
+				})
+				.fail(function () {
+					/* Display Toast Error */
+					if (!errorConnectionToast) {
+						errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
+					}
+				})
+				.always(function () {
+				});
+		}
 
 		function save() {
 			var json = {};
 			json = {};
 			json.hostname = $('#hostname').val();
 			json.mqttIpServer = $('#mqttIpServer').val();
-			json.mqttPortServer = $('#mqttPortServer').val();
-			json.timeSaveData = $('#timeSaveData').val();
-			json.timeSendData = $('#timeSendData').val();
-			json.mode = $('#mode').val();
-			json.currentClampA = $('#currentClampA').val();
-			json.currentClampB = $('#currentClampB').val();
-			json.currentClampC = $('#currentClampC').val();
-			json.consoA = $('#consoA').val();
-			json.consoB = $('#consoB').val();
-			json.consoC = $('#consoC').val();
+			json.mqttPortServer = parseInt($('#mqttPortServer').val());
+			json.timeSaveData = parseInt($('#timeSaveData').val());
+			json.timeSendData = parseInt($('#timeSendData').val());
+			json.mode = parseInt($('#mode').val());
+			json.nameA = $('#nameA').val();
+			json.nameB = $('#nameB').val();
+			json.nameC = $('#nameC').val();
+			json.currentClampA = parseInt($('#currentClampA').val());
+			json.currentClampB = parseInt($('#currentClampB').val());
+			json.currentClampC = parseInt($('#currentClampC').val());
+			json.consoA = parseInt($('#consoA').val());
+			json.consoB = parseInt($('#consoB').val());
+			json.consoC = parseInt($('#consoC').val());
 			$.post(URI + "config", JSON.stringify(json))
 				.done(function (res) {
 					M.toast({ html: "Configuration sauvegard&eacute; !" });
+					getConfig();
 				})
 				.fail(function () {
 					/* Display Toast Error */
@@ -155,6 +192,9 @@
 					// 	"timeSaveData": 3600,
 					// 	"timeSendData": 5,
 					// 	"mode": 0,
+					// 	"nameA": "lineA",
+					// 	"nameB": "lineB",
+					// 	"nameC": "lineC",
 					// 	"currentClampA": 30,
 					// 	"currentClampB": 30,
 					// 	"currentClampC": 60,
@@ -181,6 +221,9 @@
 					$('#timeSaveData').val(params.timeSaveData);
 					$('#timeSendData').val(params.timeSendData);
 					$('#mode').val(params.mode);
+					$('#nameA').val(params.nameA);
+					$('#nameB').val(params.nameB);
+					$('#nameC').val(params.nameC);
 					$('#currentClampA').val(params.currentClampA);
 					$('#currentClampB').val(params.currentClampB);
 					$('#currentClampC').val(params.currentClampC);
