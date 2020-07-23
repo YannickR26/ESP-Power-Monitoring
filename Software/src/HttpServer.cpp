@@ -1,4 +1,4 @@
-#include <littleFS.h>
+#include <LittleFS.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPUpdateServer.h>
 
@@ -141,7 +141,7 @@ void HttpServer::handleNotFound()
 
 void HttpServer::getStatus()
 {
-  Log.println("Send Status");
+  Log.println("Send Status to HTTP");
   
   DynamicJsonDocument doc(1024);
   doc.clear();
