@@ -239,9 +239,9 @@ The MIT License (MIT)
 #define UangleB 0xFE		// B Voltage Phase Angle
 #define UangleC 0xFF		// C Voltage Phase Angle
 
-struct metering {
+typedef struct {
   double voltage, current, power, cosPhy, conso;
-};
+} metering;
 
 class ATM90E32
 	{
@@ -262,9 +262,9 @@ class ATM90E32
 		void begin(int pin, int pin_pm0, int pin_pm1, uint16_t _lineFreq, uint16_t _pgagain, uint16_t ugain, uint16_t igainA, uint16_t igainB, uint16_t igainC);
 		void handle(void);
 
-		metering getLineA() { return _line_A; }
-		metering getLineB() { return _line_B; }
-		metering getLineC() { return _line_C; }
+		metering &getLineA() { return _line_A; }
+		metering &getLineB() { return _line_B; }
+		metering &getLineC() { return _line_C; }
 
 		void setConsoLineA(uint32_t conso) { _line_A.conso = conso; }
 		void setConsoLineB(uint32_t conso) { _line_B.conso = conso; }
