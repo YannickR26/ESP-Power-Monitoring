@@ -151,28 +151,28 @@ void HttpServer::getStatus()
   doc["relay"] = digitalRead(RELAY_PIN);
 
   JsonObject jsonLineA = doc.createNestedObject("lineA");
-  metering line = Monitoring.getLineA();
-  jsonLineA["voltage"] = line.voltage;
-  jsonLineA["current"] = line.current;
-  jsonLineA["power"] = line.power;
-  jsonLineA["cosPhy"] = line.cosPhy;
-  jsonLineA["conso"] = line.conso;
+  metering *line = Monitoring.getLineA();
+  jsonLineA["voltage"] = line->voltage;
+  jsonLineA["current"] = line->current;
+  jsonLineA["power"] = line->power;
+  jsonLineA["cosPhy"] = line->cosPhy;
+  jsonLineA["conso"] = line->conso;
 
   JsonObject jsonLineB = doc.createNestedObject("lineB");
   line = Monitoring.getLineB();
-  jsonLineB["voltage"] = line.voltage;
-  jsonLineB["current"] = line.current;
-  jsonLineB["power"] = line.power;
-  jsonLineB["cosPhy"] = line.cosPhy;
-  jsonLineB["conso"] = line.conso;
+  jsonLineB["voltage"] = line->voltage;
+  jsonLineB["current"] = line->current;
+  jsonLineB["power"] = line->power;
+  jsonLineB["cosPhy"] = line->cosPhy;
+  jsonLineB["conso"] = line->conso;
 
   JsonObject jsonLineC = doc.createNestedObject("lineC");
   line = Monitoring.getLineC();
-  jsonLineC["voltage"] = line.voltage;
-  jsonLineC["current"] = line.current;
-  jsonLineC["power"] = line.power;
-  jsonLineC["cosPhy"] = line.cosPhy;
-  jsonLineC["conso"] = line.conso;
+  jsonLineC["voltage"] = line->voltage;
+  jsonLineC["current"] = line->current;
+  jsonLineC["power"] = line->power;
+  jsonLineC["cosPhy"] = line->cosPhy;
+  jsonLineC["conso"] = line->conso;
 
   // Send Status
   HTTPServer.sendJson(200, doc);

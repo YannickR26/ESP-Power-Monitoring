@@ -36,9 +36,9 @@ void updateTimeAndSaveData()
   Log.println(" Done !");
 
   Log.println("Save data");
-  Configuration._consoA = Monitoring.getLineA().conso;
-  Configuration._consoB = Monitoring.getLineB().conso;
-  Configuration._consoC = Monitoring.getLineC().conso;
+  Configuration._consoA = Monitoring.getLineA()->conso;
+  Configuration._consoB = Monitoring.getLineB()->conso;
+  Configuration._consoC = Monitoring.getLineC()->conso;
   Configuration.saveConfig();
 
   tick_saveData.once(Configuration._timeSaveData, updateTimeAndSaveData);
@@ -66,8 +66,12 @@ void sendData()
   Log.println("Read data...");
   Monitoring.handle();
 
-  Log.println("Send data to MQTT");
-  MqttClient.publishMonitoringData();
+  Log.print("Send data to MQTT... ");
+  bool ret = MqttClient.publishMonitoringData();
+  if (ret == true)
+    Log.println("Done !");
+  else
+    Log.println("Error !");
 
   tick_sendData.once(Configuration._timeSendData, sendData);
 }
@@ -106,14 +110,15 @@ void wifiSetup()
   wifiManager.addParameter(&custom_currentC);
 
   Log.println("Try to connect to WiFi...");
-  // wifiManager.setWiFiChannel(6);
-  wifiManager.setConfigPortalTimeout(300); // Set Timeout for portal configuration to 120 seconds
+  wifiManager.setWiFiAPChannel(6);
+  wifiManager.setConfigPortalTimeout(300); // Set Timeout for portal configuration to 300 seconds
   if (!wifiManager.autoConnect(Configuration._hostname.c_str()))
   {
     Log.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
-    ESP.reset();
+    Log.println("Restart ESP now !");
+    ESP.restart();
     delay(5000);
   }
 
@@ -152,12 +157,16 @@ void setup()
 
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, 0);
 
   /* Read configuration from SPIFFS */
   Configuration.setup();
   // Configuration.restoreDefault();
 
   wifiSetup();
+
+  // Create ticker for blink LED
+  tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
 
   /* Initialize the ATM90E32 + SPI port */
   Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, Configuration._mode, 0, ATM90E32_UGAIN, Configuration._currentClampA, Configuration._currentClampB, Configuration._currentClampC);
@@ -212,18 +221,11 @@ void setup()
 
   updateTimeAndSaveData();
 
-  // Create ticker for blink LED
-  tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
 
   // Create ticker for send Data to MQTT
   if (Configuration._timeSendData == 0)
     Configuration._timeSendData = 1;
   tick_sendData.once(Configuration._timeSendData, sendData);
-
-  // Create ticker for update NTP and save data
-  if (Configuration._timeSaveData == 0)
-    Configuration._timeSaveData = 1;
-  tick_saveData.once(Configuration._timeSaveData, updateTimeAndSaveData);
 }
 
 /************/
@@ -272,5 +274,5 @@ void loop()
     tickPrintData = currentMillis;
   }
 
-  // delay(50);
+  delay(50);
 }

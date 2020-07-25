@@ -13,8 +13,8 @@ The MIT License (MIT)
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ATM90E32_h
-#define ATM90E32_h
+#pragma once
+
 #include <Arduino.h>
 #include <SPI.h>
 
@@ -244,96 +244,95 @@ typedef struct {
 } metering;
 
 class ATM90E32
-	{
-	private:		
-		unsigned short CommEnergyIC(unsigned char RW, unsigned short address, unsigned short val);
-		int _cs;
-		uint16_t _lineFreq;
-		uint16_t _pgagain;
-		uint16_t _ugain;
-    	metering _line_A, _line_B, _line_C;
-		
-		int Read32Register(signed short regh_addr, signed short regl_addr);
+{
+private:		
+	unsigned short CommEnergyIC(unsigned char RW, unsigned short address, unsigned short val);
+	int _cs;
+	uint16_t _lineFreq;
+	uint16_t _pgagain;
+	uint16_t _ugain;
+	metering _line_A, _line_B, _line_C;
+	
+	int Read32Register(signed short regh_addr, signed short regl_addr);
 
-	public:
-		ATM90E32();
+public:
+	ATM90E32();
 
-		/* Initialization Functions */	
-		void begin(int pin, int pin_pm0, int pin_pm1, uint16_t _lineFreq, uint16_t _pgagain, uint16_t ugain, uint16_t igainA, uint16_t igainB, uint16_t igainC);
-		void handle(void);
+	/* Initialization Functions */	
+	void begin(int pin, int pin_pm0, int pin_pm1, uint16_t _lineFreq, uint16_t _pgagain, uint16_t ugain, uint16_t igainA, uint16_t igainB, uint16_t igainC);
+	void handle(void);
 
-		metering &getLineA() { return _line_A; }
-		metering &getLineB() { return _line_B; }
-		metering &getLineC() { return _line_C; }
+	metering *getLineA() { return &_line_A; }
+	metering *getLineB() { return &_line_B; }
+	metering *getLineC() { return &_line_C; }
 
-		void setConsoLineA(uint32_t conso) { _line_A.conso = conso; }
-		void setConsoLineB(uint32_t conso) { _line_B.conso = conso; }
-		void setConsoLineC(uint32_t conso) { _line_C.conso = conso; }
-		void resetConsoLineA() { _line_A.conso = 0; }
-		void resetConsoLineB() { _line_B.conso = 0; }
-		void resetConsoLineC() { _line_C.conso = 0; }
+	void setConsoLineA(uint32_t conso) { _line_A.conso = conso; }
+	void setConsoLineB(uint32_t conso) { _line_B.conso = conso; }
+	void setConsoLineC(uint32_t conso) { _line_C.conso = conso; }
+	void resetConsoLineA() { _line_A.conso = 0; }
+	void resetConsoLineB() { _line_B.conso = 0; }
+	void resetConsoLineC() { _line_C.conso = 0; }
 
-		double CalculateVIOffset(unsigned short regh_addr, unsigned short regl_addr, unsigned short offset_reg);
-		double CalibrateVI(unsigned short reg, unsigned short actualVal);
-		
-		/* Main Electrical Parameters (GET)*/
-		double GetLineVoltageA();
-		double GetLineVoltageB();
-		double GetLineVoltageC();
+	double CalculateVIOffset(unsigned short regh_addr, unsigned short regl_addr, unsigned short offset_reg);
+	double CalibrateVI(unsigned short reg, unsigned short actualVal);
+	
+	/* Main Electrical Parameters (GET)*/
+	double GetLineVoltageA();
+	double GetLineVoltageB();
+	double GetLineVoltageC();
 
-		double GetLineCurrentA();
-		double GetLineCurrentB();
-		double GetLineCurrentC();
-		double GetLineCurrentN();
+	double GetLineCurrentA();
+	double GetLineCurrentB();
+	double GetLineCurrentC();
+	double GetLineCurrentN();
 
-		double GetActivePowerA();
-		double GetActivePowerB();
-		double GetActivePowerC();
-		double GetTotalActivePower();
-		
-		double GetTotalActiveFundPower();
-		double GetTotalActiveHarPower();
+	double GetActivePowerA();
+	double GetActivePowerB();
+	double GetActivePowerC();
+	double GetTotalActivePower();
+	
+	double GetTotalActiveFundPower();
+	double GetTotalActiveHarPower();
 
-		double GetReactivePowerA();
-		double GetReactivePowerB();
-		double GetReactivePowerC();
-		double GetTotalReactivePower();
+	double GetReactivePowerA();
+	double GetReactivePowerB();
+	double GetReactivePowerC();
+	double GetTotalReactivePower();
 
-		double GetApparentPowerA();
-		double GetApparentPowerB();
-		double GetApparentPowerC();
-		double GetTotalApparentPower();
+	double GetApparentPowerA();
+	double GetApparentPowerB();
+	double GetApparentPowerC();
+	double GetTotalApparentPower();
 
-		double GetFrequency();
+	double GetFrequency();
 
-		double GetPowerFactorA();
-		double GetPowerFactorB();
-		double GetPowerFactorC();
-		double GetTotalPowerFactor();
+	double GetPowerFactorA();
+	double GetPowerFactorB();
+	double GetPowerFactorC();
+	double GetTotalPowerFactor();
 
-		double GetPhaseA();
-		double GetPhaseB();
-		double GetPhaseC();
+	double GetPhaseA();
+	double GetPhaseB();
+	double GetPhaseC();
 
-		double GetTemperature();
+	double GetTemperature();
 
-		/* Gain Parameters (GET)*/
-		unsigned short GetValueRegister(unsigned short registerRead);
+	/* Gain Parameters (GET)*/
+	unsigned short GetValueRegister(unsigned short registerRead);
 
-		/* Energy Consumption */
-		double GetImportEnergy();
-		double GetImportReactiveEnergy();
-		double GetImportApparentEnergy();
-		double GetExportEnergy();
-		double GetExportReactiveEnergy();
-		
-		/* System Status */
-		unsigned short GetSysStatus0();
-		unsigned short GetSysStatus1();
-		unsigned short GetMeterStatus0();
-		unsigned short GetMeterStatus1();
-	};
-#endif
+	/* Energy Consumption */
+	double GetImportEnergy();
+	double GetImportReactiveEnergy();
+	double GetImportApparentEnergy();
+	double GetExportEnergy();
+	double GetExportReactiveEnergy();
+	
+	/* System Status */
+	unsigned short GetSysStatus0();
+	unsigned short GetSysStatus1();
+	unsigned short GetMeterStatus0();
+	unsigned short GetMeterStatus1();
+};
 
 #if !defined(NO_GLOBAL_INSTANCES)
 extern ATM90E32 Monitoring;
