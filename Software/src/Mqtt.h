@@ -12,9 +12,10 @@ public:
 
 	void setup();
 	void handle();
-	void publish(String topic, String body);
+	bool publish(String topic, String body);
+	bool subscribe(String topic);
 	void log(String level, String str);
-	void publishMonitoringData();
+	bool publishMonitoringData();
 	bool isConnected() { return clientMqtt.connected(); }
 
 private:

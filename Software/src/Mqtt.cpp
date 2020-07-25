@@ -15,7 +15,6 @@ WiFiClient espClient;
 
 Mqtt::Mqtt()
 {
-  clientMqtt.setClient(espClient);
 }
 
 Mqtt::~Mqtt()
@@ -24,6 +23,7 @@ Mqtt::~Mqtt()
 
 void Mqtt::setup()
 {
+  clientMqtt.setClient(espClient);
   clientMqtt.setServer(Configuration._mqttIpServer.c_str(), Configuration._mqttPortServer);
   clientMqtt.setCallback([this](char *topic, uint8_t *payload, unsigned int length) { this->callback(topic, payload, length); });
 }
@@ -34,12 +34,20 @@ void Mqtt::handle()
   {
     reconnect();
   }
-  clientMqtt.loop();
+  if (!clientMqtt.loop())
+  {
+    Log.println("Error with MQTT Loop !");
+  }
 }
 
-void Mqtt::publish(String topic, String body)
+bool Mqtt::publish(String topic, String body)
 {
-  clientMqtt.publish(String(Configuration._hostname + "/" + topic).c_str(), String(body).c_str());
+  return clientMqtt.publish(String(Configuration._hostname + "/" + topic).c_str(), String(body).c_str());
+}
+
+bool Mqtt::subscribe(String topic)
+{
+  return clientMqtt.subscribe(String(Configuration._hostname + "/" + topic).c_str());
 }
 
 void Mqtt::log(String level, String str)
@@ -47,48 +55,51 @@ void Mqtt::log(String level, String str)
   publish("log/" + level, str);
 }
 
-void Mqtt::publishMonitoringData()
+bool Mqtt::publishMonitoringData()
 {
-  metering line;
+  metering *line;
+  bool ret = true;
 
   /* Send Status */
-  publish(String("relay"), String(digitalRead(RELAY_PIN)));
-  publish(String("timeSendData"), String(Configuration._timeSendData));
-  publish(String("timeSaveData"), String(Configuration._timeSaveData));
-  publish(String("mode"), String(Configuration._mode));
-  publish(String("currentClampA"), String(Configuration._currentClampA));
-  publish(String("currentClampB"), String(Configuration._currentClampB));
-  publish(String("currentClampC"), String(Configuration._currentClampC));
-  publish(String("version"), String(VERSION));
-  publish(String("build"), String(String(__DATE__) + " " + String(__TIME__)));
-  publish(String("ip"), WiFi.localIP().toString());
+  ret &= publish(String("relay"), String(digitalRead(RELAY_PIN)));
+  ret &= publish(String("timeSendData"), String(Configuration._timeSendData));
+  ret &= publish(String("timeSaveData"), String(Configuration._timeSaveData));
+  ret &= publish(String("mode"), String(Configuration._mode));
+  ret &= publish(String("currentClampA"), String(Configuration._currentClampA));
+  ret &= publish(String("currentClampB"), String(Configuration._currentClampB));
+  ret &= publish(String("currentClampC"), String(Configuration._currentClampC));
+  // ret &= publish(String("version"), String(VERSION));
+  // ret &= publish(String("build"), String(String(__DATE__) + " " + String(__TIME__)));
+  // ret &= publish(String("ip"), WiFi.localIP().toString());
 
   /* Send Line A */
   line = Monitoring.getLineA();
-  publish(String(Configuration._nameA + "/voltage"), String(line.voltage));
-  publish(String(Configuration._nameA + "/current"), String(line.current));
-  publish(String(Configuration._nameA + "/power"), String(line.power));
-  publish(String(Configuration._nameA + "/cosPhy"), String(line.cosPhy));
-  publish(String(Configuration._nameA + "/conso"), String(line.conso));
+  ret &= publish(String(Configuration._nameA + "/voltage"), String(line->voltage));
+  ret &= publish(String(Configuration._nameA + "/current"), String(line->current));
+  ret &= publish(String(Configuration._nameA + "/power"), String(line->power));
+  ret &= publish(String(Configuration._nameA + "/cosPhy"), String(line->cosPhy));
+  ret &= publish(String(Configuration._nameA + "/conso"), String(line->conso));
 
-  /* Send Line B */
+  // /* Send Line B */
   line = Monitoring.getLineB();
-  publish(String(Configuration._nameB + "/voltage"), String(line.voltage));
-  publish(String(Configuration._nameB + "/current"), String(line.current));
-  publish(String(Configuration._nameB + "/power"), String(line.power));
-  publish(String(Configuration._nameB + "/cosPhy"), String(line.cosPhy));
-  publish(String(Configuration._nameB + "/conso"), String(line.conso));
+  ret &= publish(String(Configuration._nameB + "/voltage"), String(line->voltage));
+  ret &= publish(String(Configuration._nameB + "/current"), String(line->current));
+  ret &= publish(String(Configuration._nameB + "/power"), String(line->power));
+  ret &= publish(String(Configuration._nameB + "/cosPhy"), String(line->cosPhy));
+  ret &= publish(String(Configuration._nameB + "/conso"), String(line->conso));
 
-  /* Send Line C */
+  // /* Send Line C */
   line = Monitoring.getLineC();
-  publish(String(Configuration._nameC + "/voltage"), String(line.voltage));
-  publish(String(Configuration._nameC + "/current"), String(line.current));
-  publish(String(Configuration._nameC + "/power"), String(line.power));
-  publish(String(Configuration._nameC + "/cosPhy"), String(line.cosPhy));
-  publish(String(Configuration._nameC + "/conso"), String(line.conso));
+  ret &= publish(String(Configuration._nameC + "/voltage"), String(line->voltage));
+  ret &= publish(String(Configuration._nameC + "/current"), String(line->current));
+  ret &= publish(String(Configuration._nameC + "/power"), String(line->power));
+  ret &= publish(String(Configuration._nameC + "/cosPhy"), String(line->cosPhy));
+  ret &= publish(String(Configuration._nameC + "/conso"), String(line->conso));
 
   /* Send Frequency */
-  publish(String("frequency"), String(Monitoring.GetFrequency()));
+  ret &= publish(String("frequency"), String(Monitoring.GetFrequency()));
+
+  return ret;
 }
 
 /********************************************************/
@@ -123,7 +134,7 @@ void Mqtt::reconnect()
         publish(String("currentClampB"), String(Configuration._currentClampB));
         publish(String("currentClampC"), String(Configuration._currentClampC));
         // ... and resubscribe
-        clientMqtt.subscribe(String(Configuration._hostname + "/set/#").c_str());
+        subscribe(String("/set/#"));
       }
       else
       {
@@ -145,10 +156,9 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
   Log.print("] ");
   for (unsigned int i = 0; i < length; i++)
   {
-    Log.print(String(payload[i]));
     data += (char)payload[i];
   }
-  Log.println();
+  Log.println(data);
 
   String topicStr(topic);
   topicStr.remove(0, topicStr.lastIndexOf('/') + 1);
@@ -277,9 +287,9 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
   }
 
   Log.println("Save data");
-  Configuration._consoA = Monitoring.getLineA().conso;
-  Configuration._consoB = Monitoring.getLineB().conso;
-  Configuration._consoC = Monitoring.getLineC().conso;
+  Configuration._consoA = Monitoring.getLineA()->conso;
+  Configuration._consoB = Monitoring.getLineB()->conso;
+  Configuration._consoC = Monitoring.getLineC()->conso;
   Configuration.saveConfig();
 }
 
