@@ -28,7 +28,8 @@ void updateTimeAndSaveData()
   Log.print("Update NTP");
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
   delay(500);
-  while (now < EPOCH_1_1_2019) {
+  while (now < EPOCH_1_1_2019)
+  {
     now = time(nullptr);
     Log.print(".");
     delay(500);
@@ -221,7 +222,6 @@ void setup()
 
   updateTimeAndSaveData();
 
-
   // Create ticker for send Data to MQTT
   if (Configuration._timeSendData == 0)
     Configuration._timeSendData = 1;
@@ -246,17 +246,37 @@ void loop()
 
   if ((currentMillis - tickPrintData) >= 2000)
   {
-    /* Uncomment if you want calculate the offset of I and U
-      ! Warning ! the voltage and the current must be at 0
-    */
-    // Log.println("Offset IA: " + String(Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA), HEX) + ")");
-    // Log.println("Offset IB: " + String(Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB), HEX) + ")");
-    // Log.println("Offset IC: " + String(Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC), HEX) + ")");
+    if (Configuration._mode == MODE_CALIB)
+    {
+      /* Uncomment if you want calculate the offset of I and U
+      *  ! Warning ! the voltage and the current must be at 0
+      */
+      unsigned short val;
 
-    // Log.println("Offset UA: " + String(Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA), HEX) + ")");
-    // Log.println("Offset UB: " + String(Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB), HEX) + ")");
-    // Log.println("Offset UC: " + String(Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC)) + " (0x" + String((unsigned short)Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC), HEX) + ")");
-    if (Configuration._mode == MODE_DEBUG)
+      val = Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA);
+      Log.println("Offset UA: " + String(val) + " (0x" + String(val, HEX) + ")");
+      val = Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB);
+      Log.println("Offset UB: " + String(val) + " (0x" + String(val, HEX) + ")");
+      val = Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC);
+      Log.println("Offset UC: " + String(val) + " (0x" + String(val, HEX) + ")");
+
+      val = Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA);
+      Log.println("Offset IA: " + String(val) + " (0x" + String(val, HEX) + ")");
+      val = Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB);
+      Log.println("Offset IB: " + String(val) + " (0x" + String(val, HEX) + ")");
+      val = Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC);
+      Log.println("Offset IC: " + String(val) + " (0x" + String(val, HEX) + ")");
+
+      val = Monitoring.CalculateVIOffset(PmeanA, PmeanALSB, PoffsetA);
+      Log.println("Offset PA: " + String(val) + " (0x" + String(val, HEX) + ")");
+      val = Monitoring.CalculateVIOffset(PmeanB, PmeanBLSB, PoffsetB);
+      Log.println("Offset PB: " + String(val) + " (0x" + String(val, HEX) + ")");
+      val = Monitoring.CalculateVIOffset(PmeanC, PmeanCLSB, PoffsetC);
+      Log.println("Offset PC: " + String(val) + " (0x" + String(val, HEX) + ")");
+
+      Log.println();
+    }
+    else if (Configuration._mode == MODE_DEBUG)
     {
       Log.println("Line A: " + String(Monitoring.GetLineVoltageA()) + "V, " + String(Monitoring.GetLineCurrentA()) + "A, " + String(Monitoring.GetActivePowerA()) + "W");
       Log.println("Line B: " + String(Monitoring.GetLineVoltageB()) + "V, " + String(Monitoring.GetLineCurrentB()) + "A, " + String(Monitoring.GetActivePowerB()) + "W");

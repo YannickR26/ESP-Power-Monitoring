@@ -1,7 +1,7 @@
 #pragma once
 
 // Version
-#define VERSION                     "V2.1.1"
+#define VERSION                     "V2.1.2"
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
 #define DEFAULT_MQTTIPSERVER        "192.168.1.201"
@@ -16,6 +16,7 @@
 #define MODE_TRI_1  1
 #define MODE_TRI_2  2
 #define MODE_DEBUG  3
+#define MODE_CALIB  4
 
 // ATM90E32
 #define ATM90E32_CS         D8
@@ -37,4 +38,4 @@
 
 // change for different ntp (time servers)
 #define NTP_SERVERS         "0.fr.pool.ntp.org", "time.nist.gov", "pool.ntp.org"
-#define EPOCH_1_1_2019  1546300800
+#define EPOCH_1_1_2019      1546300800
