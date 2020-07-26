@@ -76,6 +76,23 @@ void Logger::print(const String &s)
   send(debugText);
 }
 
+char *Logger::getDateTimeString()
+{
+  static char time[30];
+
+#ifdef USE_DST_ADJUST
+  char *dstAbbrev;
+  time_t t = dstAdjusted.time(&dstAbbrev);
+#else
+  time_t t = time(nullptr);
+#endif
+  struct tm *timeinfo = localtime(&t);
+
+  sprintf(time, "%02d/%02d/%d %02d:%02d:%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+  
+  return time;
+}
+
 /********************************************************/
 /******************** Private Method ********************/
 /********************************************************/
@@ -108,12 +125,8 @@ void Logger::send(String &s)
 void Logger::addTime(String &s)
 {
 #ifdef USE_DST_ADJUST
-  char time[30];
-  char *dstAbbrev;
-  time_t t = dstAdjusted.time(&dstAbbrev);
-  struct tm *timeinfo = localtime(&t);
 
-  sprintf(time, "%02d/%02d/%d %02d:%02d:%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+  char *time = getDateTimeString();
 
   s = "[" + String(time) + "] " + s;
 #else

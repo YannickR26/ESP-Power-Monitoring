@@ -123,6 +123,8 @@ void Mqtt::reconnect()
       {
         Log.println("connected");
         // Once connected, publish an announcement...
+        char *time = Log.getDateTimeString();
+        publish(String("connectedFrom"), String(time));
         publish(String("version"), String(VERSION));
         publish(String("build"), String(String(__DATE__) + " " + String(__TIME__)));
         publish(String("ip"), WiFi.localIP().toString());

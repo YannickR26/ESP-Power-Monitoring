@@ -19,6 +19,8 @@ public:
 	void print(const String &s);
 	void print(const char str[]) { print(String(str)); }
 
+	char *getDateTimeString();
+
 private:
 	void send(String &s);
 	void addTime(String &s);
