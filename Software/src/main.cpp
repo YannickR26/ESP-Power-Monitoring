@@ -27,7 +27,7 @@ void updateTimeAndSaveData()
 
   Log.print("Update NTP");
   configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
-  delay(500);
+  // delay(500);
   while (now < EPOCH_1_1_2019)
   {
     now = time(nullptr);
@@ -37,12 +37,13 @@ void updateTimeAndSaveData()
   Log.println(" Done !");
 
   Log.println("Save data");
-  Configuration._consoA = Monitoring.getLineA()->conso;
-  Configuration._consoB = Monitoring.getLineB()->conso;
-  Configuration._consoC = Monitoring.getLineC()->conso;
+  Configuration._consoA = (uint32_t)Monitoring.getLineA()->conso;
+  Configuration._consoB = (uint32_t)Monitoring.getLineB()->conso;
+  Configuration._consoC = (uint32_t)Monitoring.getLineC()->conso;
   Configuration.saveConfig();
 
-  tick_saveData.once(Configuration._timeSaveData, updateTimeAndSaveData);
+  if (Configuration._timeSaveData != 0)
+    tick_saveData.once(Configuration._timeSaveData, updateTimeAndSaveData);
 }
 
 // LED blink
@@ -224,7 +225,7 @@ void setup()
 
   // Create ticker for send Data to MQTT
   if (Configuration._timeSendData == 0)
-    Configuration._timeSendData = 1;
+    Configuration._timeSendData = 10;
   tick_sendData.once(Configuration._timeSendData, sendData);
 }
 
@@ -233,12 +234,29 @@ void setup()
 /************/
 void loop()
 {
+  static uint8_t noWifiConnection = 0;
   static unsigned long tickPrintData;
   unsigned long currentMillis = millis();
 
   MqttClient.handle();
   Log.handle();
   HTTPServer.handle();
+
+  if (!WiFi.isConnected())
+  {
+    if (noWifiConnection >= 10)
+    {
+      ESP.restart();
+    }
+    else
+    {
+      noWifiConnection++;
+    }
+  }
+  else
+  {
+    noWifiConnection = 0;
+  }
 
 #ifdef ENABLE_OTA
   ArduinoOTA.handle();

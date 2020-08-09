@@ -9,6 +9,13 @@
 
 WiFiClient espClient;
 
+void clearRelay()
+{
+  Log.println(String("Clear relay"));
+  digitalWrite(RELAY_PIN, 0);
+  MqttClient.publish(String("relay"), String(digitalRead(RELAY_PIN)));
+}
+
 /********************************************************/
 /******************** Public Method *********************/
 /********************************************************/
@@ -119,7 +126,7 @@ void Mqtt::reconnect()
       String clientId = "ESP8266Client-";
       clientId += String(random(0xffff), HEX);
       // Attempt to connect
-      if (clientMqtt.connect(clientId.c_str()))
+      if (clientMqtt.connect(clientId.c_str(), 0, 1, 0, 0))
       {
         Log.println("connected");
         // Once connected, publish an announcement...
@@ -135,8 +142,9 @@ void Mqtt::reconnect()
         publish(String("currentClampA"), String(Configuration._currentClampA));
         publish(String("currentClampB"), String(Configuration._currentClampB));
         publish(String("currentClampC"), String(Configuration._currentClampC));
+        publish(String("timeoutRelay"), String(Configuration._timeoutRelay));
         // ... and resubscribe
-        subscribe(String("/set/#"));
+        subscribe(String("set/#"));
       }
       else
       {
@@ -171,13 +179,18 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     digitalWrite(RELAY_PIN, status);
     Log.println(String("set relay status to ") + String(status));
     publish(String("relay"), String(status));
+    if (Configuration._timeoutRelay != 0) {
+      if (status != 0)
+        tickerRelay.once(Configuration._timeoutRelay, clearRelay);
+      else
+        tickerRelay.detach();
+    }
   }
   else if (topicStr == String("timeSendData"))
   {
     int time = data.toInt();
     Log.println(String("set timeSendData to ") + String(time));
     Configuration._timeSendData = time;
-    Configuration.saveConfig();
     publish(String("timeSendData"), String(Configuration._timeSendData));
   }
   else if (topicStr == String("timeSaveData"))
@@ -185,7 +198,6 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     int time = data.toInt();
     Log.println(String("set timeSaveData to: ") + String(time));
     Configuration._timeSaveData = time;
-    Configuration.saveConfig();
     publish(String("timeSaveData"), String(Configuration._timeSaveData));
   }
   else if (topicStr == String("mode"))
@@ -193,7 +205,6 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     int mode = data.toInt();
     Log.println(String("set mode to ") + String(mode));
     Configuration._mode = mode;
-    Configuration.saveConfig();
     publish(String("mode"), String(Configuration._mode));
   }
   else if (topicStr == String("currentClampA"))
@@ -201,7 +212,6 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     int current = data.toInt();
     Log.println(String("set currentClampA to ") + String(current) + String("A"));
     Configuration._currentClampA = current;
-    Configuration.saveConfig();
     publish(String("currentClampA"), String(Configuration._currentClampA));
   }
   else if (topicStr == String("currentClampB"))
@@ -217,14 +227,12 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     int current = data.toInt();
     Log.println(String("set currentClampC to ") + String(current) + String("A"));
     Configuration._currentClampC = current;
-    Configuration.saveConfig();
     publish(String("currentClampC"), String(Configuration._currentClampC));
   }
   else if (topicStr == String("hostname"))
   {
     Log.println("Change hostname to " + data);
     Configuration._hostname = data;
-    Configuration.saveConfig();
   }
   else if (topicStr == String("restart"))
   {
@@ -250,19 +258,16 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
   {
     Log.println("Set name A to " + data);
     Configuration._nameA = data;
-    Configuration.saveConfig();
   }
   else if (topicStr == String("nameB"))
   {
     Log.println("Set name B to " + data);
     Configuration._nameB = data;
-    Configuration.saveConfig();
   }
   else if (topicStr == String("nameC"))
   {
     Log.println("Set name C to " + data);
     Configuration._nameC = data;
-    Configuration.saveConfig();
   }
   else if (topicStr == String("consoA"))
   {
@@ -282,13 +287,18 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     int conso = data.toInt();
     Monitoring.setConsoLineC(conso);
   }
+  else if (topicStr == String("timeoutRelay"))
+  {
+    Log.println("Set timeoutRelay to " + data + " s");
+    Configuration._timeoutRelay = data.toInt();
+    publish(String("timeoutRelay"), String(Configuration._timeoutRelay));
+  }
   else
   {
     Log.println("Unknow command");
     return;
   }
 
-  Log.println("Save data");
   Configuration._consoA = Monitoring.getLineA()->conso;
   Configuration._consoB = Monitoring.getLineB()->conso;
   Configuration._consoC = Monitoring.getLineC()->conso;

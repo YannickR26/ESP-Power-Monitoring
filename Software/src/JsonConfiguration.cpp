@@ -56,6 +56,7 @@ void JsonConfiguration::print(void)
   Log.println(String("    consoA: ") + String(_consoA));
   Log.println(String("    consoB: ") + String(_consoB));
   Log.println(String("    consoC: ") + String(_consoC));
+  Log.println(String("    timeoutRelay: ") + String(_timeoutRelay));
 }
 
 bool JsonConfiguration::readConfig()
@@ -88,25 +89,27 @@ bool JsonConfiguration::saveConfig()
   // StaticJsonDocument<512> doc;
   DynamicJsonDocument doc(1024);
 
+  Log.print("Try to save config... ");
+
   encodeToJson(doc);
 
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile)
   {
-    Log.println("Failed to open config file for writing");
+    Log.println("Error: Failed to open config file for writing");
     return false;
   }
 
   // Serialize JSON to file
   if (serializeJson(doc, configFile) == 0)
   {
-    Log.println(F("Failed to write to file"));
+    Log.println(F("Error: Failed to write to file"));
     return false;
   }
 
   configFile.close();
 
-  Log.println("Save config successfully");
+  Log.println("Done !");
 
   return true;
 }
@@ -128,6 +131,7 @@ void JsonConfiguration::restoreDefault()
   _consoA = 0;
   _consoB = 0;
   _consoC = 0;
+  _timeoutRelay = 0;
 
   saveConfig();
   Log.println("configuration restored.");
@@ -151,6 +155,7 @@ uint8_t JsonConfiguration::encodeToJson(JsonDocument &_json)
   _json["consoA"] = _consoA;
   _json["consoB"] = _consoB;
   _json["consoC"] = _consoC;
+  _json["timeoutRelay"] = _timeoutRelay;
 
   return 0;
 }
@@ -185,6 +190,7 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
   _consoA = doc["consoA"].as<uint32_t>();
   _consoB = doc["consoB"].as<uint32_t>();
   _consoC = doc["consoC"].as<uint32_t>();
+  _timeoutRelay = doc["timeoutRelay"].as<uint32_t>();
 
   return 0;
 }

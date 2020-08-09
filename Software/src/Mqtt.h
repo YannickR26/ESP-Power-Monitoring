@@ -1,6 +1,7 @@
 #pragma once
 
 #include <PubSubClient.h>
+#include <Ticker.h>
 
 #include "settings.h"
 
@@ -23,6 +24,7 @@ private:
 	void callback(char *topic, uint8_t *payload, unsigned int length);
 
 	PubSubClient clientMqtt;
+	Ticker tickerRelay;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)

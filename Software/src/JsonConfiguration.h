@@ -31,6 +31,7 @@ class JsonConfiguration
 	String _nameA, _nameB, _nameC;
 	uint8_t _currentClampA, _currentClampB, _currentClampC;
 	uint32_t _consoA, _consoB, _consoC;
+	uint32_t _timeoutRelay;
      	
   private:
   
