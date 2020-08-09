@@ -95,6 +95,10 @@
 					<input id="consoC" type="text">
 					<label for="consoC">Conso, line C</label>
 				</div>
+				<div class="input-field col s4">
+					<input id="timeoutRelay" type="text">
+					<label for="timeoutRelay">Timeout relay (s)</label>
+				</div>
 				<div class="col s12 m12 l12" align="left">
 					<a class="waves-effect waves-light btn" onClick="save()">
 						<i class="material-icons right">send</i>
@@ -166,6 +170,7 @@
 			json.consoA = parseInt($('#consoA').val());
 			json.consoB = parseInt($('#consoB').val());
 			json.consoC = parseInt($('#consoC').val());
+			json.timeoutRelay = parseInt($('#timeoutRelay').val());
 			$.post(URI + "config", JSON.stringify(json))
 				.done(function (res) {
 					M.toast({ html: "Configuration sauvegard&eacute; !" });
@@ -200,7 +205,8 @@
 					// 	"currentClampC": 60,
 					// 	"consoA": 0,
 					// 	"consoB": 0,
-					// 	"consoC": 0
+					// 	"consoC": 0,
+					//  "timeoutRelay": 0
 					// }
 
 					console.log("configuration read successfully !")
@@ -230,6 +236,7 @@
 					$('#consoA').val(params.consoA);
 					$('#consoB').val(params.consoB);
 					$('#consoC').val(params.consoC);
+					$('#timeoutRelay').val(params.timeoutRelay);
 					M.updateTextFields();
 				})
 				.fail(function () {
