@@ -9,7 +9,7 @@
 #include "settings.h"
 #include "Logger.h"
 
-static Ticker tick_blinker, tick_sendData, tick_saveData;
+static Ticker tick_blinker;
 
 // OTA
 #ifdef ENABLE_OTA
@@ -41,9 +41,6 @@ void updateTimeAndSaveData()
   Configuration._consoB = (uint32_t)Monitoring.getLineB()->conso;
   Configuration._consoC = (uint32_t)Monitoring.getLineC()->conso;
   Configuration.saveConfig();
-
-  if (Configuration._timeSaveData != 0)
-    tick_saveData.once(Configuration._timeSaveData, updateTimeAndSaveData);
 }
 
 // LED blink
@@ -74,8 +71,6 @@ void sendData()
     Log.println("Done !");
   else
     Log.println("Error !");
-
-  tick_sendData.once(Configuration._timeSendData, sendData);
 }
 
 /*************/
@@ -151,9 +146,9 @@ void setup()
   Log.setup();
   Log.println();
   Log.println("==========================================");
-  Log.println(String(F("  === ESP_Power_Monitoring ===")));
-  Log.println(String(F("  Version: ")) + F(VERSION));
-  Log.println(String(F("  Build: ")) + F(__DATE__) + " " + F(__TIME__));
+  Log.println(String(F("---------- ESP Power Monitoring ----------")));
+  Log.println(String(F("  Version: ")) + VERSION);
+  Log.println(String(F("  Build: ")) + BUILD_DATE);
   Log.println("==========================================");
   Log.println();
 
@@ -222,11 +217,6 @@ void setup()
   Log.setupTelnet();
 
   updateTimeAndSaveData();
-
-  // Create ticker for send Data to MQTT
-  if (Configuration._timeSendData == 0)
-    Configuration._timeSendData = 10;
-  tick_sendData.once(Configuration._timeSendData, sendData);
 }
 
 /************/
@@ -235,12 +225,25 @@ void setup()
 void loop()
 {
   static uint8_t noWifiConnection = 0;
-  static unsigned long tickPrintData;
-  unsigned long currentMillis = millis();
+  static unsigned long tickSendData = 0, tickSaveData = 0, tickPrintData = 0;
+  const unsigned long tick = millis();
 
   MqttClient.handle();
   Log.handle();
   HTTPServer.handle();
+
+  // Send data
+  if ((tick - tickSendData) >= (Configuration._timeSendData * 1000))
+  {
+    sendData();
+    tickSendData = tick;
+  }
+
+  if ((tick - tickSaveData) >= (Configuration._timeSaveData * 1000))
+  {
+    updateTimeAndSaveData();
+    tickSaveData = tick;
+  }
 
   if (!WiFi.isConnected())
   {
@@ -262,7 +265,7 @@ void loop()
   ArduinoOTA.handle();
 #endif
 
-  if ((currentMillis - tickPrintData) >= 2000)
+  if ((tick - tickPrintData) >= 2000)
   {
     if (Configuration._mode == MODE_CALIB)
     {
@@ -309,7 +312,7 @@ void loop()
 
       Log.println();
     }
-    tickPrintData = currentMillis;
+    tickPrintData = tick;
   }
 
   delay(50);
