@@ -89,7 +89,7 @@ char *Logger::getDateTimeString()
   struct tm *timeinfo = localtime(&t);
 
   sprintf(time, "%02d/%02d/%d %02d:%02d:%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
-  
+
   return time;
 }
 
@@ -160,10 +160,11 @@ void Logger::handleTelnetClient()
       // Read data from telnet just to clear out the buffer
       telnetClient.read();
     }
-    println("=====================================================");
-    println(String("ESP_Power_Monitoring - Build: ") + F(__DATE__) + " " + F(__TIME__));
-    println(String("ESP_Power_Monitoring - Version: ") + String(VERSION));
-    println("=====================================================");
+    println("==========================================");
+    println(String(F("---------- ESP Power Monitoring ----------")));
+    println(String(F("  Version: ")) + VERSION);
+    println(String(F("  Build: ")) + BUILD_DATE);
+    println("==========================================");
     println();
   }
 }

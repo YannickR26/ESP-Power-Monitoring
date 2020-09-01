@@ -123,8 +123,7 @@ void Mqtt::reconnect()
     {
       Log.print("Attempting MQTT connection...");
       // Create a random clientMqtt ID
-      String clientId = "ESP8266Client-";
-      clientId += String(random(0xffff), HEX);
+      String clientId = Configuration._hostname + String(random(0xffff), HEX);
       // Attempt to connect
       if (clientMqtt.connect(clientId.c_str(), 0, 1, 0, 0))
       {
@@ -133,7 +132,7 @@ void Mqtt::reconnect()
         char *time = Log.getDateTimeString();
         publish(String("connectedFrom"), String(time));
         publish(String("version"), String(VERSION));
-        publish(String("build"), String(String(__DATE__) + " " + String(__TIME__)));
+        publish(String("build"), String(BUILD_DATE));
         publish(String("ip"), WiFi.localIP().toString());
         publish(String("relay"), String(digitalRead(RELAY_PIN)));
         publish(String("timeSendData"), String(Configuration._timeSendData));

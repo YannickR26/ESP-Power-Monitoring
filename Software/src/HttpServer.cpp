@@ -39,6 +39,7 @@ void HttpServer::setup(void)
   });
 
   _webServer.on("/reset", [&]() {
+    _webServer.sendHeader("Access-Control-Allow-Origin", "*");
     _webServer.send(200, "text/plain", "Reset WifiManager configuration, restart now in AP mode...");
     delay(200);
     WiFiManager wifiManager;
@@ -147,7 +148,7 @@ void HttpServer::getStatus()
   doc.clear();
 
   doc["version"] = String(VERSION);
-  doc["build"] = String(String(__DATE__) + " " + String(__TIME__));
+  doc["build"] = String(BUILD_DATE);
   doc["relay"] = digitalRead(RELAY_PIN);
 
   JsonObject jsonLineA = doc.createNestedObject("lineA");

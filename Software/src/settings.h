@@ -1,7 +1,8 @@
 #pragma once
 
 // Version
-#define VERSION                     "V2.1.4"
+#define VERSION                     "V2.1.5"
+#define BUILD_DATE                  String((__DATE__) + String(" ") + (__TIME__))
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
 #define DEFAULT_MQTTIPSERVER        "192.168.1.201"
