@@ -25,6 +25,8 @@ class JsonConfiguration
   	String _hostname;
 	String _mqttIpServer;
 	uint16_t _mqttPortServer;
+	String _mqttUsername;
+	String _mqttPassword;
 	uint16_t _timeSaveData;
 	uint16_t _timeSendData;
 	uint8_t _mode;

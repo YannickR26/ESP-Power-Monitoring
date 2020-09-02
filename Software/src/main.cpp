@@ -88,9 +88,11 @@ void wifiSetup()
   WiFiManagerParameter custom_mqtt_hostname("hostname", "hostname", Configuration._hostname.c_str(), 60);
   WiFiManagerParameter custom_mqtt_server("mqttIpServer", "mqtt ip", Configuration._mqttIpServer.c_str(), 40);
   WiFiManagerParameter custom_mqtt_port("mqttPortServer", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
+  WiFiManagerParameter custom_mqtt_username("mqttUsername", "mqtt username", String(Configuration._mqttUsername).c_str(), 40);
+  WiFiManagerParameter custom_mqtt_userpassword("mqttPassword", "mqtt password", String(Configuration._mqttPassword).c_str(), 40);
   WiFiManagerParameter custom_time_send_data("timeSendData", "intervale d'envoie des données (s)", String(Configuration._timeSendData).c_str(), 6);
   WiFiManagerParameter custom_time_save_data("timeSaveData", "intervale de sauvegarde des données (s)", String(Configuration._timeSaveData).c_str(), 6);
-  WiFiManagerParameter custom_mode("mode", "mode", String(Configuration._mode).c_str(), 1);
+  WiFiManagerParameter custom_mode("mode", "mode (0: Mono, 1: 1x Tri, 2: 2x Tri)", String(Configuration._mode).c_str(), 1);
   WiFiManagerParameter custom_currentA("currentClampA", "capacité de la pince amperemetrique A (A)", String(Configuration._currentClampA).c_str(), 3);
   WiFiManagerParameter custom_currentB("currentClampB", "capacité de la pince amperemetrique B (A)", String(Configuration._currentClampB).c_str(), 3);
   WiFiManagerParameter custom_currentC("currentClampC", "capacité de la pince amperemetrique C (A)", String(Configuration._currentClampC).c_str(), 3);
@@ -99,6 +101,8 @@ void wifiSetup()
   wifiManager.addParameter(&custom_mqtt_hostname);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
+  wifiManager.addParameter(&custom_mqtt_username);
+  wifiManager.addParameter(&custom_mqtt_userpassword);
   wifiManager.addParameter(&custom_time_send_data);
   wifiManager.addParameter(&custom_time_save_data);
   wifiManager.addParameter(&custom_mode);
@@ -129,6 +133,8 @@ void wifiSetup()
   Configuration._hostname = custom_mqtt_hostname.getValue();
   Configuration._mqttIpServer = custom_mqtt_server.getValue();
   Configuration._mqttPortServer = atoi(custom_mqtt_port.getValue());
+  Configuration._mqttUsername = custom_mqtt_username.getValue();
+  Configuration._mqttPassword = custom_mqtt_userpassword.getValue();
   Configuration._timeSendData = atoi(custom_time_send_data.getValue());
   Configuration._timeSaveData = atoi(custom_time_save_data.getValue());
   Configuration._mode = atoi(custom_mode.getValue());

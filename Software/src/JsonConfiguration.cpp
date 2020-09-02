@@ -44,6 +44,8 @@ void JsonConfiguration::print(void)
   Log.println(String("    hostname: ") + _hostname);
   Log.println(String("    mqttIpServer: ") + _mqttIpServer);
   Log.println(String("    mqttPortServer: ") + String(_mqttPortServer));
+  Log.println(String("    mqttUsername: ") + String(_mqttUsername));
+  Log.println(String("    mqttPassword: ") + String(_mqttPassword));
   Log.println(String("    timeSaveData: ") + String(_timeSaveData));
   Log.println(String("    timeSendData: ") + String(_timeSendData));
   Log.println(String("    mode: ") + String(_mode));
@@ -119,6 +121,8 @@ void JsonConfiguration::restoreDefault()
   _hostname = DEFAULT_HOSTNAME;
   _mqttIpServer = DEFAULT_MQTTIPSERVER;
   _mqttPortServer = DEFAULT_MQTTPORTSERVER;
+  _mqttUsername = "";
+  _mqttPassword = "";
   _timeSaveData = DEFAULT_SAVE_DATA_INTERVAL_SEC;
   _timeSendData = DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode = MODE_MONO;
@@ -143,6 +147,8 @@ uint8_t JsonConfiguration::encodeToJson(JsonDocument &_json)
   _json["hostname"] = _hostname;
   _json["mqttIpServer"] = _mqttIpServer;
   _json["mqttPortServer"] = _mqttPortServer;
+  _json["mqttUsername"] = _mqttUsername;
+  _json["mqttPassword"] = _mqttPassword;
   _json["timeSaveData"] = _timeSaveData;
   _json["timeSendData"] = _timeSendData;
   _json["mode"] = _mode;
@@ -175,22 +181,59 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
     return -1;
   }
 
-  _hostname = doc["hostname"] | DEFAULT_HOSTNAME;
-  _mqttIpServer = doc["mqttIpServer"] | DEFAULT_MQTTIPSERVER;
-  _mqttPortServer = doc["mqttPortServer"] | DEFAULT_MQTTPORTSERVER;
-  _timeSaveData = doc["timeSaveData"] | DEFAULT_SAVE_DATA_INTERVAL_SEC;
-  _timeSendData = doc["timeSendData"] | DEFAULT_SEND_DATA_INTERVAL_SEC;
-  _mode = doc["mode"].as<uint8_t>();
-  _nameA = doc["nameA"] | "lineA";
-  _nameB = doc["nameB"] | "lineB";
-  _nameC = doc["nameC"] | "lineC";
-  _currentClampA = doc["currentClampA"] | DEFAULT_CURRENT_CLAMP;
-  _currentClampB = doc["currentClampB"] | DEFAULT_CURRENT_CLAMP;
-  _currentClampC = doc["currentClampC"] | DEFAULT_CURRENT_CLAMP;
-  _consoA = doc["consoA"].as<uint32_t>();
-  _consoB = doc["consoB"].as<uint32_t>();
-  _consoC = doc["consoC"].as<uint32_t>();
-  _timeoutRelay = doc["timeoutRelay"].as<uint32_t>();
+  if (!doc["hostname"].isNull())
+    _hostname = doc["hostname"].as<String>();
+
+  if (!doc["mqttIpServer"].isNull())
+    _mqttIpServer = doc["mqttIpServer"].as<String>();
+
+  if (!doc["mqttPortServer"].isNull())
+    _mqttPortServer = doc["mqttPortServer"].as<uint16_t>();
+
+  if (!doc["mqttUsername"].isNull())
+    _mqttUsername = doc["mqttUsername"].as<String>();
+
+  if (!doc["mqttPassword"].isNull())
+    _mqttPassword = doc["mqttPassword"].as<String>();
+
+  if (!doc["timeSaveData"].isNull())
+    _timeSaveData = doc["timeSaveData"].as<uint16_t>();
+
+  if (!doc["timeSendData"].isNull())
+    _timeSendData = doc["timeSendData"].as<uint16_t>();
+
+  if (!doc["timeSendData"].isNull())
+    _mode = doc["mode"].as<uint8_t>();
+
+  if (!doc["nameA"].isNull())
+    _nameA = doc["nameA"].as<String>();
+
+  if (!doc["nameB"].isNull())
+    _nameB = doc["nameB"].as<String>();
+
+  if (!doc["nameC"].isNull())
+    _nameC = doc["nameC"].as<String>();
+
+  if (!doc["currentClampA"].isNull())
+    _currentClampA = doc["currentClampA"].as<uint8_t>();
+
+  if (!doc["currentClampB"].isNull())
+    _currentClampB = doc["currentClampB"].as<uint8_t>();
+
+  if (!doc["currentClampC"].isNull())
+    _currentClampC = doc["currentClampC"].as<uint8_t>();
+
+  if (!doc["consoA"].isNull())
+    _consoA = doc["consoA"].as<uint32_t>();
+
+  if (!doc["consoB"].isNull())
+    _consoB = doc["consoB"].as<uint32_t>();
+
+  if (!doc["consoC"].isNull())
+    _consoC = doc["consoC"].as<uint32_t>();
+
+  if (!doc["timeoutRelay"].isNull())
+    _timeoutRelay = doc["timeoutRelay"].as<uint32_t>();
 
   return 0;
 }

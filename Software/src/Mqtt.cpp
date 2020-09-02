@@ -30,18 +30,18 @@ Mqtt::~Mqtt()
 
 void Mqtt::setup()
 {
-  clientMqtt.setClient(espClient);
-  clientMqtt.setServer(Configuration._mqttIpServer.c_str(), Configuration._mqttPortServer);
-  clientMqtt.setCallback([this](char *topic, uint8_t *payload, unsigned int length) { this->callback(topic, payload, length); });
+  _clientMqtt.setClient(espClient);
+  _clientMqtt.setServer(Configuration._mqttIpServer.c_str(), Configuration._mqttPortServer);
+  _clientMqtt.setCallback([this](char *topic, uint8_t *payload, unsigned int length) { this->callback(topic, payload, length); });
 }
 
 void Mqtt::handle()
 {
-  if (!clientMqtt.connected())
+  if (!_clientMqtt.connected())
   {
     reconnect();
   }
-  if (!clientMqtt.loop())
+  if (!_clientMqtt.loop())
   {
     Log.println("Error with MQTT Loop !");
   }
@@ -49,12 +49,12 @@ void Mqtt::handle()
 
 bool Mqtt::publish(String topic, String body)
 {
-  return clientMqtt.publish(String(Configuration._hostname + "/" + topic).c_str(), String(body).c_str());
+  return _clientMqtt.publish(String(Configuration._hostname + "/" + topic).c_str(), String(body).c_str());
 }
 
 bool Mqtt::subscribe(String topic)
 {
-  return clientMqtt.subscribe(String(Configuration._hostname + "/" + topic).c_str());
+  return _clientMqtt.subscribe(String(Configuration._hostname + "/" + topic).c_str());
 }
 
 void Mqtt::log(String level, String str)
@@ -117,7 +117,7 @@ void Mqtt::reconnect()
 {
   static unsigned long tick = 0;
 
-  if (!clientMqtt.connected())
+  if (!_clientMqtt.connected())
   {
     if ((millis() - tick) >= 5000)
     {
@@ -125,7 +125,17 @@ void Mqtt::reconnect()
       // Create a random clientMqtt ID
       String clientId = Configuration._hostname + String(random(0xffff), HEX);
       // Attempt to connect
-      if (clientMqtt.connect(clientId.c_str(), 0, 1, 0, 0))
+      bool res;
+      if (Configuration._mqttUsername == NULL)
+      {
+        res = _clientMqtt.connect(clientId.c_str(), NULL, 1, 0, NULL);
+      }
+      else
+      {
+        res = _clientMqtt.connect(clientId.c_str(), Configuration._mqttUsername.c_str(), Configuration._mqttPassword.c_str(), NULL, 1, 0, NULL, false);
+      }
+
+      if (res)
       {
         Log.println("connected");
         // Once connected, publish an announcement...
@@ -148,7 +158,7 @@ void Mqtt::reconnect()
       else
       {
         Log.print("failed, rc=");
-        Log.print(String(clientMqtt.state()));
+        Log.print(String(_clientMqtt.state()));
         Log.println(" try again in 5 seconds");
         tick = millis();
       }
@@ -180,9 +190,9 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     publish(String("relay"), String(status));
     if (Configuration._timeoutRelay != 0) {
       if (status != 0)
-        tickerRelay.once(Configuration._timeoutRelay, clearRelay);
+        _tickerRelay.once(Configuration._timeoutRelay, clearRelay);
       else
-        tickerRelay.detach();
+        _tickerRelay.detach();
     }
   }
   else if (topicStr == String("timeSendData"))
