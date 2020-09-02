@@ -10,10 +10,6 @@ struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central Europea
 simpleDSTadjust dstAdjusted(StartRule, EndRule);
 #endif
 
-#ifdef DEBUG_BY_TELNET
-WiFiServer telnetServer(23);
-WiFiClient telnetClient;
-#endif
 
 /********************************************************/
 /******************** Public Method *********************/
@@ -36,7 +32,7 @@ void Logger::setupTelnet()
 {
 #ifdef DEBUG_BY_TELNET
   // Setup telnet server for remote debug output
-  telnetServer.begin();
+  telnetServer.begin(23);
   telnetServer.setNoDelay(true);
   println("Telnet: Started on port 23 - IP: " + WiFi.localIP().toString());
 #endif

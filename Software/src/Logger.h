@@ -6,7 +6,11 @@
 class Logger
 {
 public:
-	Logger(){};
+	Logger()
+#ifdef DEBUG_BY_TELNET 
+	: telnetServer(23) 
+#endif	
+	{};
 	virtual ~Logger(){};
 
 	void setup();
@@ -24,11 +28,14 @@ public:
 private:
 	void send(String &s);
 	void addTime(String &s);
-#ifdef DEBUG_BY_TELNET
-	void handleTelnetClient();
-#endif
 
 	bool addTimeToString;
+
+#ifdef DEBUG_BY_TELNET
+	WiFiServer telnetServer;
+	WiFiClient telnetClient;
+	void handleTelnetClient();
+#endif
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)
