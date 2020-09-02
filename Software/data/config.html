@@ -35,29 +35,41 @@
 
 			<div id="Global" class="col s12 m12 l12">
 				<div class="row"></div>
-				<div class="input-field col s4">
+				<div class="input-field col s12">
 					<input id="hostname" type="text">
 					<label for="hostname">Hostname</label>
 				</div>
-				<div class="input-field col s4">
+				<div class="input-field col s6">
 					<input id="mqttIpServer" type="text">
 					<label for="mqttIpServer">MQTT Ip Server</label>
 				</div>
-				<div class="input-field col s4">
+				<div class="input-field col s6">
 					<input id="mqttPortServer" type="text">
 					<label for="mqttPortServer">MQTT Port Server</label>
 				</div>
-				<div class="input-field col s4">
+				<div class="input-field col s6">
+					<input id="mqttUsername" type="text">
+					<label for="mqttUsername">MQTT Username</label>
+				</div>
+				<div class="input-field col s6">
+					<input id="mqttPassword" type="text">
+					<label for="mqttPassword">MQTT Password</label>
+				</div>
+				<div class="input-field col s3">
 					<input id="timeSaveData" type="text">
 					<label for="timeSaveData">NTP and Save Data Intervale (s)</label>
 				</div>
-				<div class="input-field col s4">
+				<div class="input-field col s3">
 					<input id="timeSendData" type="text">
 					<label for="timeSendData">Send Data Intervale (s)</label>
 				</div>
-				<div class="input-field col s4">
+				<div class="input-field col s3">
 					<input id="mode" type="text">
 					<label for="mode">Mode (0: Mono, 1: 1x Tri, 2: 2x Tri)</label>
+				</div>
+				<div class="input-field col s3">
+					<input id="timeoutRelay" type="text">
+					<label for="timeoutRelay">Timeout relay (s)</label>
 				</div>
 				<div class="input-field col s4">
 					<input id="nameA" type="text">
@@ -95,10 +107,6 @@
 					<input id="consoC" type="text">
 					<label for="consoC">Conso, line C</label>
 				</div>
-				<div class="input-field col s4">
-					<input id="timeoutRelay" type="text">
-					<label for="timeoutRelay">Timeout relay (s)</label>
-				</div>
 				<div class="col s12 m12 l12" align="left">
 					<a class="waves-effect waves-light btn" onClick="save()">
 						<i class="material-icons right">send</i>
@@ -106,10 +114,18 @@
 					</a>
 				</div>
 				<div class="col s12 m12 l12" align="right">
-					<a class="waves-effect waves-ligt btn-small" onClick="restart()">
+					<a class="waves-effect waves-ligt btn-small modal-trigger" onClick="restart()" href="#modal1">
 						<i class="material-icons left">autorenew</i>
 						Red&eacute;marrer
 					</a>
+				</div>
+			</div>
+
+			<!-- Modal Structure -->
+			<div id="modal1" class="modal">
+				<div class="modal-content">
+					<h4>Red&eacute;marrage en cours</h4>
+					<p>Veuillez patientez...</p>
 				</div>
 			</div>
 
@@ -131,8 +147,8 @@
 		if (ENV_PROD == true) {
 			URI = document.location.origin + "/";
 		} else {
-			URI = "http://192.168.1.19/";
-			// URI = "http://10.65.30.68/";
+			// URI = "http://192.168.1.19/";
+			URI = "http://10.65.30.42/";
 		}
 
 		var errorConnectionToast;
@@ -140,7 +156,8 @@
 		function restart() {
 			$.post(URI + "restart")
 				.done(function (res) {
-					M.toast({ html: "Red&eacute;marrage en cours..." });
+					// M.toast({ html: "Red&eacute;marrage en cours..." });
+					pooling();
 				})
 				.fail(function () {
 					/* Display Toast Error */
@@ -158,6 +175,8 @@
 			json.hostname = $('#hostname').val();
 			json.mqttIpServer = $('#mqttIpServer').val();
 			json.mqttPortServer = parseInt($('#mqttPortServer').val());
+			json.mqttUsername = $('#mqttUsername').val();
+			json.mqttPassword = $('#mqttPassword').val();
 			json.timeSaveData = parseInt($('#timeSaveData').val());
 			json.timeSendData = parseInt($('#timeSendData').val());
 			json.mode = parseInt($('#mode').val());
@@ -171,6 +190,7 @@
 			json.consoB = parseInt($('#consoB').val());
 			json.consoC = parseInt($('#consoC').val());
 			json.timeoutRelay = parseInt($('#timeoutRelay').val());
+
 			$.post(URI + "config", JSON.stringify(json))
 				.done(function (res) {
 					M.toast({ html: "Configuration sauvegard&eacute; !" });
@@ -186,72 +206,98 @@
 				});
 		}
 
+		function pooling() {
+			let abortController = new AbortController();
+			let abortSignal = abortController.signal;
+
+			let abortTimeout = setTimeout(() => {
+				abortController.abort();
+				// console.log('aborted');
+				pooling();
+			}, 1000)
+
+			fetch(URI + 'config.json', {
+				mode: 'cors',
+				signal: abortSignal
+			}).then(response => {
+				clearTimeout(abortTimeout);
+				location.reload();
+			}).catch(error => {
+			});
+		}
+
 		function getConfig() {
 			console.log("try to read config...")
-			$.get(URI + "config")
-				.done(function (res) {
-					// {
-					// 	"hostname": "ESP_Monitoring",
-					// 	"mqttIpServer": "192.168.1.201",
-					// 	"mqttPortServer": 1883,
-					// 	"timeSaveData": 3600,
-					// 	"timeSendData": 5,
-					// 	"mode": 0,
-					// 	"nameA": "lineA",
-					// 	"nameB": "lineB",
-					// 	"nameC": "lineC",
-					// 	"currentClampA": 30,
-					// 	"currentClampB": 30,
-					// 	"currentClampC": 60,
-					// 	"consoA": 0,
-					// 	"consoB": 0,
-					// 	"consoC": 0,
-					//  "timeoutRelay": 0
-					// }
+			fetch(URI + 'config.json', {
+				mode: 'cors',
+			}).then(response =>
+				response.json()
+			).then(params => {
+				// {
+				// 	"hostname": "ESP_Monitoring",
+				// 	"mqttIpServer": "192.168.1.201",
+				// 	"mqttPortServer": 1883,
+				// 	"mqttUsername": "",
+				// 	"mqttPassword": "",
+				// 	"timeSaveData": 3600,
+				// 	"timeSendData": 5,
+				// 	"mode": 0,
+				// 	"nameA": "lineA",
+				// 	"nameB": "lineB",
+				// 	"nameC": "lineC",
+				// 	"currentClampA": 30,
+				// 	"currentClampB": 30,
+				// 	"currentClampC": 60,
+				// 	"consoA": 0,
+				// 	"consoB": 0,
+				// 	"consoC": 0,
+				//  "timeoutRelay": 0
+				// }
 
-					console.log("configuration read successfully !")
+				console.log("configuration read successfully !")
 
-					/* Remove Toast */
-					if (errorConnectionToast)
-						errorConnectionToast.remove();
+				/* Remove Toast */
+				if (errorConnectionToast)
+					errorConnectionToast.remove();
 
-					/* Get Data */
-					var params = res;
+				console.log("data receive: " + JSON.stringify(params, null, 2));
 
-					console.log("data receive: " + JSON.stringify(params));
-
-					/* Add Data to GUI */
-					$('#hostname').val(params.hostname);
-					$('#mqttIpServer').val(params.mqttIpServer);
-					$('#mqttPortServer').val(params.mqttPortServer);
-					$('#timeSaveData').val(params.timeSaveData);
-					$('#timeSendData').val(params.timeSendData);
-					$('#mode').val(params.mode);
-					$('#nameA').val(params.nameA);
-					$('#nameB').val(params.nameB);
-					$('#nameC').val(params.nameC);
-					$('#currentClampA').val(params.currentClampA);
-					$('#currentClampB').val(params.currentClampB);
-					$('#currentClampC').val(params.currentClampC);
-					$('#consoA').val(params.consoA);
-					$('#consoB').val(params.consoB);
-					$('#consoC').val(params.consoC);
-					$('#timeoutRelay').val(params.timeoutRelay);
-					M.updateTextFields();
-				})
-				.fail(function () {
-					/* Display Toast Error */
-					if (!errorConnectionToast) {
-						errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
-					}
-				})
-				.always(function () {
-				});
+				/* Add Data to GUI */
+				$('#hostname').val(params.hostname);
+				$('#mqttIpServer').val(params.mqttIpServer);
+				$('#mqttPortServer').val(params.mqttPortServer);
+				$('#mqttUsername').val(params.mqttUsername);
+				$('#mqttPassword').val(params.mqttPassword);
+				$('#timeSaveData').val(params.timeSaveData);
+				$('#timeSendData').val(params.timeSendData);
+				$('#mode').val(params.mode);
+				$('#nameA').val(params.nameA);
+				$('#nameB').val(params.nameB);
+				$('#nameC').val(params.nameC);
+				$('#currentClampA').val(params.currentClampA);
+				$('#currentClampB').val(params.currentClampB);
+				$('#currentClampC').val(params.currentClampC);
+				$('#consoA').val(params.consoA);
+				$('#consoB').val(params.consoB);
+				$('#consoC').val(params.consoC);
+				$('#timeoutRelay').val(params.timeoutRelay);
+				M.updateTextFields();
+			}).catch(error => {
+				/* Display Toast Error */
+				if (!errorConnectionToast) {
+					errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
+				}
+			})
 		}
 
 		$(document).ready(function () {
 			console.log("ready !");
 			getConfig();
+
+			// Initialize Modal
+			M.Modal.init(document.querySelectorAll('.modal'), {
+				dismissible: false
+			});
 		});
 
 	</script>
