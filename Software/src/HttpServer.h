@@ -18,14 +18,14 @@ public:
 
   ESP8266WebServer& webServer();
 
-	static String getContentType(String filename);
-  static bool handleFileRead(String path);
-  static void handleNotFound();
-  static void handleSet();
-  static void getStatus();
-  static void getConfig();
-  static void setConfig();
-  static void sendJson(const uint16 code, JsonDocument &doc);
+	String getContentType(String filename);
+  bool handleFileRead(String path);
+  void handleNotFound();
+  void handleSet();
+  void getStatus();
+  void getConfig();
+  void setConfig();
+  void sendJson(const uint16 code, JsonDocument &doc);
 
 private:
   ESP8266WebServer          _webServer;

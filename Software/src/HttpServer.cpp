@@ -48,12 +48,17 @@ void HttpServer::setup(void)
     ESP.restart();
   });
 
-  _webServer.on("/config", HTTP_GET, HttpServer::getConfig);
-  _webServer.on("/config", HTTP_POST, HttpServer::setConfig);
-  _webServer.on("/status", HTTP_GET, HttpServer::getStatus);
-  _webServer.on("/set", HttpServer::handleSet);
+  _webServer.on("/config", HTTP_GET, [&]() { getConfig(); });
+  _webServer.on("/config", HTTP_POST, [&]() { setConfig(); });
+  _webServer.on("/status", HTTP_GET, [&]() { getStatus(); });
+  _webServer.on("/set", [&]() { handleSet(); });
 
-  _webServer.onNotFound(HttpServer::handleNotFound);
+  _webServer.onNotFound([&]() {
+    if (!handleFileRead(_webServer.uri()))
+    {
+      _webServer.send(404, "text/plain", "File Not Found !");
+    }
+  });
 
   _httpUpdater.setup(&_webServer, String("/update"));
   _webServer.begin();
@@ -68,7 +73,7 @@ void HttpServer::handle(void)
 
 String HttpServer::getContentType(String filename)
 {
-  if (HTTPServer.webServer().hasArg("download"))
+  if (_webServer.hasArg("download"))
     return "application/octet-stream";
   else if (filename.endsWith(".htm"))
     return "text/html";
@@ -105,14 +110,15 @@ bool HttpServer::handleFileRead(String path)
   {
     path += "index.html"; // If a folder is requested, send the index file
   }
-  String contentType = HTTPServer.getContentType(path); // Get the MIME type
+  String contentType = getContentType(path); // Get the MIME type
   String pathWithGz = path + ".gz";
   if (LittleFS.exists(pathWithGz) || LittleFS.exists(path))
   {                                                       // If the file exists, either as a compressed archive, or normal
     if (LittleFS.exists(pathWithGz))                      // If there's a compressed version available
       path += ".gz";                                      // Use the compressed verion
     File file = LittleFS.open(path, "r");                 // Open the file
-    HTTPServer.webServer().streamFile(file, contentType); // Send it to the client
+    _webServer.sendHeader("Access-Control-Allow-Origin", "*");
+    _webServer.streamFile(file, contentType); // Send it to the client
     file.close();                                         // Close the file again
     Log.println(String("\tSent file: ") + path);
     return true;
