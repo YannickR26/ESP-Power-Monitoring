@@ -33,6 +33,7 @@ void Mqtt::setup()
   _clientMqtt.setClient(espClient);
   _clientMqtt.setServer(Configuration._mqttIpServer.c_str(), Configuration._mqttPortServer);
   _clientMqtt.setCallback([this](char *topic, uint8_t *payload, unsigned int length) { this->callback(topic, payload, length); });
+  startedAt = String(Log.getDateTimeString());
 }
 
 void Mqtt::handle()
@@ -144,6 +145,7 @@ void Mqtt::reconnect()
         publish(String("version"), String(VERSION));
         publish(String("build"), String(BUILD_DATE));
         publish(String("ip"), WiFi.localIP().toString());
+        publish(String("startedAt"), String(startedAt));
         publish(String("relay"), String(digitalRead(RELAY_PIN)));
         publish(String("timeSendData"), String(Configuration._timeSendData));
         publish(String("timeSaveData"), String(Configuration._timeSaveData));
@@ -188,7 +190,8 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
     digitalWrite(RELAY_PIN, status);
     Log.println(String("set relay status to ") + String(status));
     publish(String("relay"), String(status));
-    if (Configuration._timeoutRelay != 0) {
+    if (Configuration._timeoutRelay != 0)
+    {
       if (status != 0)
         _tickerRelay.once(Configuration._timeoutRelay, clearRelay);
       else

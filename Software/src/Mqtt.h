@@ -25,6 +25,7 @@ private:
 
 	PubSubClient _clientMqtt;
 	Ticker _tickerRelay;
+	String startedAt;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)
