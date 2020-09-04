@@ -9,6 +9,9 @@
 #include "ATM90E32.h"
 #include "Logger.h"
 #include "Mqtt.h"
+#include "SimpleRelay.h"
+
+extern SimpleRelay relay;
 
 /********************************************************/
 /******************** Public Method *********************/
@@ -113,7 +116,6 @@ bool HttpServer::handleFileRead(String path)
   if (LittleFS.exists(path))
   {
     File file = LittleFS.open(path, "r"); // Open the file
-    Log.println("Heap: " + String(ESP.getFreeHeap()) + ", FileSize: " + String(file.size()));
     _webServer.sendHeader("Access-Control-Allow-Origin", "*");
     _webServer.streamFile(file, contentType); // Send it to the client
     file.close();                             // Close the file again
@@ -213,6 +215,7 @@ void HttpServer::setConfig()
       Monitoring.setConsoLineA(Configuration._consoA);
       Monitoring.setConsoLineB(Configuration._consoB);
       Monitoring.setConsoLineC(Configuration._consoC);
+      relay.setTimeout(Configuration._timeoutRelay);
       if (Configuration.saveConfig())
       {
         // _webServer.send(200, "application/json", Configuration.encodeToJson());
@@ -241,11 +244,9 @@ void HttpServer::handleSet()
     String value = HTTPServer.webServer().arg(i).c_str();
     if (String(name) == "relay")
     {
-      int status = value.toInt();
-      digitalWrite(RELAY_PIN, status);
-      Log.println(String("set relay to ") + String(status));
-      MqttClient.publish(String("/relay"), String(status));
-      message += "Set Relay to " + String(status) + "\n";
+      int state = value.toInt();
+      relay.setState(state);
+      message += "Set Relay to " + String(state) + "\n";
     }
     else if (String(name) == "timeIntervalUpdate")
     {

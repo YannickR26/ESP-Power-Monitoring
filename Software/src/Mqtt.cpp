@@ -6,15 +6,11 @@
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>
 #include "Logger.h"
+#include "SimpleRelay.h"
+
+extern SimpleRelay relay;
 
 WiFiClient espClient;
-
-void clearRelay()
-{
-  Log.println(String("Clear relay"));
-  digitalWrite(RELAY_PIN, 0);
-  MqttClient.publish(String("relay"), String(digitalRead(RELAY_PIN)));
-}
 
 /********************************************************/
 /******************** Public Method *********************/
@@ -186,17 +182,8 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
 
   if (topicStr == String("relay"))
   {
-    int status = data.toInt();
-    digitalWrite(RELAY_PIN, status);
-    Log.println(String("set relay status to ") + String(status));
-    publish(String("relay"), String(status));
-    if (Configuration._timeoutRelay != 0)
-    {
-      if (status != 0)
-        _tickerRelay.once(Configuration._timeoutRelay, clearRelay);
-      else
-        _tickerRelay.detach();
-    }
+    int state = data.toInt();
+    relay.setState(state);
   }
   else if (topicStr == String("timeSendData"))
   {

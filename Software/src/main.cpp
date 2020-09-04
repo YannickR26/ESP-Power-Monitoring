@@ -8,8 +8,10 @@
 #include "Mqtt.h"
 #include "settings.h"
 #include "Logger.h"
+#include "SimpleRelay.h"
 
 static Ticker tick_blinker;
+SimpleRelay relay(RELAY_PIN, "relay");
 
 // OTA
 #ifdef ENABLE_OTA
@@ -158,13 +160,13 @@ void setup()
   Log.println("==========================================");
   Log.println();
 
-  pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, 0);
 
   /* Read configuration from SPIFFS */
   Configuration.setup();
   // Configuration.restoreDefault();
+  relay.setTimeout(Configuration._timeoutRelay);
 
   wifiSetup();
 

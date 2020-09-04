@@ -1,7 +1,6 @@
 #pragma once
 
 #include <PubSubClient.h>
-#include <Ticker.h>
 
 #include "settings.h"
 
@@ -24,7 +23,6 @@ private:
 	void callback(char *topic, uint8_t *payload, unsigned int length);
 
 	PubSubClient _clientMqtt;
-	Ticker _tickerRelay;
 	String startedAt;
 };
 
