@@ -233,7 +233,7 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
     _consoC = doc["consoC"].as<uint32_t>();
 
   if (!doc["timeoutRelay"].isNull())
-    _timeoutRelay = doc["timeoutRelay"].as<uint32_t>();
+    _timeoutRelay = doc["timeoutRelay"].as<float>();
 
   return 0;
 }

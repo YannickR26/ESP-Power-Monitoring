@@ -192,7 +192,7 @@
 			json.consoA = parseInt($('#consoA').val());
 			json.consoB = parseInt($('#consoB').val());
 			json.consoC = parseInt($('#consoC').val());
-			json.timeoutRelay = parseInt($('#timeoutRelay').val());
+			json.timeoutRelay = parseFloat($('#timeoutRelay').val());
 
 			$.post(URI + "config", JSON.stringify(json))
 				.done(function (res) {
