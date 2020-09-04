@@ -31,11 +31,6 @@ ATM90E32::ATM90E32() // Object
 */
 unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, unsigned short val)
 {
-  unsigned char *data = (unsigned char *)&val;
-  unsigned char *adata = (unsigned char *)&address;
-  unsigned short output;
-  unsigned short address1;
-
   /* Shut Off LED */
   digitalWrite(LED_BUILTIN, HIGH);
 
@@ -45,7 +40,7 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
 #endif
 
 #if defined(ESP8266)
-  SPISettings settings(200000, MSBFIRST, SPI_MODE3);
+  SPISettings settings(100000, MSBFIRST, SPI_MODE3);
 #endif
 
 #if defined(ESP32)
@@ -55,10 +50,6 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
 #if defined(ARDUINO_ARCH_SAMD)
   SPISettings settings(200000, MSBFIRST, SPI_MODE3);
 #endif
-
-  // Switch MSB and LSB of value
-  output = (val >> 8) | (val << 8);
-  val = output;
 
   // Set R/W flag
   address |= RW << 15;
@@ -74,10 +65,6 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   }
 #endif
 
-  // Swap byte address
-  address1 = (address >> 8) | (address << 8);
-  address = address1;
-
   // Transmit & Receive Data
 #if !defined(ENERGIA)
   SPI.beginTransaction(settings);
@@ -92,17 +79,8 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   Log.print("Register: 0x");
 #endif
 
-  // Write address byte by byte
-  for (byte i = 0; i < 2; i++)
-  {
-    SPI.transfer(*adata);
-#ifdef debug
-    Log.print(String(*adata, HEX));
-#endif
-    adata++;
-  }
+  SPI.write16(address);
 
-  // SPI.transfer16(address);
   /* Must wait 4 us for data to become valid */
   delayMicroseconds(4);
 
@@ -114,27 +92,11 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
   // Do for each byte in transfer
   if (RW)
   {
-    for (byte i = 0; i < 2; i++)
-    {
-      *data = SPI.transfer(0x00);
-#ifdef debug
-      Log.print(String(*data, HEX));
-#endif
-      data++;
-    }
-    // val = SPI.transfer16(0x00);
+    val = SPI.transfer16(0x00);
   }
   else
   {
-    for (byte i = 0; i < 2; i++)
-    {
-      SPI.transfer(*data);
-#ifdef debug
-      Log.print(String(*data, HEX));
-#endif
-      data++;
-    }
-    // SPI.transfer16(val);
+    SPI.transfer16(val);
   }
 
 #ifdef debug
@@ -142,14 +104,11 @@ unsigned short ATM90E32::CommEnergyIC(unsigned char RW, unsigned short address, 
 #endif
 
   // Chip enable and wait for transaction to end
-  digitalWrite(_cs, HIGH);
   delayMicroseconds(10);
-
-  output = (val >> 8) | (val << 8); // reverse MSB and LSB
-  return output;
+  digitalWrite(_cs, HIGH);
 
   // Use with transfer16
-  // return val;
+  return val;
 }
 
 int ATM90E32::Read32Register(signed short regh_addr, signed short regl_addr)
@@ -624,12 +583,12 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   // CommEnergyIC(WRITE, PLconstL, 0xC468);    // PL Constant LSB (default) - this is 4C68 in the application note, which is incorrect
   CommEnergyIC(WRITE, MMode0, _lineFreq); // Mode Config (frequency set in main program)
   CommEnergyIC(WRITE, MMode1, _pgagain);  // PGA Gain Configuration for Current Channels - 0x002A (x4) // 0x0015 (x2) // 0x0000 (1x)
-  // CommEnergyIC(WRITE, PStartTh, 0x0AFC);    // Active Startup Power Threshold - 50% of startup current = 0.9/0.00032 = 2812.5
-  // CommEnergyIC(WRITE, QStartTh, 0x0AEC);    // Reactive Startup Power Threshold
-  // CommEnergyIC(WRITE, SStartTh, 0x0000);    // Apparent Startup Power Threshold
-  // CommEnergyIC(WRITE, PPhaseTh, 0x00BC);    // Active Phase Threshold = 10% of startup current = 0.06/0.00032 = 187.5
-  // CommEnergyIC(WRITE, QPhaseTh, 0x0000);    // Reactive Phase Threshold
-  // CommEnergyIC(WRITE, SPhaseTh, 0x0000);    // Apparent  Phase Threshold
+  CommEnergyIC(WRITE, PStartTh, 0x0C35);    // Active Startup Power Threshold = 1/0.00032 = 3125
+  CommEnergyIC(WRITE, QStartTh, 0x0C35);    // Reactive Startup Power Threshold
+  CommEnergyIC(WRITE, SStartTh, 0x0C35);    // Apparent Startup Power Threshold
+  CommEnergyIC(WRITE, PPhaseTh, 0x0138);    // Active Phase Threshold = 0.1/0.00032 = 312.5
+  CommEnergyIC(WRITE, QPhaseTh, 0x0138);    // Reactive Phase Threshold
+  CommEnergyIC(WRITE, SPhaseTh, 0x0138);    // Apparent  Phase Threshold
 
   // Set metering calibration values (CALIBRATION)
   CommEnergyIC(WRITE, PQGainA, 0x0000);  // Line calibration gain
@@ -657,15 +616,15 @@ void ATM90E32::begin(int pin_cs, int pin_pm0, int pin_pm1, uint16_t lineFreq, ui
   CommEnergyIC(WRITE, UgainA, _ugain);   // A Voltage rms gain
   CommEnergyIC(WRITE, IgainA, igainA * ATM90E32_IGAIN);   // A line current gain
   CommEnergyIC(WRITE, UoffsetA, 0x0000); // A Voltage offset (-7056)
-  CommEnergyIC(WRITE, IoffsetA, 0x0000); // A line current offset (-2472)
+  CommEnergyIC(WRITE, IoffsetA, 0xfc60); // A line current offset (-928)
   CommEnergyIC(WRITE, UgainB, _ugain);   // B Voltage rms gain
   CommEnergyIC(WRITE, IgainB, igainB * ATM90E32_IGAIN);   // B line current gain
   CommEnergyIC(WRITE, UoffsetB, 0x0000); // B Voltage offset (-3072)
-  CommEnergyIC(WRITE, IoffsetB, 0x0000); // B line current offset (-928)
+  CommEnergyIC(WRITE, IoffsetB, 0xfc60); // A line current offset (-928)
   CommEnergyIC(WRITE, UgainC, _ugain);   // C Voltage rms gain
   CommEnergyIC(WRITE, IgainC, igainC * ATM90E32_IGAIN);   // C line current gain
   CommEnergyIC(WRITE, UoffsetC, 0x0000); // C Voltage offset (-928)
-  CommEnergyIC(WRITE, IoffsetC, 0x0000); // C line current offset (-3096)
+  CommEnergyIC(WRITE, IoffsetC, 0xfc60); // A line current offset (-928)
 
   delay(10);
   CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
@@ -739,7 +698,6 @@ void ATM90E32::handle(void)
   Log.println("Line A: " + String(_line_A.voltage) + "V, " + String(_line_A.current) + "A, " + String(_line_A.power) + "W, " + String(_line_A.conso) + "kW/h, cos phy " + String(_line_A.cosPhy));
   Log.println("Line B: " + String(_line_B.voltage) + "V, " + String(_line_B.current) + "A, " + String(_line_B.power) + "W, " + String(_line_B.conso) + "kW/h, cos phy " + String(_line_B.cosPhy));
   Log.println("Line C: " + String(_line_C.voltage) + "V, " + String(_line_C.current) + "A, " + String(_line_C.power) + "W, " + String(_line_C.conso) + "kW/h, cos phy " + String(_line_C.cosPhy));
-  Log.println();
 }
 
 #if !defined(NO_GLOBAL_INSTANCES)
