@@ -193,7 +193,7 @@ void setup()
   // Hostname defaults to esp8266-[ChipID]
   ArduinoOTA.setHostname(Configuration._hostname.c_str());
 
-  ArduinoOTA.onStart([&]() {
+  ArduinoOTA.onStart([]() {
     Log.println("Arduino OTA: Start updating");
   });
   ArduinoOTA.onEnd([]() {

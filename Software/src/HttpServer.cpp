@@ -53,12 +53,7 @@ void HttpServer::setup(void)
   _webServer.on("/status", HTTP_GET, [&]() { getStatus(); });
   _webServer.on("/set", [&]() { handleSet(); });
 
-  _webServer.onNotFound([&]() {
-    if (!handleFileRead(_webServer.uri()))
-    {
-      _webServer.send(404, "text/plain", "File Not Found !");
-    }
-  });
+  _webServer.onNotFound([&]() { handleNotFound(); });
 
   _httpUpdater.setup(&_webServer, String("/update"));
   _webServer.begin();
@@ -106,20 +101,22 @@ String HttpServer::getContentType(String filename)
 bool HttpServer::handleFileRead(String path)
 {
   Log.println("handleFileRead: " + path);
-  if (path.endsWith("/"))
-  {
+  if (path.endsWith(F("/")))
     path += "index.html"; // If a folder is requested, send the index file
-  }
+
   String contentType = getContentType(path); // Get the MIME type
-  String pathWithGz = path + ".gz";
-  if (LittleFS.exists(pathWithGz) || LittleFS.exists(path))
-  {                                                       // If the file exists, either as a compressed archive, or normal
-    if (LittleFS.exists(pathWithGz))                      // If there's a compressed version available
-      path += ".gz";                                      // Use the compressed verion
-    File file = LittleFS.open(path, "r");                 // Open the file
+
+  String pathWithGz = path + F(".gz");
+  if (LittleFS.exists(pathWithGz)) // If there's a compressed version available
+    path += ".gz";                 // Use the compressed verion
+
+  if (LittleFS.exists(path))
+  {
+    File file = LittleFS.open(path, "r"); // Open the file
+    Log.println("Heap: " + String(ESP.getFreeHeap()) + ", FileSize: " + String(file.size()));
     _webServer.sendHeader("Access-Control-Allow-Origin", "*");
     _webServer.streamFile(file, contentType); // Send it to the client
-    file.close();                                         // Close the file again
+    file.close();                             // Close the file again
     Log.println(String("\tSent file: ") + path);
     return true;
   }
@@ -129,7 +126,8 @@ bool HttpServer::handleFileRead(String path)
 
 void HttpServer::handleNotFound()
 {
-  if (!HTTPServer.handleFileRead(HTTPServer.webServer().uri())) {
+  if (!handleFileRead(_webServer.uri()))
+  {
     String message = "File Not Found\n\n";
     message += "URI: ";
     message += HTTPServer.webServer().uri();
@@ -149,7 +147,7 @@ void HttpServer::handleNotFound()
 void HttpServer::getStatus()
 {
   Log.println("Send Status to HTTP");
-  
+
   DynamicJsonDocument doc(1024);
   doc.clear();
 
@@ -185,45 +183,51 @@ void HttpServer::getStatus()
   HTTPServer.sendJson(200, doc);
 }
 
-void HttpServer::getConfig() 
+void HttpServer::getConfig()
 {
   Log.println("Send Configuration");
-  
+
   DynamicJsonDocument doc(1024);
   Configuration.encodeToJson(doc);
 
   // Send Configuration
-  HTTPServer.sendJson(200, doc);
+  sendJson(200, doc);
 }
 
-void HttpServer::setConfig() 
+void HttpServer::setConfig()
 {
-  if (HTTPServer.webServer().hasArg("plain") == false) {
+  if (_webServer.hasArg("plain") == false)
+  {
     Log.println("Error, no body received !");
-    HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
-    HTTPServer.webServer().send(404, "text/plain", "Body not received");
+    _webServer.sendHeader("Access-Control-Allow-Origin", "*");
+    _webServer.send(404, "text/plain", "Body not received");
   }
-  else {
+  else
+  {
     Log.println("Received new configuration !");
-    Log.println(HTTPServer.webServer().arg("plain"));
-    if (!Configuration.decodeJsonFromFile(HTTPServer.webServer().arg("plain").c_str())) {
+    Log.println(_webServer.arg("plain"));
+    if (!Configuration.decodeJsonFromFile(_webServer.arg("plain").c_str()))
+    {
       Configuration.print();
-      HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
+      _webServer.sendHeader("Access-Control-Allow-Origin", "*");
       Monitoring.setConsoLineA(Configuration._consoA);
       Monitoring.setConsoLineB(Configuration._consoB);
       Monitoring.setConsoLineC(Configuration._consoC);
-      if (Configuration.saveConfig()) {
-      // HTTPServer.webServer().send(200, "application/json", Configuration.encodeToJson());
-        HTTPServer.webServer().send(200, "application/json", "{\"result\":true}");
+      if (Configuration.saveConfig())
+      {
+        // _webServer.send(200, "application/json", Configuration.encodeToJson());
+        _webServer.send(200, "application/json", "{\"result\":true}");
       }
-      else {
-        HTTPServer.webServer().send(200, "application/json", "{\"result\":false}");
+      else
+      {
+        _webServer.send(200, "application/json", "{\"result\":false}");
       }
     }
-    else {
+    else
+    {
       Log.println("Error, parsing JSON !");
-      HTTPServer.webServer().sendHeader("Access-Control-Allow-Origin", "*");
-      HTTPServer.webServer().send(404, "text/plain", "Error with parsing JSON");
+      _webServer.sendHeader("Access-Control-Allow-Origin", "*");
+      _webServer.send(404, "text/plain", "Error with parsing JSON");
     }
   }
 }
@@ -307,7 +311,7 @@ ESP8266WebServer &HttpServer::webServer()
 
 void HttpServer::sendJson(const uint16 code, JsonDocument &doc)
 {
-  WiFiClient client = HTTPServer.webServer().client();
+  WiFiClient client = _webServer.client();
 
   // Write Header
   client.print(F("HTTP/1.0 "));
