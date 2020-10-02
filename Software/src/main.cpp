@@ -130,6 +130,8 @@ void wifiSetup()
 
   WiFi.enableAP(false);
   WiFi.softAPdisconnect();
+  WiFi.setAutoConnect(true);
+  WiFi.setAutoReconnect(true);
 
   /* Get configuration from WifiManager */
   Configuration._hostname = custom_mqtt_hostname.getValue();
@@ -167,6 +169,7 @@ void setup()
   Configuration.setup();
   // Configuration.restoreDefault();
   relay.setTimeout(Configuration._timeoutRelay);
+  relay.setState(Configuration._stateRelay);
 
   wifiSetup();
 
@@ -202,10 +205,10 @@ void setup()
     Log.println("Arduino OTA: End");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Log.printf("Arduino OTA Progress: %u%%\r", (progress / (total / 100)));
+    Log.println("Arduino OTA Progress: " + String(progress / (total / 100) + "%"));
   });
   ArduinoOTA.onError([](ota_error_t error) {
-    Log.printf("Arduino OTA Error[%u]: ", error);
+    Log.print("Arduino OTA Error [" + String(error) + "]: ");
     if (error == OTA_AUTH_ERROR)
       Log.println("Arduino OTA: Auth Failed");
     else if (error == OTA_BEGIN_ERROR)
@@ -219,7 +222,6 @@ void setup()
   });
 
   ArduinoOTA.begin();
-  Log.println("");
 #endif
 
   Log.setupTelnet();
@@ -233,7 +235,7 @@ void setup()
 void loop()
 {
   static uint8_t noWifiConnection = 0;
-  static unsigned long tickSendData = 0, tickSaveData = 0, tickPrintData = 0;
+  static unsigned long tickSendData = 0, tickSaveData = 0, tickPrintData = 0, tickCheckWifi = 0;
   const unsigned long tick = millis();
 
   MqttClient.handle();
@@ -253,20 +255,27 @@ void loop()
     tickSaveData = tick;
   }
 
-  if (!WiFi.isConnected())
+  // Check wifi connection every 10 seconds 
+  if ((tick - tickCheckWifi) >= 10000)
   {
-    if (noWifiConnection >= 10)
+    if (!WiFi.isConnected())
     {
-      ESP.restart();
+      // If at 60 seconds we have no wifi, we force to reconnect
+      if (noWifiConnection >= 6)
+      {
+        WiFi.reconnect();
+        // ESP.restart();
+      }
+      else
+      {
+        noWifiConnection++;
+      }
     }
     else
     {
-      noWifiConnection++;
+      noWifiConnection = 0;
     }
-  }
-  else
-  {
-    noWifiConnection = 0;
+    tickCheckWifi = tick;
   }
 
 #ifdef ENABLE_OTA

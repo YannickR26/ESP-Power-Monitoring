@@ -30,6 +30,8 @@ void SimpleRelay::setState(uint8_t state)
 
     Log.println("set " + String(_name) + " to " + String(state));
     MqttClient.publish(String(_name), String(state));
+    Configuration._stateRelay = state;
+    Configuration.saveConfig();
 
     _tickTimeout.detach();
 

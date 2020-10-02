@@ -34,6 +34,7 @@ class JsonConfiguration
 	uint8_t _currentClampA, _currentClampB, _currentClampC;
 	uint32_t _consoA, _consoB, _consoC;
 	float _timeoutRelay;
+	uint8_t _stateRelay;
      	
   private:
   

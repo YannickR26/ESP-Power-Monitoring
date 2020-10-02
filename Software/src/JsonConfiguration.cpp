@@ -59,6 +59,7 @@ void JsonConfiguration::print(void)
   Log.println(String("    consoB: ") + String(_consoB));
   Log.println(String("    consoC: ") + String(_consoC));
   Log.println(String("    timeoutRelay: ") + String(_timeoutRelay));
+  Log.println(String("    stateRelay: ") + String(_stateRelay));
 }
 
 bool JsonConfiguration::readConfig()
@@ -136,6 +137,7 @@ void JsonConfiguration::restoreDefault()
   _consoB = 0;
   _consoC = 0;
   _timeoutRelay = 0;
+  _stateRelay = 0;
 
   saveConfig();
   Log.println("configuration restored.");
@@ -162,6 +164,7 @@ uint8_t JsonConfiguration::encodeToJson(JsonDocument &_json)
   _json["consoB"] = _consoB;
   _json["consoC"] = _consoC;
   _json["timeoutRelay"] = _timeoutRelay;
+  _json["stateRelay"] = _stateRelay;
 
   return 0;
 }
@@ -234,6 +237,9 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
 
   if (!doc["timeoutRelay"].isNull())
     _timeoutRelay = doc["timeoutRelay"].as<float>();
+
+  if (!doc["stateRelay"].isNull())
+    _stateRelay = doc["stateRelay"].as<uint8_t>();
 
   return 0;
 }
