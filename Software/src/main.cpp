@@ -174,17 +174,13 @@ void setup()
   // Create ticker for blink LED
   tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
 
-  /* Initialize the ATM90E32 + SPI port */
-  Monitoring.begin(ATM90E32_CS, ATM90E32_PM0, ATM90E32_PM1, Configuration._mode, 0, ATM90E32_UGAIN, Configuration._currentClampA, Configuration._currentClampB, Configuration._currentClampC);
-  Monitoring.setConsoLineA(Configuration._consoA);
-  Monitoring.setConsoLineB(Configuration._consoB);
-  Monitoring.setConsoLineC(Configuration._consoC);
-
   /* Initialize HTTP Server */
   HTTPServer.setup();
 
   /* Initialize MQTT Client */
   MqttClient.setup();
+
+  Log.setupTelnet();
 
   // Init OTA
 #ifdef ENABLE_OTA
@@ -202,27 +198,31 @@ void setup()
   ArduinoOTA.onEnd([]() {
     Log.println("Arduino OTA: End");
   });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Log.println("Arduino OTA Progress: " + String(progress / (total / 100) + "%"));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    Log.print("Arduino OTA Error [" + String(error) + "]: ");
-    if (error == OTA_AUTH_ERROR)
-      Log.println("Arduino OTA: Auth Failed");
-    else if (error == OTA_BEGIN_ERROR)
-      Log.println("Arduino OTA: Begin Failed");
-    else if (error == OTA_CONNECT_ERROR)
-      Log.println("Arduino OTA: Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR)
-      Log.println("Arduino OTA: Receive Failed");
-    else if (error == OTA_END_ERROR)
-      Log.println("Arduino OTA: End Failed");
-  });
+  // ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+  //   Log.println("Arduino OTA Progress: " + String(progress / (total / 100) + "%"));
+  // });
+  // ArduinoOTA.onError([](ota_error_t error) {
+  //   Log.print("Arduino OTA Error [" + String(error) + "]: ");
+  //   if (error == OTA_AUTH_ERROR)
+  //     Log.println("Arduino OTA: Auth Failed");
+  //   else if (error == OTA_BEGIN_ERROR)
+  //     Log.println("Arduino OTA: Begin Failed");
+  //   else if (error == OTA_CONNECT_ERROR)
+  //     Log.println("Arduino OTA: Connect Failed");
+  //   else if (error == OTA_RECEIVE_ERROR)
+  //     Log.println("Arduino OTA: Receive Failed");
+  //   else if (error == OTA_END_ERROR)
+  //     Log.println("Arduino OTA: End Failed");
+  // });
 
   ArduinoOTA.begin();
 #endif
 
-  Log.setupTelnet();
+  /* Initialize the ATM90E32 + SPI port */
+  Monitoring.begin(ATM90E32_CS, Configuration._mode, 0, ATM90E32_UGAIN, Configuration._currentClampA, Configuration._currentClampB, Configuration._currentClampC);
+  Monitoring.setConsoLineA(Configuration._consoA);
+  Monitoring.setConsoLineB(Configuration._consoB);
+  Monitoring.setConsoLineC(Configuration._consoC);
 
   updateTimeAndSaveData();
 }
@@ -247,6 +247,7 @@ void loop()
     tickSendData = tick;
   }
 
+  // Save data
   if ((tick - tickSaveData) >= (Configuration._timeSaveData * 1000))
   {
     updateTimeAndSaveData();
@@ -289,25 +290,25 @@ void loop()
       */
       unsigned short val;
 
-      val = Monitoring.CalculateVIOffset(UrmsA, UrmsALSB, UoffsetA);
+      val = Monitoring.CalculateVIOffset(UrmsA, UrmsALSB);
       Log.println("Offset UA: " + String(val) + " (0x" + String(val, HEX) + ")");
-      val = Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB, UoffsetB);
+      val = Monitoring.CalculateVIOffset(UrmsB, UrmsBLSB);
       Log.println("Offset UB: " + String(val) + " (0x" + String(val, HEX) + ")");
-      val = Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB, UoffsetC);
+      val = Monitoring.CalculateVIOffset(UrmsC, UrmsCLSB);
       Log.println("Offset UC: " + String(val) + " (0x" + String(val, HEX) + ")");
 
-      val = Monitoring.CalculateVIOffset(IrmsA, IrmsALSB, IoffsetA);
+      val = Monitoring.CalculateVIOffset(IrmsA, IrmsALSB);
       Log.println("Offset IA: " + String(val) + " (0x" + String(val, HEX) + ")");
-      val = Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB, IoffsetB);
+      val = Monitoring.CalculateVIOffset(IrmsB, IrmsBLSB);
       Log.println("Offset IB: " + String(val) + " (0x" + String(val, HEX) + ")");
-      val = Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB, IoffsetC);
+      val = Monitoring.CalculateVIOffset(IrmsC, IrmsCLSB);
       Log.println("Offset IC: " + String(val) + " (0x" + String(val, HEX) + ")");
 
-      val = Monitoring.CalculateVIOffset(PmeanA, PmeanALSB, PoffsetA);
+      val = Monitoring.CalculateVIOffset(PmeanA, PmeanALSB);
       Log.println("Offset PA: " + String(val) + " (0x" + String(val, HEX) + ")");
-      val = Monitoring.CalculateVIOffset(PmeanB, PmeanBLSB, PoffsetB);
+      val = Monitoring.CalculateVIOffset(PmeanB, PmeanBLSB);
       Log.println("Offset PB: " + String(val) + " (0x" + String(val, HEX) + ")");
-      val = Monitoring.CalculateVIOffset(PmeanC, PmeanCLSB, PoffsetC);
+      val = Monitoring.CalculateVIOffset(PmeanC, PmeanCLSB);
       Log.println("Offset PC: " + String(val) + " (0x" + String(val, HEX) + ")");
 
       Log.println();
