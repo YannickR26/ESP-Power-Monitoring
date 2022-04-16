@@ -55,20 +55,21 @@ void JsonConfiguration::print(void)
   Log.println(String("    timeoutRelay: ") + String(_timeoutRelay));
   Log.println(String("    stateRelay: ") + String(_stateRelay));
   Log.println(String("    mode: ") + String(_mode));
-  Log.println(String("    MQTT: ") + String(_mqttEnable));
-  Log.println(String("      mqttIpServer: ") + _mqttIpServer);
-  Log.println(String("      mqttPortServer: ") + String(_mqttPortServer));
-  Log.println(String("      mqttUsername: ") + String(_mqttUsername));
-  Log.println(String("      mqttPassword: ") + String(_mqttPassword));
-  Log.println(String("    lineA: ") + String(_enableA));
+  Log.println(String("    MQTT: ") + String(_mqttEnable ? "Enable" : "Disable"));
+  Log.println(String("      ipServer: ") + _mqttIpServer);
+  Log.println(String("      portServer: ") + String(_mqttPortServer));
+  Log.println(String("      username: ") + String(_mqttUsername));
+  Log.println(String("      password: ") + String(_mqttPassword));
+  Log.println(String("      topic: ") + String(_mqttTopic));
+  Log.println(String("    lineA: ") + String(_enableA ? "Enable" : "Disable"));
   Log.println(String("      nameA: ") + String(_nameA));
   Log.println(String("      currentClampA: ") + String(_currentClampA));
   Log.println(String("      consoA: ") + String(_consoA));
-  Log.println(String("    lineB: ") + String(_enableB));
+  Log.println(String("    lineB: ") + String(_enableB ? "Enable" : "Disable"));
   Log.println(String("      nameB: ") + String(_nameB));
   Log.println(String("      currentClampB: ") + String(_currentClampB));
   Log.println(String("      consoB: ") + String(_consoB));
-  Log.println(String("    lineC: ") + String(_enableC));
+  Log.println(String("    lineC: ") + String(_enableC ? "Enable" : "Disable"));
   Log.println(String("      nameC: ") + String(_nameC));
   Log.println(String("      currentClampC: ") + String(_currentClampC));
   Log.println(String("      consoC: ") + String(_consoC));
@@ -108,7 +109,6 @@ bool JsonConfiguration::readConfig()
 
 bool JsonConfiguration::saveConfig()
 {
-  // StaticJsonDocument<512> doc;
   DynamicJsonDocument doc(1024);
 
   Log.print("Try to save config... ");
@@ -144,6 +144,7 @@ void JsonConfiguration::restoreDefault()
   _mqttPortServer = DEFAULT_MQTTPORTSERVER;
   _mqttUsername = "";
   _mqttPassword = "";
+  _mqttTopic = _hostname + '/';
   _timeSaveData = DEFAULT_SAVE_DATA_INTERVAL_SEC;
   _timeSendData = DEFAULT_SEND_DATA_INTERVAL_SEC;
   _mode = MODE_MONO;
@@ -176,6 +177,7 @@ uint8_t JsonConfiguration::encodeToJson(JsonDocument &_json)
   mqtt["portServer"] = _mqttPortServer;
   mqtt["username"] = _mqttUsername;
   mqtt["password"] = _mqttPassword;
+  mqtt["topic"] = _mqttTopic;
 
   JsonObject lineA = _json.createNestedObject("lineA");
   lineA["enable"] = _enableA;
@@ -222,7 +224,7 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
   if (!doc["timeSendData"].isNull())
     _timeSendData = doc["timeSendData"].as<uint16_t>();
 
-  if (!doc["timeSendData"].isNull())
+  if (!doc["mode"].isNull())
     _mode = doc["mode"].as<uint8_t>();
 
   if (!doc["timeoutRelay"].isNull())
@@ -248,6 +250,9 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
 
     if (!mqtt["password"].isNull())
       _mqttPassword = mqtt["password"].as<String>();
+
+    if (!mqtt["topic"].isNull())
+      _mqttTopic = mqtt["topic"].as<String>();
   }
 
   JsonObject lineA = doc["lineA"];
