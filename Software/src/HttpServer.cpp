@@ -41,13 +41,13 @@ void HttpServer::setup(void)
 
     _webServer.enableCORS();
 
-    _webServer.on("/restart", [&]() {
+    _webServer.on("/restart", HTTP_GET, [&]() {
         _webServer.send(200, "text/plain", "ESP restart now !");
         delay(1000);
         ESP.restart();
     });
 
-    _webServer.on("/reset", [&]() {
+    _webServer.on("/resetWifiManager", HTTP_GET, [&]() {
         _webServer.send(200, "text/plain", "Reset WifiManager configuration, restart now in AP mode...");
         delay(200);
         WiFiManager wifiManager;
@@ -56,16 +56,27 @@ void HttpServer::setup(void)
         ESP.restart();
     });
 
-    _webServer.on("/config", HTTP_GET, [&]() {
-        getConfig();
+    _webServer.on("/resetConfiguration", HTTP_GET, [&]() {
+        _webServer.send(200, "text/plain", "Resetting all parameters, you must reboot for apply it !");
+        delay(200);
+        Configuration.restoreDefault();
+        Configuration.saveConfig();
     });
-    _webServer.on("/config", HTTP_POST, [&]() {
+
+
+    _webServer.on("/setConfiguration", HTTP_PUT, [&]() {
         setConfig();
     });
+
     _webServer.on("/status", HTTP_GET, [&]() {
         getStatus();
     });
-    _webServer.on("/set", [&]() {
+
+    _webServer.on("/informations", HTTP_GET, [&]() {
+        getInformations();
+    });
+
+    _webServer.on("/set", HTTP_GET, [&]() {
         handleSet();
     });
 
@@ -84,6 +95,16 @@ void HttpServer::handle(void)
 #if defined(ESP8266)
     MDNS.update();
 #endif
+}
+
+void HttpServer::getInformations()
+{
+    DynamicJsonDocument doc(128);
+
+    doc["buildDate"] = BUILD_DATE;
+    doc["version"] = VERSION;
+
+    HTTPServer.sendJson(200, doc);
 }
 
 String HttpServer::getContentType(String filename)
@@ -180,10 +201,7 @@ void HttpServer::getStatus()
     Log.println("Send Status to HTTP");
 
     DynamicJsonDocument doc(1024);
-    doc.clear();
 
-    doc["version"] = String(VERSION);
-    doc["build"] = String(BUILD_DATE);
     doc["relay"] = digitalRead(RELAY_PIN);
 
     JsonObject jsonLineA = doc.createNestedObject("lineA");
@@ -212,17 +230,6 @@ void HttpServer::getStatus()
 
     // Send Status
     HTTPServer.sendJson(200, doc);
-}
-
-void HttpServer::getConfig()
-{
-    Log.println("Send Configuration");
-
-    DynamicJsonDocument doc(1024);
-    Configuration.encodeToJson(doc);
-
-    // Send Configuration
-    sendJson(200, doc);
 }
 
 void HttpServer::setConfig()

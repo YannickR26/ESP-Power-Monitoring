@@ -27,12 +27,13 @@ public:
 #endif
 
 
+
     String getContentType(String filename);
     bool handleFileRead(String path);
     void handleNotFound();
     void handleSet();
+    void getInformations();
     void getStatus();
-    void getConfig();
     void setConfig();
     void sendJson(const uint16_t code, JsonDocument &doc);
 
