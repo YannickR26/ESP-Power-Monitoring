@@ -589,41 +589,53 @@ void ATM90E32::handle(void)
 
   if (Configuration._mode == MODE_MONO)
   {
-    _line_A.current = GetLineCurrentA();
-    _line_B.current = GetLineCurrentB();
-    _line_C.current = GetLineCurrentC();
-    _line_A.power = GetActivePowerA();
-    _line_B.power = GetActivePowerB();
-    _line_C.power = GetActivePowerC();
-    _line_A.conso += (_line_A.power / 3600) * time / 1000;
-    _line_B.conso += (_line_B.power / 3600) * time / 1000;
-    _line_C.conso += (_line_C.power / 3600) * time / 1000;
+    if (Configuration._enableA) {
+      _line_A.current = GetLineCurrentA();
+      _line_A.power = GetActivePowerA();
+      _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    }
+    if (Configuration._enableB) {
+      _line_B.current = GetLineCurrentB();
+      _line_B.power = GetActivePowerB();
+      _line_B.conso += (_line_B.power / 3600) * time / 1000;
+    }
+    if (Configuration._enableC) {
+      _line_C.power = GetActivePowerC();
+      _line_C.current = GetLineCurrentC();
+      _line_C.conso += (_line_C.power / 3600) * time / 1000;
+    }
   }
   else if (Configuration._mode == MODE_TRI_1)
   {
-    _line_A.current = (GetLineCurrentA() * (2 * sqrt(3)) / 3);
-    _line_A.current += (GetLineCurrentC() * sqrt(3) / 3);
+    if (Configuration._enableA) {
+      _line_A.current = (GetLineCurrentA() * (2 * sqrt(3)) / 3);
+      _line_A.current += (GetLineCurrentC() * sqrt(3) / 3);
+      _line_A.power = (GetActivePowerA() * (2 * sqrt(3)) / 3);
+      _line_A.power += (GetActivePowerC() * sqrt(3) / 3);
+      _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    }
     _line_B.current = 0;
-    _line_C.current = 0;
-    _line_A.power = (GetActivePowerA() * (2 * sqrt(3)) / 3);
-    _line_A.power += (GetActivePowerC() * sqrt(3) / 3);
     _line_B.power = 0;
-    _line_C.power = 0;
-    _line_A.conso += (_line_A.power / 3600) * time / 1000;
     _line_B.conso = 0;
+    _line_C.current = 0;
+    _line_C.power = 0;
     _line_C.conso = 0;
   }
   else if (Configuration._mode == MODE_TRI_2)
   {
-    _line_A.current = GetLineCurrentA() * sqrt(3);
+    if (Configuration._enableA) {
+      _line_A.current = GetLineCurrentA() * sqrt(3);
+      _line_A.power = GetActivePowerA() * sqrt(3);
+      _line_A.conso += (_line_A.power / 3600) * time / 1000;
+    }
     _line_B.current = 0;
-    _line_C.current = GetLineCurrentC() * sqrt(3);
-    _line_A.power = GetActivePowerA() * sqrt(3);
     _line_B.power = 0;
-    _line_C.power = GetActivePowerC() * sqrt(3);
-    _line_A.conso += (_line_A.power / 3600) * time / 1000;
     _line_B.conso = 0;
-    _line_C.conso += (_line_C.power / 3600) * time / 1000;
+    if (Configuration._enableC) {
+      _line_C.current = GetLineCurrentC() * sqrt(3);
+      _line_C.power = GetActivePowerC() * sqrt(3);
+      _line_C.conso += (_line_C.power / 3600) * time / 1000;
+    }
   }
   else if (Configuration._mode == MODE_DEBUG)
   {
@@ -638,9 +650,9 @@ void ATM90E32::handle(void)
     _line_C.conso += (_line_C.power / 3600) * time / 1000;
   }
 
-  Log.println("Line A: " + String(_line_A.voltage) + "V, " + String(_line_A.current) + "A, " + String(_line_A.power) + "W, " + String(_line_A.conso) + "kW/h, cos phy " + String(_line_A.cosPhy));
-  Log.println("Line B: " + String(_line_B.voltage) + "V, " + String(_line_B.current) + "A, " + String(_line_B.power) + "W, " + String(_line_B.conso) + "kW/h, cos phy " + String(_line_B.cosPhy));
-  Log.println("Line C: " + String(_line_C.voltage) + "V, " + String(_line_C.current) + "A, " + String(_line_C.power) + "W, " + String(_line_C.conso) + "kW/h, cos phy " + String(_line_C.cosPhy));
+  Log.println(String(Configuration._nameA) + ": " + String(_line_A.voltage) + "V, " + String(_line_A.current) + "A, " + String(_line_A.power) + "W, " + String(_line_A.conso) + "kW/h, cos phy " + String(_line_A.cosPhy));
+  Log.println(String(Configuration._nameB) + ": " + String(_line_B.voltage) + "V, " + String(_line_B.current) + "A, " + String(_line_B.power) + "W, " + String(_line_B.conso) + "kW/h, cos phy " + String(_line_B.cosPhy));
+  Log.println(String(Configuration._nameC) + ": " + String(_line_C.voltage) + "V, " + String(_line_C.current) + "A, " + String(_line_C.power) + "W, " + String(_line_C.conso) + "kW/h, cos phy " + String(_line_C.cosPhy));
   Log.println("Frequency: " + String(Monitoring.GetFrequency()) + "Hz");
 }
 
