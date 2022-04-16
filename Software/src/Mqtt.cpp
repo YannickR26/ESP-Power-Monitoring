@@ -3,7 +3,12 @@
 #include "JsonConfiguration.h"
 #include "ATM90E32.h"
 
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#endif
+
 #include <WiFiManager.h>
 #include "Logger.h"
 #include "SimpleRelay.h"

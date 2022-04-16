@@ -1,4 +1,10 @@
+#if defined(ESP8266)
 #include <LittleFS.h>
+#define FS LittleFS
+#elif defined(ESP32)
+#include <SPIFFS.h>
+#define FS SPIFFS
+#endif
 
 #include "JsonConfiguration.h"
 #include "Logger.h"
@@ -17,14 +23,14 @@ JsonConfiguration::~JsonConfiguration()
 
 void JsonConfiguration::setup(void)
 {
-  /* Initialize LittleFS */
-  if (!LittleFS.begin())
+  /* Initialize FS */
+  if (!FS.begin())
   {
-    Log.println("failed to initialize LittleFS, try to format");
-    LittleFS.format();
-    if (!LittleFS.begin())
+    Log.println("failed to initialize FS, try to format");
+    FS.format();
+    if (!FS.begin())
     {
-      Log.println("definitely failed to initialize LittleFS !");
+      Log.println("definitely failed to initialize FS !");
       return;
     }
   }
@@ -64,10 +70,10 @@ void JsonConfiguration::print(void)
 
 bool JsonConfiguration::readConfig()
 {
-  Log.println("Read Configuration file from LittleFS...");
+  Log.println("Read Configuration file from FS...");
 
   // Open file
-  File configFile = LittleFS.open("/config.json", "r");
+  File configFile = FS.open("/config.json", "r");
   if (!configFile)
   {
     Log.println("Failed to open config file");
@@ -96,7 +102,7 @@ bool JsonConfiguration::saveConfig()
 
   encodeToJson(doc);
 
-  File configFile = LittleFS.open("/config.json", "w");
+  File configFile = FS.open("/config.json", "w");
   if (!configFile)
   {
     Log.println("Error: Failed to open config file for writing");
