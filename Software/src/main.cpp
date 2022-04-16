@@ -25,18 +25,16 @@ SimpleRelay relay(RELAY_PIN, "relay");
 // Update time from NTP and save data
 void updateTimeAndSaveData()
 {
-  time_t now = time(nullptr);
+  struct tm timeinfo;
 
-  Log.print("Update NTP");
-  configTime(UTC_OFFSET * 3600, 0, NTP_SERVERS);
-  // delay(500);
-  while (now < EPOCH_1_1_2019)
-  {
-    now = time(nullptr);
-    Log.print(".");
-    delay(500);
-  }
+  Log.print("Update NTP...");
+
+  configTzTime(TIMEZONE, NTP_SERVERS);
+  getLocalTime(&timeinfo);
+
   Log.println(" Done !");
+  Log.print("Date Time: ");
+  Log.println(asctime(&timeinfo));
 
   Log.println("Save data");
   Configuration._consoA = (uint32_t)Monitoring.getLineA()->conso;
