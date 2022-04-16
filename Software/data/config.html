@@ -1,309 +1,334 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
-	<!--Import Google Icon Font-->
-	<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<!--Import materialize.css-->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css">
-	<link rel="stylesheet" href="style.css">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Yannick RICHARDOT <yannickr26@free.fr>">
 
-	<!--Let browser know website is optimized for mobile-->
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>ESP Power Monitoring</title>
+    <!-- Bootstrap CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="style.css" rel="stylesheet">
+
+    <title>Power Monitoring</title>
 </head>
 
-<body class="bg">
-	<nav>
-		<div class="nav-wrapper">
-			<a href="#!" class="brand-logo center">ESP Power Monitoring</a>
-			<ul class="right hide-on-small-and-down">
-				<li>
-					<a href="index.html">Visualisation</a>
-				</li>
-				<li class="active">
-					<a href="config.html">Configuration</a>
-				</li>
-			</ul>
-		</div>
-	</nav>
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3">Power Monitoring</a>
+    </header>
 
-	<div class="container">
-		<div class="row"></div>
-		<div class="row">
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="config.html">
+                                Configuration
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
 
-			<div id="Global" class="col s12 m12 l12">
-				<div class="row"></div>
-				<div class="input-field col s12">
-					<input id="hostname" type="text">
-					<label for="hostname">Hostname</label>
-				</div>
-				<div class="input-field col s6">
-					<input id="mqttIpServer" type="text">
-					<label for="mqttIpServer">MQTT Ip Server</label>
-				</div>
-				<div class="input-field col s6">
-					<input id="mqttPortServer" type="text">
-					<label for="mqttPortServer">MQTT Port Server</label>
-				</div>
-				<div class="input-field col s6">
-					<input id="mqttUsername" type="text">
-					<label for="mqttUsername">MQTT Username</label>
-				</div>
-				<div class="input-field col s6">
-					<input id="mqttPassword" type="text">
-					<label for="mqttPassword">MQTT Password</label>
-				</div>
-				<div class="input-field col s3">
-					<input id="timeSaveData" type="text">
-					<label for="timeSaveData">NTP and Save Data Intervale (s)</label>
-				</div>
-				<div class="input-field col s3">
-					<input id="timeSendData" type="text">
-					<label for="timeSendData">Send Data Intervale (s)</label>
-				</div>
-				<div class="input-field col s3">
-					<input id="mode" type="text">
-					<label for="mode">Mode (0: Mono, 1: 1x Tri, 2: 2x Tri)</label>
-				</div>
-				<div class="input-field col s3">
-					<input id="timeoutRelay" type="text">
-					<label for="timeoutRelay">Timeout relay (s)</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="nameA" type="text">
-					<label for="nameA">Name line A</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="nameB" type="text">
-					<label for="nameB">Name line B</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="nameC" type="text">
-					<label for="nameC">Name line C</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="currentClampA" type="text">
-					<label for="currentClampA">Max Current Sensor, line A (A)</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="currentClampB" type="text">
-					<label for="currentClampB">Max Current Sensor, line B (A)</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="currentClampC" type="text">
-					<label for="currentClampC">Max Current Sensor, line C (A)</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="consoA" type="text">
-					<label for="consoA">Conso, line A</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="consoB" type="text">
-					<label for="consoB">Conso, line B</label>
-				</div>
-				<div class="input-field col s4">
-					<input id="consoC" type="text">
-					<label for="consoC">Conso, line C</label>
-				</div>
-				<div class="col s12 m12 l12" align="left">
-					<a class="waves-effect waves-light btn" onClick="save()">
-						<i class="material-icons right">send</i>
-						Enregistrer
-					</a>
-				</div>
-				<div class="col s12 m12 l12" align="right">
-					<a class="waves-effect waves-ligt btn-small modal-trigger" onClick="restart()" href="#modal1">
-						<i class="material-icons left">autorenew</i>
-						Red&eacute;marrer
-					</a>
-				</div>
-			</div>
+            <main role="main" class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 
-			<!-- Modal Structure -->
-			<div id="modal1" class="modal">
-				<div class="modal-content">
-					<h4>Red&eacute;marrage en cours</h4>
-					<p>Veuillez patientez</p>
-					<div class="progress">
-						<div class="indeterminate"></div>
-					</div>
-				</div>
-			</div>
+                <div class="row pt-md-4">
+                    <div class="input-group mb-3 col">
+                        <span class="input-group-text">Version</span>
+                        <input type="text" class="form-control" id="version-text" disabled>
+                    </div>
+                    <div class="input-group mb-3 col">
+                        <span class="input-group-text"">Build Date</span>
+                        <input type=" text" class="form-control" id="buildDate-text" disabled>
+                    </div>
+                </div>
 
-		</div>
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h2>Configuration</h2>
+                    <button type="button" class="btn btn-lg btn-primary" onclick="onBtnSaveClick()">Save</button>
+                </div>
 
-	</div>
+                <!-- HostName -->
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Host Name</span>
+                    <input type="text" class="form-control" id="hostname-text">
+                </div>
 
-	<!--Import jQuery before materialize.js-->
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
-	<script src="https://use.fontawesome.com/releases/v5.2.0/js/all.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.0.4/jscolor.js"></script>
+                <!-- ---- -->
+                <!-- MQTT -->
+                <!-- ---- -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <input type="checkbox" class="form-check-input" id="mqtt-enable" data-bs-toggle="collapse"
+                            href="#card-mqtt">
+                        <label class="form-check-label" for="mqtt-enable">
+                            MQTT
+                        </label>
+                    </div>
+                    <div class="card-body collapse" id="card-mqtt">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">@ IP / Hostname</span>
+                                    <input type="text" class="form-control" id="mqtt-hostname">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">Port</span>
+                                    <input type="number" min="1" max="65535" class="form-control" id="mqtt-port">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">Username</span>
+                                    <input type="text" class="form-control" id="mqtt-username">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">Password</span>
+                                    <input type="password" class="form-control" id="mqtt-password">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Topic</span>
+                                    <input type="text" class="form-control" id="mqtt-topic">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-	<script>
-		var ENV_PROD = true;
+                <!-- Period Data (Save & Send) -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text">Period data save</span>
+                            <input type="number" value="3600" min="1" max="9999" class="form-control" id="period-data-save">
+                            <span class="input-group-text">s</span>
+                        </div>
+                    </div>
 
-		var URI;
-		if (ENV_PROD == true) {
-			URI = document.location.origin + "/";
-		} else {
-			// URI = "http://192.168.1.19/";
-			URI = "http://10.65.30.42/";
-		}
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text">Period data send</span>
+                            <input type="number" value="15" min="1" max="9999" class="form-control" id="period-data-send">
+                            <span class="input-group-text">s</span>
+                        </div>
+                    </div>
+                </div>
 
-		var errorConnectionToast;
+                <!-- Mode + Timeout relay -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text">Mode</span>
+                            <select class="form-select" id="mode-select">
+                                <option value="0">3x Mono</option>
+                                <option value="1">1x Tri</option>
+                                <option value="2">2x Tri</option>
+                            </select>
+                        </div>
+                    </div>
 
-		function restart() {
-			$.post(URI + "restart")
-				.done(function (res) {
-					// M.toast({ html: "Red&eacute;marrage en cours..." });
-					pooling();
-				})
-				.fail(function () {
-					/* Display Toast Error */
-					if (!errorConnectionToast) {
-						errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
-					}
-				})
-				.always(function () {
-				});
-		}
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text">Timeout relay</span>
+                            <input type="number" value="0" min="0" max="9999" class="form-control" id="timeout-relay">
+                            <span class="input-group-text">s</span>
+                        </div>
+                    </div>
+                </div>
 
-		function save() {
-			var json = {};
-			json = {};
-			json.hostname = $('#hostname').val();
-			json.mqttIpServer = $('#mqttIpServer').val();
-			json.mqttPortServer = parseInt($('#mqttPortServer').val());
-			json.mqttUsername = $('#mqttUsername').val();
-			json.mqttPassword = $('#mqttPassword').val();
-			json.timeSaveData = parseInt($('#timeSaveData').val());
-			json.timeSendData = parseInt($('#timeSendData').val());
-			json.mode = parseInt($('#mode').val());
-			json.nameA = $('#nameA').val();
-			json.nameB = $('#nameB').val();
-			json.nameC = $('#nameC').val();
-			json.currentClampA = parseInt($('#currentClampA').val());
-			json.currentClampB = parseInt($('#currentClampB').val());
-			json.currentClampC = parseInt($('#currentClampC').val());
-			json.consoA = parseInt($('#consoA').val());
-			json.consoB = parseInt($('#consoB').val());
-			json.consoC = parseInt($('#consoC').val());
-			json.timeoutRelay = parseFloat($('#timeoutRelay').val());
 
-			$.post(URI + "config", JSON.stringify(json))
-				.done(function (res) {
-					M.toast({ html: "Configuration sauvegard&eacute; !" });
-					getConfig();
-				})
-				.fail(function () {
-					/* Display Toast Error */
-					if (!errorConnectionToast) {
-						errorConnectionToast = M.toast({ html: "Impossible d'envoyer la configuration !" });
-					}
-				})
-				.always(function () {
-				});
-		}
+                <!-- ------ -->
+                <!-- Line A -->
+                <!-- ------ -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <input type="checkbox" class="form-check-input" id="lineA-enable" data-bs-toggle="collapse"
+                            href="#card-lineA">
+                        <label class="form-check-label" for="lineA-enable">
+                            Line A
+                        </label>
+                    </div>
+                    <div class="card-body collapse" id="card-lineA">
+                        <div class="row">
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Name</span>
+                                    <input type="text" class="form-control" id="lineA-name">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Current Clamp</span>
+                                    <input type="number" value="30" min="1" max="100" class="form-control" id="lineA-clamp">
+                                    <span class="input-group-text">A</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Cumulative Consumption</span>
+                                    <input type="number" min="0" class="form-control" id="lineA-consumption">
+                                    <span class="input-group-text">kWh</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-		function pooling() {
-			let abortController = new AbortController();
-			let abortSignal = abortController.signal;
+                <!-- ------ -->
+                <!-- Line B -->
+                <!-- ------ -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <input type="checkbox" class="form-check-input" id="lineB-enable" data-bs-toggle="collapse"
+                            href="#card-lineB">
+                        <label class="form-check-label" for="lineB-enable">
+                            Line B
+                        </label>
+                    </div>
+                    <div class="card-body collapse" id="card-lineB">
+                        <div class="row">
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Name</span>
+                                    <input type="text" class="form-control" id="lineB-name">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Current Clamp</span>
+                                    <input type="number" value="30" min="1" max="100" class="form-control" id="lineB-clamp">
+                                    <span class="input-group-text">A</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Cumulative Consumption</span>
+                                    <input type="number" min="0" class="form-control" id="lineB-consumption">
+                                    <span class="input-group-text">kWh</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-			let abortTimeout = setTimeout(() => {
-				abortController.abort();
-				// console.log('aborted');
-				pooling();
-			}, 1000)
+                <!-- ------ -->
+                <!-- Line C -->
+                <!-- ------ -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <input type="checkbox" class="form-check-input" id="lineC-enable" data-bs-toggle="collapse"
+                            href="#card-lineC">
+                        <label class="form-check-label" for="lineC-enable">
+                            Line C
+                        </label>
+                    </div>
+                    <div class="card-body collapse" id="card-lineC">
+                        <div class="row">
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Name</span>
+                                    <input type="text" class="form-control" id="lineC-name">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Current Clamp</span>
+                                    <input type="number" value="30" min="1" max="100" class="form-control" id="lineC-clamp">
+                                    <span class="input-group-text">A</span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">Cumulative Consumption</span>
+                                    <input type="number" min="0" class="form-control" id="lineC-consumption">
+                                    <span class="input-group-text">kWh</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-			fetch(URI + 'config.json', {
-				mode: 'cors',
-				signal: abortSignal
-			}).then(response => {
-				clearTimeout(abortTimeout);
-				location.reload();
-			}).catch(error => {
-			});
-		}
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-3 border-bottom"></div>
 
-		function getConfig() {
-			console.log("try to read config...")
-			fetch(URI + 'config.json', {
-				mode: 'cors',
-			}).then(response =>
-				response.json()
-			).then(params => {
-				// {
-				// 	"hostname": "ESP_Monitoring",
-				// 	"mqttIpServer": "192.168.1.201",
-				// 	"mqttPortServer": 1883,
-				// 	"mqttUsername": "",
-				// 	"mqttPassword": "",
-				// 	"timeSaveData": 3600,
-				// 	"timeSendData": 5,
-				// 	"mode": 0,
-				// 	"nameA": "lineA",
-				// 	"nameB": "lineB",
-				// 	"nameC": "lineC",
-				// 	"currentClampA": 30,
-				// 	"currentClampB": 30,
-				// 	"currentClampC": 60,
-				// 	"consoA": 0,
-				// 	"consoB": 0,
-				// 	"consoC": 0,
-				//  "timeoutRelay": 0
-				// }
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" id="url-file">
+                    <button class="btn btn-secondary" type="button" onclick="onBtnUpdateClick()">Update</button>
+                </div>
 
-				console.log("configuration read successfully !")
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-3 border-bottom"></div>
 
-				/* Remove Toast */
-				if (errorConnectionToast)
-					errorConnectionToast.remove();
+                <div class="btn-toolbar justify-content-between">
+                    <button type="submit" class="btn btn-info" onclick="onBtnRebootClick()">Reboot</button>
+                    <button type="submit" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalConfirmation">Reset Factory</button>
+                </div>
 
-				console.log("data receive: " + JSON.stringify(params, null, 2));
+                </br>
 
-				/* Add Data to GUI */
-				$('#hostname').val(params.hostname);
-				$('#mqttIpServer').val(params.mqttIpServer);
-				$('#mqttPortServer').val(params.mqttPortServer);
-				$('#mqttUsername').val(params.mqttUsername);
-				$('#mqttPassword').val(params.mqttPassword);
-				$('#timeSaveData').val(params.timeSaveData);
-				$('#timeSendData').val(params.timeSendData);
-				$('#mode').val(params.mode);
-				$('#nameA').val(params.nameA);
-				$('#nameB').val(params.nameB);
-				$('#nameC').val(params.nameC);
-				$('#currentClampA').val(params.currentClampA);
-				$('#currentClampB').val(params.currentClampB);
-				$('#currentClampC').val(params.currentClampC);
-				$('#consoA').val(params.consoA);
-				$('#consoB').val(params.consoB);
-				$('#consoC').val(params.consoC);
-				$('#timeoutRelay').val(params.timeoutRelay);
-				M.updateTextFields();
-			}).catch(error => {
-				/* Display Toast Error */
-				if (!errorConnectionToast) {
-					errorConnectionToast = M.toast({ html: "Impossible de communiquer avec le device !" });
-				}
-			})
-		}
 
-		$(document).ready(function () {
-			console.log("ready !");
-			getConfig();
+                <!-- Modal -->
+                <div class="modal fade" id="modalConfirmation" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Confirmation</h5>
+                            </div>
+                            <div class="modal-body">
+                                Reset all configurations, are you sure ?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="onBtnResetClick()">Yes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-			// Initialize Modal
-			M.Modal.init(document.querySelectorAll('.modal'), {
-				dismissible: false
-			});
-		});
+                <!-- Toast -->
+                <div aria-live="polite" aria-atomic="true" class="position-relative">
+                    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                        <div class="toast" id="toastError" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header toast-error">
+                                <strong class="me-auto" id="toastName">Error</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body" id="toastErrorText"></div>
+                        </div>
 
-	</script>
+                        <div class="toast" id="toastInfo" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header toast-info">
+                                <strong class="me-auto" id="toastName">Information</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body" id="toastInfoText"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+    <script src="bootstrap.min.js"></script>
+    <script src="dev_env.js"></script>
+    <script src="api_rest.js"></script>
+    <script src="config.js"></script>
+
 </body>
 
 </html>

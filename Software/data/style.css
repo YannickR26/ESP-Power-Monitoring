@@ -1,87 +1,151 @@
-body, html {
-	height: 100%;
-	background-color: slategrey;
+body {
+  font-size: 1rem;
 }
 
-.bg { 
-	/* The image used */
-	/*background-image: url("background1.jpg");*/
+/*
+ * Sidebar
+ */
 
-	/* Full height */
-	height: 100%; 
-	width: 100%;
-
-	/* Center and scale the image nicely */
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: cover;
-	max-width: initial !important;
-}
-
-input {
-	color: white;
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 48px 0 0; /* Height of navbar */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.1);
 }
 
-ul.tabs {
-	background-color: rgba(255, 255, 255, 0.17);
-}
-.tabs .tab a{
-	color:white;
-}
-.tabs .tab a.active {
-	color:black;
-}
-.tabs .tab a:focus.active {
-	color: black;
-}
-.tabs .tab a:hover {
-  color: white;
+@media (max-width: 767.98px) {
+  .sidebar {
+    top: 5rem;
+  }
 }
 
-.tabs .indicator {
-		background-color:black;
-} /*Color of underline*/
-
-.eventList * {
-	text-align: center;
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 48px);
+  padding-top: 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
 }
 
-.jscolor { 
-	margin-bottom: 0 !important;
-	border: 5px solid #f2f2f2 !important;
-	border-radius: 2px !important;
-	text-align: center;
-	box-sizing: border-box !important;
-	color: rgba(0,0,0,0) !important;
+@supports ((position: -webkit-sticky) or (position: sticky)) {
+  .sidebar-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+  }
 }
 
-.semi-transparent-container {
-	background: rgba(204, 204, 204, 0.5);
-	text-align: center;
-	padding-top: 20px;
-    padding-bottom: 20px;
+.sidebar .nav-link {
+  padding-left: 2rem;
+  padding-top: 1.3rem;
+  font-size: 1.4em;
+  font-weight: 500;
+  color: #333;
 }
 
-.container {
-	text-align: center;
-}
-.title {
-	text-align: center;
+.sidebar .nav-link.active {
+  color: #007bff;
 }
 
-.lower-card {
-	height: 250px;
+/*
+ * Navbar
+ */
+
+.navbar-text {
+  padding-right: 15px;
+  font-size: 1.5em;
 }
 
-#time {
-	margin-left: 10px;
+.navbar-brand {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  font-size: 2rem;
+  background-color: rgba(0, 0, 0, 0.25);
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.25);
+}
+
+.navbar .navbar-toggler {
+  top: 0.25rem;
+  right: 1rem;
+}
+
+.navbar .form-control {
+  padding: 0.75rem 1rem;
+  border-width: 0;
+  border-radius: 0;
+}
+
+.form-control-dark {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.form-control-dark:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+/* Slider vertical */
+.form-control-range {
+  -webkit-appearance: slider-vertical;
+}
+
+.center {
+  text-align: center;
+}
+
+.slider-value {
+  margin-top: 10px;
+  font-size: 1.25rem;
+}
+
+.input-number {
+  width: 100%;
+  margin-top: 15px;
+  font-size: 1.25em;
+}
+
+/* Toast */
+.toast-error {
+  font-size: 1.25em;
+  background-color: red;
+  color: rgb(255, 255, 255);
+}
+
+.toast-info {
+  font-size: 1.25em;
+  background-color: green;
+  color: rgb(255, 255, 255);
 }
 
 .toast {
-	background-color: #17c9ab !important;
+  font-size: 1em;
+  background-color: rgb(255, 255, 255);
 }
 
-nav {
-	background-color: rgba(223, 149, 149, 0.17);
-	font-size: 30px;
+/* Conf side */
+.card-header {
+  padding-left: 30px;
+}
+
+.card-nozzle {
+  height: 100%;
+}
+
+.card-col {
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-flex {
+  flex: auto;
 }
