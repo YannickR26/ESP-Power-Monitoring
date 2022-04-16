@@ -1,6 +1,7 @@
 #pragma once
 
 #include <PubSubClient.h>
+#include <ArduinoJson.h>
 
 #include "settings.h"
 
@@ -13,9 +14,12 @@ public:
 	void setup();
 	void handle();
 	bool publish(String topic, String body);
+	bool publish(String topic, JsonDocument &doc);
 	bool subscribe(String topic);
 	void log(String level, String str);
 	bool publishMonitoringData();
+	bool publishConfiguration();
+	bool publishInformations();
 	bool isConnected() { return _clientMqtt.connected(); }
 
 private:

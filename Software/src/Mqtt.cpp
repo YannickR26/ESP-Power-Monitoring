@@ -51,12 +51,23 @@ void Mqtt::handle()
 
 bool Mqtt::publish(String topic, String body)
 {
-  return _clientMqtt.publish(String(Configuration._hostname + "/" + topic).c_str(), String(body).c_str());
+  return _clientMqtt.publish(String(Configuration._mqttTopic + topic).c_str(), String(body).c_str());
+}
+
+bool Mqtt::publish(String topic, JsonDocument &doc)
+{
+  bool ret;
+
+  ret = _clientMqtt.beginPublish(String(Configuration._mqttTopic + topic).c_str(), measureJson(doc), false);
+  serializeJson(doc, _clientMqtt);
+  _clientMqtt.endPublish();
+
+  return ret;
 }
 
 bool Mqtt::subscribe(String topic)
 {
-  return _clientMqtt.subscribe(String(Configuration._hostname + "/" + topic).c_str());
+  return _clientMqtt.subscribe(String(Configuration._mqttTopic + topic).c_str());
 }
 
 void Mqtt::log(String level, String str)
@@ -67,49 +78,76 @@ void Mqtt::log(String level, String str)
 bool Mqtt::publishMonitoringData()
 {
   metering *line;
-  bool ret = true;
+  DynamicJsonDocument doc(1024);
 
-  /* Send Status */
-  ret &= publish(String("relay"), String(digitalRead(RELAY_PIN)));
-  ret &= publish(String("timeSendData"), String(Configuration._timeSendData));
-  ret &= publish(String("timeSaveData"), String(Configuration._timeSaveData));
-  ret &= publish(String("mode"), String(Configuration._mode));
-  ret &= publish(String("currentClampA"), String(Configuration._currentClampA));
-  ret &= publish(String("currentClampB"), String(Configuration._currentClampB));
-  ret &= publish(String("currentClampC"), String(Configuration._currentClampC));
-  // ret &= publish(String("version"), String(VERSION));
-  // ret &= publish(String("build"), String(String(__DATE__) + " " + String(__TIME__)));
-  // ret &= publish(String("ip"), WiFi.localIP().toString());
+  bool ret = true;
 
   /* Send Line A */
   line = Monitoring.getLineA();
-  ret &= publish(String(Configuration._nameA + "/voltage"), String(line->voltage));
-  ret &= publish(String(Configuration._nameA + "/current"), String(line->current));
-  ret &= publish(String(Configuration._nameA + "/power"), String(line->power));
-  ret &= publish(String(Configuration._nameA + "/cosPhy"), String(line->cosPhy));
-  ret &= publish(String(Configuration._nameA + "/conso"), String(line->conso));
 
-  // /* Send Line B */
+  doc.clear();
+  doc["voltage"] = String(line->voltage);
+  doc["current"] = String(line->current);
+  doc["power"] = String(line->power);
+  doc["cosPhy"] = String(line->cosPhy);
+  doc["conso"] = String(line->conso);
+
+  ret &= publish(String(Configuration._nameA), doc);
+
+  /* Send Line B */
   line = Monitoring.getLineB();
-  ret &= publish(String(Configuration._nameB + "/voltage"), String(line->voltage));
-  ret &= publish(String(Configuration._nameB + "/current"), String(line->current));
-  ret &= publish(String(Configuration._nameB + "/power"), String(line->power));
-  ret &= publish(String(Configuration._nameB + "/cosPhy"), String(line->cosPhy));
-  ret &= publish(String(Configuration._nameB + "/conso"), String(line->conso));
 
-  // /* Send Line C */
+  doc.clear();
+  doc["voltage"] = String(line->voltage);
+  doc["current"] = String(line->current);
+  doc["power"] = String(line->power);
+  doc["cosPhy"] = String(line->cosPhy);
+  doc["conso"] = String(line->conso);
+
+  ret &= publish(String(Configuration._nameB), doc);
+
+  /* Send Line C */
   line = Monitoring.getLineC();
-  ret &= publish(String(Configuration._nameC + "/voltage"), String(line->voltage));
-  ret &= publish(String(Configuration._nameC + "/current"), String(line->current));
-  ret &= publish(String(Configuration._nameC + "/power"), String(line->power));
-  ret &= publish(String(Configuration._nameC + "/cosPhy"), String(line->cosPhy));
-  ret &= publish(String(Configuration._nameC + "/conso"), String(line->conso));
+
+  doc.clear();
+  doc["voltage"] = String(line->voltage);
+  doc["current"] = String(line->current);
+  doc["power"] = String(line->power);
+  doc["cosPhy"] = String(line->cosPhy);
+  doc["conso"] = String(line->conso);
+
+  ret &= publish(String(Configuration._nameC), doc);
 
   /* Send Frequency */
   ret &= publish(String("frequency"), String(Monitoring.GetFrequency()));
 
   return ret;
 }
+
+bool Mqtt::publishConfiguration()
+{
+    // Send Config to Mqtt
+    DynamicJsonDocument doc(1024);
+
+    Configuration.encodeToJson(doc);
+
+    return MqttClient.publish(String("configuration"), doc);
+}
+
+bool Mqtt::publishInformations()
+{
+    // Send Config to Mqtt
+    DynamicJsonDocument doc(128);
+
+    doc["version"] = VERSION;
+    doc["buildDate"] = BUILD_DATE;
+    doc["startedAt"] = startedAt;
+    char *time = Log.getDateTimeString();
+    doc["connectedFrom"] = String(time);
+
+    return MqttClient.publish(String("information"), doc);
+}
+
 
 /********************************************************/
 /******************** Private Method ********************/
@@ -127,34 +165,16 @@ void Mqtt::reconnect()
       // Create a random clientMqtt ID
       String clientId = Configuration._hostname + String(random(0xffff), HEX);
       // Attempt to connect
-      bool res;
-      if (Configuration._mqttUsername == NULL)
-      {
-        res = _clientMqtt.connect(clientId.c_str(), NULL, 1, 0, NULL);
-      }
-      else
-      {
-        res = _clientMqtt.connect(clientId.c_str(), Configuration._mqttUsername.c_str(), Configuration._mqttPassword.c_str(), NULL, 1, 0, NULL, false);
-      }
+      bool res = _clientMqtt.connect(clientId.c_str(), Configuration._mqttUsername.c_str(), Configuration._mqttPassword.c_str(), NULL, 1, 0, NULL, true);
 
       if (res)
       {
         Log.println("connected");
         // Once connected, publish an announcement...
-        char *time = Log.getDateTimeString();
-        publish(String("connectedFrom"), String(time));
-        publish(String("version"), String(VERSION));
-        publish(String("build"), String(BUILD_DATE));
-        publish(String("ip"), WiFi.localIP().toString());
-        publish(String("startedAt"), String(startedAt));
         publish(String("relay"), String(digitalRead(RELAY_PIN)));
-        publish(String("timeSendData"), String(Configuration._timeSendData));
-        publish(String("timeSaveData"), String(Configuration._timeSaveData));
-        publish(String("mode"), String(Configuration._mode));
-        publish(String("currentClampA"), String(Configuration._currentClampA));
-        publish(String("currentClampB"), String(Configuration._currentClampB));
-        publish(String("currentClampC"), String(Configuration._currentClampC));
-        publish(String("timeoutRelay"), String(Configuration._timeoutRelay));
+        publishConfiguration();
+        publishInformations();
+        publishMonitoringData();
         // ... and resubscribe
         subscribe(String("set/#"));
       }
