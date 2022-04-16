@@ -9,6 +9,8 @@
 #include "JsonConfiguration.h"
 #include "Logger.h"
 
+#define PATH_FILE_CONFIG  "/config.json"
+
 /********************************************************/
 /******************** Public Method *********************/
 /********************************************************/
@@ -26,7 +28,7 @@ void JsonConfiguration::setup(void)
   /* Initialize FS */
   if (!FS.begin())
   {
-    Log.println("failed to initialize FS, try to format");
+    Log.println("failed to initialize FS, try to format, please wait...");
     FS.format();
     if (!FS.begin())
     {
@@ -72,8 +74,15 @@ bool JsonConfiguration::readConfig()
 {
   Log.println("Read Configuration file from FS...");
 
+  // Check if file Exist
+  if (!FS.exists(PATH_FILE_CONFIG))
+  {
+    Log.println("config file not exist !");
+    return false;
+  }
+
   // Open file
-  File configFile = FS.open("/config.json", "r");
+  File configFile = FS.open(PATH_FILE_CONFIG, "r");
   if (!configFile)
   {
     Log.println("Failed to open config file");
@@ -102,7 +111,7 @@ bool JsonConfiguration::saveConfig()
 
   encodeToJson(doc);
 
-  File configFile = FS.open("/config.json", "w");
+  File configFile = FS.open(PATH_FILE_CONFIG, "w");
   if (!configFile)
   {
     Log.println("Error: Failed to open config file for writing");
