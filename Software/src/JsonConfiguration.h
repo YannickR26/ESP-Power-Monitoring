@@ -23,6 +23,7 @@ public:
 
 	/* Members */
 	String _hostname;
+	String _ip;
 	bool _mqttEnable;
 	String _mqttIpServer;
 	uint16_t _mqttPortServer;

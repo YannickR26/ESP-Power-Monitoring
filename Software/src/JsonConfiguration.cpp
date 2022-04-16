@@ -50,6 +50,7 @@ void JsonConfiguration::print(void)
 {
   Log.println(String("Current configuration :"));
   Log.println(String("    hostname: ") + _hostname);
+  Log.println(String("    ip: ") + _ip);
   Log.println(String("    timeSaveData: ") + String(_timeSaveData));
   Log.println(String("    timeSendData: ") + String(_timeSendData));
   Log.println(String("    timeoutRelay: ") + String(_timeoutRelay));
@@ -165,6 +166,7 @@ uint8_t JsonConfiguration::encodeToJson(JsonDocument &_json)
 {
   _json.clear();
   _json["hostname"] = _hostname;
+  _json["ip"] = _ip;
   _json["timeSaveData"] = _timeSaveData;
   _json["timeSendData"] = _timeSendData;
   _json["timeoutRelay"] = _timeoutRelay;
@@ -251,8 +253,11 @@ uint8_t JsonConfiguration::decodeJsonFromFile(const char *input)
     if (!mqtt["password"].isNull())
       _mqttPassword = mqtt["password"].as<String>();
 
-    if (!mqtt["topic"].isNull())
+    if (!mqtt["topic"].isNull()) {
       _mqttTopic = mqtt["topic"].as<String>();
+      if (!_mqttTopic.endsWith("/"))
+        _mqttTopic += '/';
+    }
   }
 
   JsonObject lineA = doc["lineA"];
