@@ -230,7 +230,7 @@ void HttpServer::setConfig()
     if (_webServer.hasArg("plain") == false)
     {
         Log.println("Error, no body received !");
-        _webServer.send(404, "text/plain", "Body not received");
+        _webServer.send(400, "text/plain", "Body not received");
     }
     else
     {
@@ -250,13 +250,13 @@ void HttpServer::setConfig()
             }
             else
             {
-                _webServer.send(200, "application/json", "{\"result\":false}");
+                _webServer.send(400, "application/json", "{\"result\":false}");
             }
         }
         else
         {
             Log.println("Error, parsing JSON !");
-            _webServer.send(404, "text/plain", "Error with parsing JSON");
+            _webServer.send(400, "text/plain", "Error with parsing JSON");
         }
     }
 }
