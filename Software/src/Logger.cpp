@@ -2,14 +2,6 @@
 #include "settings.h"
 #include "Mqtt.h"
 
-#ifdef USE_DST_ADJUST
-#include <simpleDSTadjust.h>
-
-struct dstRule StartRule = {"CEST", Last, Sun, Mar, 2, 3600}; // Central European Summer Time = UTC/GMT +2 hours
-struct dstRule EndRule = {"CET", Last, Sun, Oct, 2, 0};       // Central European Time = UTC/GMT +1 hour
-simpleDSTadjust dstAdjusted(StartRule, EndRule);
-#endif
-
 
 /********************************************************/
 /******************** Public Method *********************/
@@ -76,12 +68,7 @@ char *Logger::getDateTimeString()
 {
   static char time[30];
 
-#ifdef USE_DST_ADJUST
-  char *dstAbbrev;
-  time_t t = dstAdjusted.time(&dstAbbrev);
-#else
-  time_t t = time(nullptr);
-#endif
+  time_t t = ::time(0);
   struct tm *timeinfo = localtime(&t);
 
   sprintf(time, "%02d/%02d/%d %02d:%02d:%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
@@ -120,14 +107,8 @@ void Logger::send(String &s)
 
 void Logger::addTime(String &s)
 {
-#ifdef USE_DST_ADJUST
-
   char *time = getDateTimeString();
-
   s = "[" + String(time) + "] " + s;
-#else
-  s = "[" + String(millis()) + "] " + s;
-#endif
 }
 
 #ifdef DEBUG_BY_TELNET

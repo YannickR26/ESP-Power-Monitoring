@@ -34,9 +34,7 @@
 #define LED_TIME_NOMQTT     100
 #define LED_TIME_WORK       500
 
-// Timezone
-#define UTC_OFFSET          +1
-
-// change for different ntp (time servers)
-#define NTP_SERVERS         "0.fr.pool.ntp.org", "time.nist.gov", "pool.ntp.org"
-#define EPOCH_1_1_2019      1546300800
+// NTP and Timezone
+#define NTP_SERVERS "0.fr.pool.ntp.org", "time.nist.gov", "pool.ntp.org"
+// List of timezone: https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
+#define TIMEZONE "CET-1CEST,M3.5.0,M10.5.0/3"

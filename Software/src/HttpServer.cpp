@@ -1,6 +1,11 @@
+#if defined(ESP8266)
 #include <LittleFS.h>
+#define FS LittleFS
 #include <ESP8266mDNS.h>
-#include <ESP8266HTTPUpdateServer.h>
+#elif defined(ESP32)
+#include <SPIFFS.h>
+#define FS SPIFFS
+#endif
 
 // You can update by 'curl -F "image=@firmware.bin" ESP_Monitoring.local/'
 
@@ -28,11 +33,12 @@ HttpServer::~HttpServer()
 
 void HttpServer::setup(void)
 {
+#if defined(ESP8266)
   MDNS.begin(Configuration._hostname.c_str());
   MDNS.addService("http", "tcp", 80);
 
-  _ftpServer.begin(Configuration._hostname, Configuration._hostname);
   MDNS.addService("ftp", "tcp", 21);
+#endif
 
   _webServer.on("/restart", [&]() {
     _webServer.sendHeader("Access-Control-Allow-Origin", "*");
@@ -65,8 +71,10 @@ void HttpServer::setup(void)
 void HttpServer::handle(void)
 {
   _webServer.handleClient();
+
+#if defined(ESP8266)
   MDNS.update();
-  _ftpServer.handleFTP();
+#endif
 }
 
 String HttpServer::getContentType(String filename)
@@ -110,12 +118,12 @@ bool HttpServer::handleFileRead(String path)
   String contentType = getContentType(path); // Get the MIME type
 
   String pathWithGz = path + F(".gz");
-  if (LittleFS.exists(pathWithGz)) // If there's a compressed version available
+  if (FS.exists(pathWithGz)) // If there's a compressed version available
     path += ".gz";                 // Use the compressed verion
 
-  if (LittleFS.exists(path))
+  if (FS.exists(path))
   {
-    File file = LittleFS.open(path, "r"); // Open the file
+    File file = FS.open(path, "r"); // Open the file
     _webServer.sendHeader("Access-Control-Allow-Origin", "*");
     _webServer.streamFile(file, contentType); // Send it to the client
     file.close();                             // Close the file again
@@ -301,16 +309,12 @@ void HttpServer::handleSet()
   HTTPServer.webServer().send(200, "text/plain", message);
 }
 
-ESP8266WebServer &HttpServer::webServer()
-{
-  return _webServer;
-}
 
 /********************************************************/
 /******************** Private Method ********************/
 /********************************************************/
 
-void HttpServer::sendJson(const uint16 code, JsonDocument &doc)
+void HttpServer::sendJson(const uint16_t code, JsonDocument &doc)
 {
   WiFiClient client = _webServer.client();
 
