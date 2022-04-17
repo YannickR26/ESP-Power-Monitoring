@@ -69,6 +69,7 @@ void sendData()
     Log.println("Read data...");
     Monitoring.handle();
 
+    // Send data to MQTT
     if (Configuration._mqttEnable) {
         Log.print("Send data to MQTT... ");
         bool ret = MqttClient.publishMonitoringData();
@@ -77,6 +78,11 @@ void sendData()
         else
             Log.println("Error !");
     }
+
+    // Send data to websocket
+    Log.print("Send data to WS... ");
+    HTTPServer.sendMonitoringData();
+    Log.println("Done !");
 }
 
 /*************/

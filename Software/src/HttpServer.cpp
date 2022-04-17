@@ -26,7 +26,7 @@ extern SimpleRelay relay;
 /********************************************************/
 
 HttpServer::HttpServer()
-    : _webServer(80), _httpUpdater(true)
+    : _webServer(80), _httpUpdater(true), _webSocketServer(8080)
 {
 }
 
@@ -85,16 +85,73 @@ void HttpServer::setup(void)
     });
 
     _httpUpdater.setup(&_webServer, String("/update"));
+
     _webServer.begin();
+
+    _webSocketServer.begin();
 }
 
 void HttpServer::handle(void)
 {
     _webServer.handleClient();
+    _webSocketServer.loop();
 
 #if defined(ESP8266)
     MDNS.update();
 #endif
+}
+
+void HttpServer::sendMonitoringData()
+{
+    if (_webSocketServer.connectedClients())
+    {
+        metering *line;
+        DynamicJsonDocument doc(1024);
+        char data[1024];
+
+        /* Add Frequency */
+        doc["frequency"] = Monitoring.GetFrequency();
+
+        JsonArray array = doc.createNestedArray("lines");
+
+        /* Add Line A */
+        line = Monitoring.getLineA();
+
+        JsonObject lineA = array.createNestedObject();
+        lineA["voltage"] = String(line->voltage);
+        lineA["current"] = String(line->current);
+        lineA["power"] = String(line->power);
+        lineA["cosPhy"] = String(line->cosPhy);
+        lineA["conso"] = String(line->conso);
+
+        /* Add Line B */
+        line = Monitoring.getLineB();
+
+        JsonObject lineB = array.createNestedObject();
+        lineB["voltage"] = String(line->voltage);
+        lineB["current"] = String(line->current);
+        lineB["power"] = String(line->power);
+        lineB["cosPhy"] = String(line->cosPhy);
+        lineB["conso"] = String(line->conso);
+
+
+        /* Add Line C */
+        line = Monitoring.getLineC();
+
+        JsonObject lineC = array.createNestedObject();
+        lineC["voltage"] = String(line->voltage);
+        lineC["current"] = String(line->current);
+        lineC["power"] = String(line->power);
+        lineC["cosPhy"] = String(line->cosPhy);
+        lineC["conso"] = String(line->conso);
+
+        serializeJson(doc, data);
+
+        // Log.println();
+        // Log.print("Send WebSocket data: ");
+        // Log.println(data);
+        _webSocketServer.broadcastTXT(data, strlen(data));
+    }
 }
 
 void HttpServer::getInformations()
