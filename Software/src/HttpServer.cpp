@@ -26,7 +26,7 @@ extern SimpleRelay relay;
 /********************************************************/
 
 HttpServer::HttpServer()
-    : _webServer(80), _httpUpdater(true)
+    : _webServer(80), _httpUpdater(true), _webSocketServer(8080)
 {
 }
 
@@ -41,13 +41,13 @@ void HttpServer::setup(void)
 
     _webServer.enableCORS();
 
-    _webServer.on("/restart", [&]() {
+    _webServer.on("/restart", HTTP_GET, [&]() {
         _webServer.send(200, "text/plain", "ESP restart now !");
         delay(1000);
         ESP.restart();
     });
 
-    _webServer.on("/reset", [&]() {
+    _webServer.on("/resetWifiManager", HTTP_GET, [&]() {
         _webServer.send(200, "text/plain", "Reset WifiManager configuration, restart now in AP mode...");
         delay(200);
         WiFiManager wifiManager;
@@ -56,16 +56,27 @@ void HttpServer::setup(void)
         ESP.restart();
     });
 
-    _webServer.on("/config", HTTP_GET, [&]() {
-        getConfig();
+    _webServer.on("/resetConfiguration", HTTP_GET, [&]() {
+        _webServer.send(200, "text/plain", "Resetting all parameters, you must reboot for apply it !");
+        delay(200);
+        Configuration.restoreDefault();
+        Configuration.saveConfig();
     });
-    _webServer.on("/config", HTTP_POST, [&]() {
+
+
+    _webServer.on("/setConfiguration", HTTP_PUT, [&]() {
         setConfig();
     });
+
     _webServer.on("/status", HTTP_GET, [&]() {
         getStatus();
     });
-    _webServer.on("/set", [&]() {
+
+    _webServer.on("/informations", HTTP_GET, [&]() {
+        getInformations();
+    });
+
+    _webServer.on("/set", HTTP_GET, [&]() {
         handleSet();
     });
 
@@ -74,16 +85,83 @@ void HttpServer::setup(void)
     });
 
     _httpUpdater.setup(&_webServer, String("/update"));
+
     _webServer.begin();
+
+    _webSocketServer.begin();
 }
 
 void HttpServer::handle(void)
 {
     _webServer.handleClient();
+    _webSocketServer.loop();
 
 #if defined(ESP8266)
     MDNS.update();
 #endif
+}
+
+void HttpServer::sendMonitoringData()
+{
+    if (_webSocketServer.connectedClients())
+    {
+        metering *line;
+        DynamicJsonDocument doc(1024);
+        char data[1024];
+
+        /* Add Frequency */
+        doc["frequency"] = Monitoring.GetFrequency();
+
+        JsonArray array = doc.createNestedArray("lines");
+
+        /* Add Line A */
+        line = Monitoring.getLineA();
+
+        JsonObject lineA = array.createNestedObject();
+        lineA["voltage"] = String(line->voltage);
+        lineA["current"] = String(line->current);
+        lineA["power"] = String(line->power);
+        lineA["cosPhy"] = String(line->cosPhy);
+        lineA["conso"] = String(line->conso);
+
+        /* Add Line B */
+        line = Monitoring.getLineB();
+
+        JsonObject lineB = array.createNestedObject();
+        lineB["voltage"] = String(line->voltage);
+        lineB["current"] = String(line->current);
+        lineB["power"] = String(line->power);
+        lineB["cosPhy"] = String(line->cosPhy);
+        lineB["conso"] = String(line->conso);
+
+
+        /* Add Line C */
+        line = Monitoring.getLineC();
+
+        JsonObject lineC = array.createNestedObject();
+        lineC["voltage"] = String(line->voltage);
+        lineC["current"] = String(line->current);
+        lineC["power"] = String(line->power);
+        lineC["cosPhy"] = String(line->cosPhy);
+        lineC["conso"] = String(line->conso);
+
+        serializeJson(doc, data);
+
+        // Log.println();
+        // Log.print("Send WebSocket data: ");
+        // Log.println(data);
+        _webSocketServer.broadcastTXT(data, strlen(data));
+    }
+}
+
+void HttpServer::getInformations()
+{
+    DynamicJsonDocument doc(128);
+
+    doc["buildDate"] = BUILD_DATE;
+    doc["version"] = VERSION;
+
+    HTTPServer.sendJson(200, doc);
 }
 
 String HttpServer::getContentType(String filename)
@@ -180,10 +258,7 @@ void HttpServer::getStatus()
     Log.println("Send Status to HTTP");
 
     DynamicJsonDocument doc(1024);
-    doc.clear();
 
-    doc["version"] = String(VERSION);
-    doc["build"] = String(BUILD_DATE);
     doc["relay"] = digitalRead(RELAY_PIN);
 
     JsonObject jsonLineA = doc.createNestedObject("lineA");
@@ -212,17 +287,6 @@ void HttpServer::getStatus()
 
     // Send Status
     HTTPServer.sendJson(200, doc);
-}
-
-void HttpServer::getConfig()
-{
-    Log.println("Send Configuration");
-
-    DynamicJsonDocument doc(1024);
-    Configuration.encodeToJson(doc);
-
-    // Send Configuration
-    sendJson(200, doc);
 }
 
 void HttpServer::setConfig()

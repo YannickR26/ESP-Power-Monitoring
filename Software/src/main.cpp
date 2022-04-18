@@ -41,6 +41,10 @@ void updateTimeAndSaveData()
     Configuration._consoB = (uint32_t)Monitoring.getLineB()->conso;
     Configuration._consoC = (uint32_t)Monitoring.getLineC()->conso;
     Configuration.saveConfig();
+
+    // Send Config to Mqtt
+    Log.println("Send Config to MQTT");
+    MqttClient.publishConfiguration();
 }
 
 // LED blink
@@ -65,12 +69,20 @@ void sendData()
     Log.println("Read data...");
     Monitoring.handle();
 
-    Log.print("Send data to MQTT... ");
-    bool ret = MqttClient.publishMonitoringData();
-    if (ret == true)
-        Log.println("Done !");
-    else
-        Log.println("Error !");
+    // Send data to MQTT
+    if (Configuration._mqttEnable) {
+        Log.print("Send data to MQTT... ");
+        bool ret = MqttClient.publishMonitoringData();
+        if (ret == true)
+            Log.println("Done !");
+        else
+            Log.println("Error !");
+    }
+
+    // Send data to websocket
+    Log.print("Send data to WS... ");
+    HTTPServer.sendMonitoringData();
+    Log.println("Done !");
 }
 
 /*************/
@@ -169,7 +181,14 @@ void setup()
     relay.setTimeout(Configuration._timeoutRelay);
     relay.setState(Configuration._stateRelay);
 
+    // Connect to Wifi
     wifiSetup();
+
+    // Save IP addr
+    if (Configuration._ip != WiFi.localIP().toString()) {
+        Configuration._ip = WiFi.localIP().toString();
+        Configuration.saveConfig();
+    }
 
     // Create ticker for blink LED
     tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
@@ -178,7 +197,8 @@ void setup()
     HTTPServer.setup();
 
     /* Initialize MQTT Client */
-    MqttClient.setup();
+    if (Configuration._mqttEnable)
+        MqttClient.setup();
 
     Log.setupTelnet();
 
@@ -231,7 +251,9 @@ void loop()
     static unsigned long tickSendData = 0, tickSaveData = 0, tickPrintData = 0, tickCheckWifi = 0;
     const unsigned long tick = millis();
 
-    MqttClient.handle();
+    if (Configuration._mqttEnable)
+        MqttClient.handle();
+
     Log.handle();
     HTTPServer.handle();
 

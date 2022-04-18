@@ -7,6 +7,8 @@
 #include <WebServer.h>
 #include <HTTPUpdateServer.h>
 #endif
+
+#include <WebSocketsServer.h>
 #include <ArduinoJson.h>
 
 #include "JsonConfiguration.h"
@@ -26,13 +28,15 @@ public:
     WebServer &webServer() { return _webServer; }
 #endif
 
+    void sendMonitoringData();
+
 
     String getContentType(String filename);
     bool handleFileRead(String path);
     void handleNotFound();
     void handleSet();
+    void getInformations();
     void getStatus();
-    void getConfig();
     void setConfig();
     void sendJson(const uint16_t code, JsonDocument &doc);
 
@@ -44,6 +48,7 @@ private:
     WebServer _webServer;
     HTTPUpdateServer _httpUpdater;
 #endif
+    WebSocketsServer _webSocketServer;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES)

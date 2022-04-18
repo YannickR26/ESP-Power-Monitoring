@@ -1,0 +1,1 @@
+let URI = document.location.hostname;
