@@ -89,18 +89,8 @@ body {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
 }
 
-/* Slider vertical */
-.form-control-range {
-  -webkit-appearance: slider-vertical;
-}
-
 .center {
   text-align: center;
-}
-
-.slider-value {
-  margin-top: 10px;
-  font-size: 1.25rem;
 }
 
 .input-number {
