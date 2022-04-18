@@ -82,41 +82,47 @@ bool Mqtt::publishMonitoringData()
 
   bool ret = true;
 
-  /* Send Line A */
-  line = Monitoring.getLineA();
+  if (Configuration._enableA) {
+    /* Send Line A */
+    line = Monitoring.getLineA();
 
-  doc.clear();
-  doc["voltage"] = String(line->voltage);
-  doc["current"] = String(line->current);
-  doc["power"] = String(line->power);
-  doc["cosPhy"] = String(line->cosPhy);
-  doc["conso"] = String(line->conso);
+    doc.clear();
+    doc["voltage"] = String(line->voltage);
+    doc["current"] = String(line->current);
+    doc["power"] = String(line->power);
+    doc["cosPhy"] = String(line->cosPhy);
+    doc["conso"] = String(line->conso);
 
-  ret &= publish(String(Configuration._nameA), doc);
+    ret &= publish(String(Configuration._nameA), doc);
+  }
 
   /* Send Line B */
-  line = Monitoring.getLineB();
+  if (Configuration._enableB) {
+    line = Monitoring.getLineB();
 
-  doc.clear();
-  doc["voltage"] = String(line->voltage);
-  doc["current"] = String(line->current);
-  doc["power"] = String(line->power);
-  doc["cosPhy"] = String(line->cosPhy);
-  doc["conso"] = String(line->conso);
+    doc.clear();
+    doc["voltage"] = String(line->voltage);
+    doc["current"] = String(line->current);
+    doc["power"] = String(line->power);
+    doc["cosPhy"] = String(line->cosPhy);
+    doc["conso"] = String(line->conso);
 
-  ret &= publish(String(Configuration._nameB), doc);
+    ret &= publish(String(Configuration._nameB), doc);
+  }
 
-  /* Send Line C */
-  line = Monitoring.getLineC();
+  if (Configuration._enableC) {
+    /* Send Line C */
+    line = Monitoring.getLineC();
 
-  doc.clear();
-  doc["voltage"] = String(line->voltage);
-  doc["current"] = String(line->current);
-  doc["power"] = String(line->power);
-  doc["cosPhy"] = String(line->cosPhy);
-  doc["conso"] = String(line->conso);
+    doc.clear();
+    doc["voltage"] = String(line->voltage);
+    doc["current"] = String(line->current);
+    doc["power"] = String(line->power);
+    doc["cosPhy"] = String(line->cosPhy);
+    doc["conso"] = String(line->conso);
 
-  ret &= publish(String(Configuration._nameC), doc);
+    ret &= publish(String(Configuration._nameC), doc);
+  }
 
   /* Send Frequency */
   ret &= publish(String("frequency"), String(Monitoring.GetFrequency()));
