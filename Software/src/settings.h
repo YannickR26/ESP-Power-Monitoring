@@ -23,8 +23,8 @@
 #define ATM90E32_CS         D8
 #define ATM90E32_PM0        D4
 #define ATM90E32_PM1        D3
-#define ATM90E32_UGAIN      30000
-#define ATM90E32_IGAIN      315     // x capacité de la pince amperemetrique (defaut 30A)
+#define ATM90E32_UGAIN      30500
+#define ATM90E32_IGAIN      310     // x capacité de la pince amperemetrique (defaut 30A)
 
 // Relay
 #define RELAY_PIN           D0
