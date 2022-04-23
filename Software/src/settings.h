@@ -1,7 +1,7 @@
 #pragma once
 
 // Version
-#define VERSION                     "V2.1.6"
+#define VERSION                     "V2.2.0"
 #define BUILD_DATE                  String((__DATE__) + String(" ") + (__TIME__))
 
 #define DEFAULT_HOSTNAME            "ESP_Monitoring"
