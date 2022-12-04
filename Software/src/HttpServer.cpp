@@ -10,7 +10,7 @@
 
 // You can update by 'curl -F "image=@firmware.bin" ESP_Monitoring.local/'
 
-#include "WiFiManager.h"
+#include "ESP_WiFiManager.hpp"
 #include "HttpServer.h"
 #include "ATM90E32.h"
 #include "Logger.h"
@@ -50,7 +50,7 @@ void HttpServer::setup(void)
     _webServer.on("/resetWifiManager", HTTP_GET, [&]() {
         _webServer.send(200, "text/plain", "Reset WifiManager configuration, restart now in AP mode...");
         delay(200);
-        WiFiManager wifiManager;
+        ESP_WiFiManager wifiManager;
         wifiManager.resetSettings();
         delay(200);
         ESP.restart();

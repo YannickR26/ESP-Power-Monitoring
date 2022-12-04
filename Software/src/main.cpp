@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <WiFiManager.h>
+#include <ESP_WiFiManager.h>
 #include <Ticker.h>
 
 #include "JsonConfiguration.h"
@@ -96,22 +96,22 @@ void sendData()
 // Wifi setup
 void wifiSetup()
 {
-    WiFiManager wifiManager;
+    ESP_WiFiManager wifiManager(Configuration._hostname.c_str());
     // wifiManager.setDebugOutput(false);
     // wifiManager.resetSettings();
 
     // WiFiManagerParameter
-    WiFiManagerParameter custom_mqtt_hostname("hostname", "hostname", Configuration._hostname.c_str(), 60);
-    WiFiManagerParameter custom_mqtt_server("mqttIpServer", "mqtt ip", Configuration._mqttIpServer.c_str(), 40);
-    WiFiManagerParameter custom_mqtt_port("mqttPortServer", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
-    WiFiManagerParameter custom_mqtt_username("mqttUsername", "mqtt username", String(Configuration._mqttUsername).c_str(), 40);
-    WiFiManagerParameter custom_mqtt_userpassword("mqttPassword", "mqtt password", String(Configuration._mqttPassword).c_str(), 40);
-    WiFiManagerParameter custom_time_send_data("timeSendData", "intervale d'envoie des données (s)", String(Configuration._timeSendData).c_str(), 6);
-    WiFiManagerParameter custom_time_save_data("timeSaveData", "intervale de sauvegarde des données (s)", String(Configuration._timeSaveData).c_str(), 6);
-    WiFiManagerParameter custom_mode("mode", "mode (0: Mono, 1: 1x Tri, 2: 2x Tri)", String(Configuration._mode).c_str(), 1);
-    WiFiManagerParameter custom_currentA("currentClampA", "capacité de la pince amperemetrique A (A)", String(Configuration._currentClampA).c_str(), 3);
-    WiFiManagerParameter custom_currentB("currentClampB", "capacité de la pince amperemetrique B (A)", String(Configuration._currentClampB).c_str(), 3);
-    WiFiManagerParameter custom_currentC("currentClampC", "capacité de la pince amperemetrique C (A)", String(Configuration._currentClampC).c_str(), 3);
+    ESP_WMParameter custom_mqtt_hostname("hostname", "hostname", Configuration._hostname.c_str(), 60);
+    ESP_WMParameter custom_mqtt_server("mqttIpServer", "mqtt ip", Configuration._mqttIpServer.c_str(), 40);
+    ESP_WMParameter custom_mqtt_port("mqttPortServer", "mqtt port", String(Configuration._mqttPortServer).c_str(), 6);
+    ESP_WMParameter custom_mqtt_username("mqttUsername", "mqtt username", String(Configuration._mqttUsername).c_str(), 40);
+    ESP_WMParameter custom_mqtt_userpassword("mqttPassword", "mqtt password", String(Configuration._mqttPassword).c_str(), 40);
+    ESP_WMParameter custom_time_send_data("timeSendData", "intervale d'envoie des donnees (s)", String(Configuration._timeSendData).c_str(), 6);
+    ESP_WMParameter custom_time_save_data("timeSaveData", "intervale de sauvegarde des donnees (s)", String(Configuration._timeSaveData).c_str(), 6);
+    ESP_WMParameter custom_mode("mode", "mode (0: Mono, 1: 1x Tri, 2: 2x Tri)", String(Configuration._mode).c_str(), 1);
+    ESP_WMParameter custom_currentA("currentClampA", "capacite de la pince amperemetrique A (A)", String(Configuration._currentClampA).c_str(), 3);
+    ESP_WMParameter custom_currentB("currentClampB", "capacite de la pince amperemetrique B (A)", String(Configuration._currentClampB).c_str(), 3);
+    ESP_WMParameter custom_currentC("currentClampC", "capacite de la pince amperemetrique C (A)", String(Configuration._currentClampC).c_str(), 3);
 
     // add all your parameters here
     wifiManager.addParameter(&custom_mqtt_hostname);
@@ -126,8 +126,17 @@ void wifiSetup()
     wifiManager.addParameter(&custom_currentB);
     wifiManager.addParameter(&custom_currentC);
 
+    WiFi.setHostname(Configuration._hostname.c_str());
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+
+#if defined(C3_MINI)
+    Log.println("Reducing WiFi Tx Power for Lolin C3 mini");
+    WiFi.setTxPower(WIFI_POWER_8_5dBm);
+#endif
+
     Log.println("Try to connect to WiFi...");
-    wifiManager.setWiFiAPChannel(6);
+    wifiManager.setConfigPortalChannel(11);
     wifiManager.setConfigPortalTimeout(300); // Set Timeout for portal configuration to 300 seconds
     if (!wifiManager.autoConnect(Configuration._hostname.c_str()))
     {

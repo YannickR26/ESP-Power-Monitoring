@@ -9,7 +9,7 @@
 #include <WiFi.h>
 #endif
 
-#include <WiFiManager.h>
+#include <ESP_WiFiManager.hpp>
 #include "Logger.h"
 #include "SimpleRelay.h"
 
@@ -272,7 +272,7 @@ void Mqtt::callback(char *topic, uint8_t *payload, unsigned int length)
   else if (topicStr == String("reset"))
   {
     Log.println("Reset ESP and restart !!!");
-    WiFiManager wifiManager;
+    ESP_WiFiManager wifiManager;
     wifiManager.resetSettings();
     ESP.restart();
   }
