@@ -10,7 +10,9 @@
 #include "Logger.h"
 #include "SimpleRelay.h"
 
+#if !defined(C3_MINI)
 static Ticker tick_blinker;
+#endif
 SimpleRelay relay(RELAY_PIN, "relay");
 
 // OTA
@@ -47,6 +49,7 @@ void updateTimeAndSaveData()
     MqttClient.publishConfiguration();
 }
 
+#if !defined(C3_MINI)
 // LED blink
 void blinkLED()
 {
@@ -62,6 +65,7 @@ void blinkLED()
         tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
     }
 }
+#endif
 
 // Send Data to MQTT
 void sendData()
@@ -172,8 +176,10 @@ void setup()
     Log.println("==========================================");
     Log.println();
 
+#if !defined(C3_MINI)
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, 0);
+#endif
 
     /* Read configuration from SPIFFS */
     Configuration.setup();
@@ -190,8 +196,10 @@ void setup()
         Configuration.saveConfig();
     }
 
+#if !defined(C3_MINI)
     // Create ticker for blink LED
     tick_blinker.once_ms(LED_TIME_NOMQTT, blinkLED);
+#endif
 
     /* Initialize HTTP Server */
     HTTPServer.setup();

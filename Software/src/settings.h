@@ -20,17 +20,29 @@
 #define MODE_CALIB  4
 
 // ATM90E32
+#if defined(C3_MINI)
+#define ATM90E32_CS         5
+#define ATM90E32_PM0        6
+#define ATM90E32_PM1        7
+#else
 #define ATM90E32_CS         D8
 #define ATM90E32_PM0        D4
 #define ATM90E32_PM1        D3
+#endif
 #define ATM90E32_UGAIN      30500
 #define ATM90E32_IGAIN      310     // x capacité de la pince amperemetrique (defaut 30A)
 
 // Relay
+#if defined(C3_MINI)
+#define RELAY_PIN           1
+#else
 #define RELAY_PIN           D0
+#endif
 
 // LED
+#if !defined(C3_MINI)
 #define LED_PIN             LED_BUILTIN
+#endif
 #define LED_TIME_NOMQTT     100
 #define LED_TIME_WORK       500
 
