@@ -19,6 +19,16 @@
 #define MODE_DEBUG  3
 #define MODE_CALIB  4
 
+#if defined(C3_MINI)
+#define SPI_SCK     2
+#define SPI_MISO    3
+#define SPI_MOSI    4
+#else
+#define SPI_SCK     SCK
+#define SPI_MISO    MISO
+#define SPI_MOSI    MOSI
+#endif
+
 // ATM90E32
 #if defined(C3_MINI)
 #define ATM90E32_CS         5

@@ -491,7 +491,7 @@ void ATM90E32::begin(int pin, uint16_t lineFreq, uint16_t pgagain, uint16_t ugai
   delay(100);
 
   /* Enable SPI */
-  SPI.begin();
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
 
   Log.println("Connecting to ATM90E32");
 
