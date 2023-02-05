@@ -12,9 +12,8 @@ void Logger::setup()
 
 #ifdef DEBUG_BY_SERIAL
   Serial.begin(115200);
-  while (!Serial)
-  {
-  } // wait for serial port to connect. Needed for native USB
+  delay(100);
+
   println();
   println("Starting...");
 #endif
